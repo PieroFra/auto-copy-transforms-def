@@ -95,6 +95,180 @@ Testato su Blender 5.2. Fallback 3.6/4.x non verificati."""
 LICENSE_NOTICE = """GPL-3.0-or-later - Copyright (C) 2026 Pierfrancesco Diodato.
 Software libero, distribuito SENZA GARANZIA. Vedi il testo completo."""
 
+README_TEXT_EN = """Creates copy constraints between source bones (DEF-) and destination bones
+(MCH-, ORG-, ...).
+
+USAGE: select the armature in Pose Mode > sidebar N > Auto Copy Transforms >
+set the tokens > Preview > Apply constraints.
+
+FEATURES: Copy Transforms/Rotation/Location/Scale, mix, spaces, influence,
+offset, bone-collection filters, diagnostics, auto-prefix, pattern learning,
+maintenance, CSV/JSON export.
+
+Tested on Blender 5.2. 3.6/4.x fallbacks are unverified."""
+
+LICENSE_NOTICE_EN = """GPL-3.0-or-later - Copyright (C) 2026 Pierfrancesco Diodato.
+Free software, distributed WITHOUT WARRANTY. See the full text."""
+
+
+def _is_english_ui():
+    """True quando la lingua dell'interfaccia Blender e' inglese."""
+    try:
+        locale = bpy.app.translations.locale or ""
+    except Exception:
+        locale = ""
+    return locale.lower().startswith("en")
+
+
+# Traduzioni italiane -> inglesi. Le chiavi vengono replicate per i contesti
+# usati da Blender (label, proprietà, operatori), così la UI segue la lingua
+# dell'interfaccia senza duplicare il codice.
+_EN_TRANSLATIONS = {
+    "Token di mappatura": "Mapping tokens",
+    "Sorgente (Target)": "Source (Target)",
+    "Dest. (Owner)": "Destination (Owner)",
+    "Preset destinazione:": "Destination presets:",
+    "Preset destinazione": "Destination preset",
+    "Indovina prefissi": "Guess prefixes",
+    "Impara da constraint": "Learn from constraint",
+    "Usa regex": "Use regex",
+    "Pattern personalizzato": "Custom pattern",
+    "Opzioni constraint": "Constraint options",
+    "Applica a": "Apply to",
+    "Influenza": "Influence",
+    "Spazio target": "Target space",
+    "Spazio owner": "Owner space",
+    "Esistenti": "Existing",
+    "Constraint esistenti": "Existing constraints",
+    "Modalità": "Mode",
+    "Modalità mix": "Mix mode",
+    "Evita duplicati": "Avoid duplicates",
+    "Risolvi ambiguità": "Resolve ambiguity",
+    "Filtra per bone collection": "Filter by bone collection",
+    "Collection sorgente": "Source collection",
+    "Collection destinazione": "Destination collection",
+    "Sorgente": "Source",
+    "Destinazione": "Destination",
+    "Solo ossa deform": "Deform bones only",
+    "Tipo": "Type",
+    "Tipo di constraint": "Constraint type",
+    "Tipo token sorgente": "Source token type",
+    "Tipo token destinazione": "Destination token type",
+    "Token sorgente (Target)": "Source token (Target)",
+    "Token destinazione (Owner)": "Destination token (Owner)",
+    "Copy Rotation e' il caso tipico DEF → MCH": (
+        "Copy Rotation is the typical DEF → MCH case"
+    ),
+    "Avanzate": "Advanced",
+    "Usa offset": "Use offset",
+    "Posizione": "Position",
+    "Posizione nello stack": "Stack position",
+    "Rimuovi shear": "Remove shear",
+    "Nome": "Name",
+    "Nome constraint": "Constraint name",
+    "Azioni": "Actions",
+    "Informazioni / README": "Info / README",
+    "Informazioni": "Information",
+    "Anteprima mappatura": "Mapping preview",
+    "Applica constraint": "Apply constraints",
+    "Rimuovi constraint creati": "Remove generated constraints",
+    "Pulisci registro": "Clean registry",
+    "Converti in manuali": "Convert to manual",
+    "Muta generati": "Mute generated",
+    "Smuta generati": "Unmute generated",
+    "Mute/Unmute generati": "Mute/Unmute generated",
+    "Generati mutati": "Generated muted",
+    "Manutenzione": "Maintenance",
+    "Verifica rig": "Rig check",
+    "Mappatura e report": "Mapping and report",
+    "Anteprima non aggiornata": "Preview out of date",
+    "Diagnostica non aggiornata": "Diagnostics out of date",
+    "Nessun problema rilevato": "No issues found",
+    "Nessun constraint IK: posizione ignorata": (
+        "No IK constraint: position ignored"
+    ),
+    "Nessuna bone collection nell'armatura": (
+        "No bone collections in the armature"
+    ),
+    "Bone collections non disponibili": "Bone collections not available",
+    "Il mix cambia il risultato: verifica in viewport": (
+        "Mix changes the result: check the viewport"
+    ),
+    "'Usa offset' non disponibile per questo tipo": (
+        "'Use offset' is not available for this type"
+    ),
+    "'Rimuovi shear' non esiste per questo tipo": (
+        "'Remove shear' does not exist for this type"
+    ),
+    "Creatore: ": "Creator: ",
+    "Discord: ": "Discord: ",
+    "Licenza: ": "License: ",
+    "Licenza GPL completa": "Full GPL license",
+    "Apri ": "Open ",
+    "Azzera": "Clear",
+    "Imposta armatura sorgente": "Set source armature",
+    "Armatura sorgente": "Source armature",
+    "Stessa armatura (default)": "Same armature (default)",
+    "Aggiorna nome constraint dai token": (
+        "Refresh constraint name from tokens"
+    ),
+    "Livello": "Level",
+    "Messaggio": "Message",
+    "Stato": "Status",
+    "Nota": "Note",
+    "Report:": "Report:",
+    "Collection: ": "Collection: ",
+    "Mostra diagnostica": "Show diagnostics",
+    "Rimuovi solo i constraint generati dall'addon del tipo selezionato": (
+        "Removes only generated constraints of the selected type"
+    ),
+    "Prefisso": "Prefix",
+    "Suffisso": "Suffix",
+    "Tutte le ossa": "All bones",
+    "Solo selezionate": "Selected only",
+    "Mantieni": "Keep",
+    "Solo se mancante": "Missing only",
+    "Aggiorna esistente": "Update existing",
+    "In fondo": "Bottom",
+    "In cima": "Top",
+    "Prima del primo IK": "Before first IK",
+    "Risolto": "Resolved",
+    "Ambiguo": "Ambiguous",
+}
+
+TRANSLATIONS = {
+    "en_US": {
+        (context, source): target
+        for source, target in _EN_TRANSLATIONS.items()
+        for context in ("*", "Property", "Operator", "UI")
+    },
+}
+
+_translations_registered = False
+
+
+def _register_translations():
+    """Registra le traduzioni una sola volta, anche con register() ripetuti."""
+    global _translations_registered
+    if _translations_registered:
+        return
+    try:
+        bpy.app.translations.register(__name__, TRANSLATIONS)
+        _translations_registered = True
+    except Exception:
+        pass
+
+
+def _unregister_translations():
+    global _translations_registered
+    if not _translations_registered:
+        return
+    try:
+        bpy.app.translations.unregister(__name__)
+    except Exception:
+        pass
+    _translations_registered = False
+
 
 # =============================================================================
 #  COSTANTI / ENUM
@@ -2583,8 +2757,11 @@ class ACTD_OT_show_info(Operator):
 
     def draw(self, context):
         layout = self.layout
+        english = _is_english_ui()
         layout.label(text="AUTO COPY TRANSFORMS DEF", icon='INFO')
-        layout.label(text="Creatore: " + CREATOR_NAME)
+        layout.label(
+            text=bpy.app.translations.pgettext("Creatore: ") + CREATOR_NAME
+        )
 
         row = layout.row(align=True)
         op = row.operator(
@@ -2598,12 +2775,17 @@ class ACTD_OT_show_info(Operator):
 
         box = layout.box()
         box.label(text="README", icon='TEXT')
-        for line in _wrap_text(README_TEXT):
+        readme = README_TEXT_EN if english else README_TEXT
+        for line in _wrap_text(readme):
             box.label(text=line if line else " ")
 
         box = layout.box()
-        box.label(text="Licenza: " + LICENSE_NAME, icon='INFO')
-        for line in _wrap_text(LICENSE_NOTICE):
+        box.label(
+            text=bpy.app.translations.pgettext("Licenza: ") + LICENSE_NAME,
+            icon='INFO',
+        )
+        notice = LICENSE_NOTICE_EN if english else LICENSE_NOTICE
+        for line in _wrap_text(notice):
             box.label(text=line if line else " ")
 
         row = layout.row(align=True)
@@ -3019,6 +3201,7 @@ def _class_is_registered(cls):
 def register():
     registered = []
     try:
+        _register_translations()
         for cls in _registration_order():
             if _class_is_registered(cls):
                 continue
@@ -3045,10 +3228,12 @@ def register():
                 bpy.utils.unregister_class(cls)
             except Exception:
                 pass
+        _unregister_translations()
         raise
 
 
 def unregister():
+    _unregister_translations()
     if hasattr(bpy.types.Scene, "actd_settings"):
         try:
             del bpy.types.Scene.actd_settings

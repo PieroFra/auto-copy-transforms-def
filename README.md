@@ -8,7 +8,7 @@
 Map source bones (`DEF-`) to destination bones (`MCH-`, `ORG-`, ...) and build
 the constraint stack in a few clicks.
 
-![Info popup](docs/info-popup.png)
+![Info popup](docs/info-popup-en.png)
 
 ---
 
@@ -116,7 +116,8 @@ armature object, because Blender constraints do not support ID properties.
 
 - **Tested:** Blender 5.2 LTS.
 - **Fallbacks present but untested:** Blender 3.6 / 4.x.
-- **UI language:** Italian. Documentation: English and Italian.
+- **UI language:** Italian and English, following Blender's interface language.
+- **Documentation:** English and Italian.
 
 The test suite covers operators, mapping, constraint types, diagnostics,
 auto-prefix, pattern learning, maintenance and exports. GUI drawing is tested
@@ -144,6 +145,7 @@ test_mod_types.py       constraint types and use_offset
 test_mod_autoprefix.py  automatic token detection
 test_mod_learn.py       learn pattern from a constraint
 test_mod6.py            maintenance and exports
+test_i18n.py            Italian/English UI translations
 test_func1.py           functional copy check
 ```
 
@@ -154,7 +156,7 @@ Run a suite with the full Blender executable:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Current status: **370 checks, 0 failures** on Blender 5.2.
+Current status: **381 checks, 0 failures** on Blender 5.2.
 
 ### Build the extension
 

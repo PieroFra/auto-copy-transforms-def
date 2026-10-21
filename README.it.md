@@ -116,7 +116,8 @@ sull'armatura, perché i constraint Blender non supportano le ID properties.
 
 - **Testato:** Blender 5.2 LTS.
 - **Fallback presenti ma non testati:** Blender 3.6 / 4.x.
-- **Lingua UI:** italiano. Documentazione: inglese e italiano.
+- **Lingua UI:** italiano e inglese, in base alla lingua dell'interfaccia Blender.
+- **Documentazione:** inglese e italiano.
 
 La suite copre operatori, mappatura, tipi di constraint, diagnostica,
 auto-prefisso, apprendimento del pattern, manutenzione ed export. La UI viene
@@ -144,6 +145,7 @@ test_mod_types.py       tipi di constraint e use_offset
 test_mod_autoprefix.py  riconoscimento automatico dei token
 test_mod_learn.py       impara il pattern da un constraint
 test_mod6.py            manutenzione ed export
+test_i18n.py            traduzioni UI italiano/inglese
 test_func1.py           verifica funzionale della copia
 ```
 
@@ -154,7 +156,7 @@ Esegui una suite con l'eseguibile completo di Blender:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Stato attuale: **370 controlli, 0 falliti** su Blender 5.2.
+Stato attuale: **381 controlli, 0 falliti** su Blender 5.2.
 
 ### Costruire l'estensione
 

@@ -16,6 +16,9 @@ dist/
 *.zip
 *.rar
 
+# Local repository backups
+/backups/
+
 # Test output
 test_out*.txt
 test_output*.txt

@@ -47,6 +47,8 @@ COMPATIBILITY
 Tested on Blender 5.2 LTS. The code contains fallbacks for Blender 3.6/4.x,
 but those versions have not been tested.
 
+The interface follows Blender's interface language: Italian or English.
+
 
 LICENSE
 -------
