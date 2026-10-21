@@ -10,6 +10,7 @@ COSA FA
 -------
 Crea constraint di copia sulle ossa di destinazione (MCH_, ORG_, ecc.)
 mappando automaticamente i nomi delle ossa sorgente (DEF_).
+Default: COPY_TRANSFORMS, token DEF_ / MCH_.
 
 
 FUNZIONI PRINCIPALI
@@ -44,8 +45,9 @@ INSTALLAZIONE COME ADD-ON CLASSICO (Blender 3.6 / 4.x)
 
 COMPATIBILITA
 -------------
-Testato su Blender 5.2 LTS. Il codice contiene fallback per Blender 3.6/4.x,
-ma non e' stato eseguito su quelle versioni.
+Testato su Blender 5.2 LTS. I metadati dell'add-on legacy dichiarano Blender
+3.6.0; il manifest dell'estensione richiede Blender 4.2.0. Blender 3.6 e 4.x
+non sono stati testati con le suite documentate.
 
 L'interfaccia segue la lingua di Blender: italiano o inglese.
 

@@ -38,7 +38,7 @@ the result inspectable and reversible.
 | Fine control | Mix mode, target/owner space, influence, offset, stack position, remove shear |
 | Filters | Bone collections and deform-only bones |
 | Diagnostics | Pre-flight checks for missing targets, rest orientation, drivers, collections |
-| Auto-prefix | Guesses `DEF_` / `MCH_` / `ORG_` from bone names, never silently changing defaults |
+| Auto-prefix | Guesses likely prefixes such as `DEF_` / `MCH_` / `ORG_` from bone names, never silently changing defaults |
 | Learn pattern | Reads an existing copy constraint and reuses its rule on the rest of the rig |
 | Maintenance | Convert generated constraints to manual, clean the registry, mute/unmute generated constraints |
 | Export | Mapping/registry export to CSV or JSON |
@@ -139,7 +139,9 @@ armature object, because Blender constraints do not support ID properties.
 ## Compatibility
 
 - **Tested:** Blender 5.2 LTS.
-- **Fallbacks present but untested:** Blender 3.6 / 4.x.
+- The legacy add-on metadata declares Blender 3.6.0; the extension manifest
+  requires Blender 4.2.0. These declarations do not mean those versions were
+  tested: Blender 3.6 and 4.x remain unverified.
 - **UI language:** Italian and English, following Blender's interface language.
 - **Documentation:** English and Italian.
 
@@ -180,7 +182,9 @@ Run a suite with the full Blender executable:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Current status: **389 checks, 0 failures** on Blender 5.2.
+Audit status: **389 checks passed, 0 failures** on Blender 5.2. The suite
+reports use `SUPERATO` / `FALLITO` (the historical `test_actd.py` reports
+`TUTTI I TEST SUPERATI`).
 
 ![Test results](docs/test-results.png)
 

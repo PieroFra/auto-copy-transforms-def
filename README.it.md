@@ -38,7 +38,7 @@ risultato ispezionabile e reversibile.
 | Controllo fine | Mix, spazi target/owner, influenza, offset, posizione nello stack, rimozione shear |
 | Filtri | Bone collection e solo ossa deform |
 | Diagnostica | Controlli pre-flight per target mancanti, orientamento di rest, driver, collection |
-| Auto-prefisso | Stima `DEF_` / `MCH_` / `ORG_` dai nomi osso, senza cambiare i default |
+| Auto-prefisso | Stima prefissi come `DEF_` / `MCH_` / `ORG_` dai nomi osso, senza cambiare i default |
 | Impara pattern | Legge un constraint di copia esistente e riusa la regola sul resto del rig |
 | Manutenzione | Converti in manuali, pulisci registro, mute/unmute dei generati |
 | Export | Export di mappatura/registro in CSV o JSON |
@@ -139,7 +139,9 @@ sull'armatura, perché i constraint Blender non supportano le ID properties.
 ## Compatibilità
 
 - **Testato:** Blender 5.2 LTS.
-- **Fallback presenti ma non testati:** Blender 3.6 / 4.x.
+- I metadati dell'add-on legacy dichiarano Blender 3.6.0; il manifest
+  dell'estensione richiede Blender 4.2.0. Queste dichiarazioni non equivalgono
+  a test eseguiti: Blender 3.6 e 4.x restano non verificati.
 - **Lingua UI:** italiano e inglese, in base alla lingua dell'interfaccia Blender.
 - **Documentazione:** inglese e italiano.
 
@@ -180,7 +182,9 @@ Esegui una suite con l'eseguibile completo di Blender:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Stato attuale: **389 controlli, 0 falliti** su Blender 5.2.
+Esito dell'audit: **389 controlli superati, 0 falliti** su Blender 5.2. Le suite
+stampano `SUPERATO` / `FALLITO`; la storica `test_actd.py` stampa
+`TUTTI I TEST SUPERATI`.
 
 ![Risultati test](docs/test-results.png)
 

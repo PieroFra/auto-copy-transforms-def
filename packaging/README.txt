@@ -10,6 +10,7 @@ WHAT IT DOES
 ------------
 Creates copy constraints on destination bones (MCH_, ORG_, ...) by
 automatically mapping the names of source bones (DEF_).
+Defaults: COPY_TRANSFORMS, tokens DEF_ / MCH_.
 
 
 MAIN FEATURES
@@ -44,8 +45,9 @@ INSTALL AS A LEGACY ADD-ON (Blender 3.6 / 4.x)
 
 COMPATIBILITY
 -------------
-Tested on Blender 5.2 LTS. The code contains fallbacks for Blender 3.6/4.x,
-but those versions have not been tested.
+Tested on Blender 5.2 LTS. The legacy add-on metadata declares Blender 3.6.0;
+the extension manifest requires Blender 4.2.0. Blender 3.6 and 4.x have not
+been tested with the documented suites.
 
 The interface follows Blender's interface language: Italian or English.
 
