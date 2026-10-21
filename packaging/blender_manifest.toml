@@ -1,0 +1,38 @@
+schema_version = "1.0.0"
+
+id = "auto_copy_transforms_def"
+version = "1.1.0"
+name = "Auto Copy Transforms DEF"
+tagline = "Automatic Copy Transforms between DEF and MCH bones"
+maintainer = "Pierfrancesco Diodato"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
+copyright = [
+  "2026 Pierfrancesco Diodato",
+]
+
+tags = [
+  "Rigging",
+]
+
+description = """
+Automatically create copy constraints on destination bones (MCH-, ORG-, ...)
+by mapping the names of source bones (DEF-).
+
+Features: separate source armature, Copy Transforms/Rotation/Location/Scale,
+configurable mix and spaces, bone-collection filters, pre-flight diagnostics,
+automatic prefix detection, pattern learning from an existing constraint,
+registry maintenance and CSV/JSON export.
+
+The interface is currently in Italian; English and Italian documentation are
+included.
+
+Creator: Pierfrancesco Diodato
+Discord: https://discord.com/users/1176582483165327382
+"""
