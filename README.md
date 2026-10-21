@@ -156,6 +156,20 @@ Run a suite with the full Blender executable:
 
 Current status: **370 checks, 0 failures** on Blender 5.2.
 
+### Build the extension
+
+The `packaging` folder contains the manifest, the package READMEs and a
+one-command build script:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File packaging\build_extension.ps1
+```
+
+It creates `dist/auto_copy_transforms_def-1.1.0.zip` and runs Blender's
+extension validator. Pass `-Blender <path>` to use a different Blender
+executable.
+
 ---
 
 ## License

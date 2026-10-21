@@ -156,6 +156,19 @@ Esegui una suite con l'eseguibile completo di Blender:
 
 Stato attuale: **370 controlli, 0 falliti** su Blender 5.2.
 
+### Costruire l'estensione
+
+La cartella `packaging` contiene manifest, README del pacchetto e uno script
+di build in un comando:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File packaging\build_extension.ps1
+```
+
+Crea `dist/auto_copy_transforms_def-1.1.0.zip` ed esegue il validatore delle
+estensioni Blender. Usa `-Blender <path>` per indicare un altro eseguibile.
+
 ---
 
 ## Licenza
