@@ -36,3 +36,6 @@ actd_build/backup_*
 # Unrelated add-on at the repository root
 /auto_copy_transforms_def.py
 
+
+# Diario personale (solo locale)
+docs/DIARIO.md
