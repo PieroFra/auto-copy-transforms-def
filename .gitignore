@@ -33,6 +33,56 @@ ACTD_work.rar
 /opencode.json
 actd_build/backup_*
 
+# Local OpenCode session export and agent configuration
+/regole-del-progetto-file-modificabile-e-5-lavori-in-agents-md.json
+# Keep .opencode/skills/ tracked.
+/.opencode/agents/
+/.opencode/commands/
+
+# Root-level Blender UI/probe scratch scripts (local only)
+/cap1.py
+/cap9.py
+/cap10.py
+/crop1.py
+/crop2.py
+/find_dismiss.py
+/fix_coll.py
+/hud.py
+/hud2.py
+/hud3.py
+/max3.py
+/maximize.py
+/maximize2.py
+/open_sidebar.py
+/open_subs.py
+/open_subs2.py
+/pop_inv.py
+/pop_shot.py
+/popup.py
+/probe1.py
+/probe3.py
+/probe_rd.py
+/probe_side.py
+/probe_sp.py
+/probe_tab2.py
+/probe_tabs.py
+/rereg.py
+/restore.py
+/restore2.py
+/run_ops.py
+/s100_setup.py
+/s2_setup.py
+/scale.py
+/set_tab.py
+/setup_rig.py
+/shot1.py
+/shot2.py
+/shot6.py
+/shot_full.py
+/shot_scrolled.py
+/unnest.py
+/unnest2.py
+
 # Unrelated add-on at the repository root
 /auto_copy_transforms_def.py
 

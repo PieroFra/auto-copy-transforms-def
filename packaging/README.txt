@@ -37,9 +37,11 @@ INSTALL AS AN EXTENSION (Blender 4.2+ / 5.x)
 
 INSTALL AS A LEGACY ADD-ON (Blender 3.6 / 4.x)
 -----------------------------------------------
+The standalone legacy .py is included only in the companion RAR, not in the
+extension ZIP.
 1. Edit > Preferences > Add-ons.
 2. Top-right arrow > "Install from Disk...".
-3. Select legacy/auto_copy_transforms_def.py.
+3. Extract legacy/auto_copy_transforms_def.py from the RAR and select it.
 4. Enable "Rigging: Auto Copy Transforms DEF".
 
 

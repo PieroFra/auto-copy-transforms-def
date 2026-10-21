@@ -37,9 +37,11 @@ INSTALLAZIONE COME ESTENSIONE (Blender 4.2+ / 5.x)
 
 INSTALLAZIONE COME ADD-ON CLASSICO (Blender 3.6 / 4.x)
 ------------------------------------------------------
+Il file .py standalone legacy è incluso solo nel RAR abbinato, non nello ZIP
+dell'estensione.
 1. Edit > Preferences > Add-ons.
 2. Freccia in alto a destra > "Install from Disk...".
-3. Seleziona legacy/auto_copy_transforms_def.py.
+3. Estrai legacy/auto_copy_transforms_def.py dal RAR e selezionalo.
 4. Attiva "Rigging: Auto Copy Transforms DEF".
 
 
