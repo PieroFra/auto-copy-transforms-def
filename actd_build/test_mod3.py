@@ -245,6 +245,54 @@ except Exception:
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
 
 # ---------------------------------------------------------------------------
+print("\n[9] Ricerca bone collection con fallback testo", flush=True)
+try:
+    arm = make_armature("RigSearch", BONES)
+    make_collection(arm, "Meccaniche", ["MCH-hand.L", "MCH-hand.R"])
+    activate(arm, pose=True)
+    s = base_settings()
+    check("prop_search disponibile con API collections",
+          addon._collection_search_available(arm) is True)
+    check("prop_search assente senza oggetto",
+          addon._collection_search_available(None) is False)
+
+    class _NoCollectionsData:
+        pass
+
+    class _FakeArm:
+        type = 'ARMATURE'
+        data = _NoCollectionsData()
+
+    check("fallback esplicito senza Armature.collections (3.6)",
+          addon._collection_search_available(_FakeArm()) is False)
+
+    check("armatura di ricerca = destinazione attiva",
+          addon._collection_search_armature(bpy.context, s, False) is arm)
+    check("armatura di ricerca = stessa armatura (default)",
+          addon._collection_search_armature(bpy.context, s, True) is arm)
+
+    # Armatura sorgente separata (Modulo 1 + 3).
+    src = make_armature("RigSearchSrc", [("DEF-hand.L", True)])
+    make_collection(src, "Deform", ["DEF-hand.L"])
+    activate(arm, pose=True)
+    s.source_object = src
+    check("armatura di ricerca = sorgente separata",
+          addon._collection_search_armature(bpy.context, s, True) is src)
+    s.source_object = None
+
+    # Nessun cambio di proprietà/ID: restano StringProperty.
+    props = addon.ACTD_Settings.bl_rna.properties
+    check("collection_source resta StringProperty",
+          props["collection_source"].type == 'STRING',
+          props["collection_source"].type)
+    check("collection_dest resta StringProperty",
+          props["collection_dest"].type == 'STRING',
+          props["collection_dest"].type)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
 print("\n===== RIEPILOGO TEST MODULO 3 =====", flush=True)
 print("Passati: %d" % len(OK), flush=True)
 print("Falliti: %d" % len(FAIL), flush=True)

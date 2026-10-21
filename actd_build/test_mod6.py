@@ -95,6 +95,10 @@ def base_settings():
     s.constraint_name = addon.DEFAULT_CONSTRAINT_NAME
     s.mute_state = False
     s.last_report = ""
+    # Report isolati per pannello (anteprima, diagnostica, manutenzione).
+    s.preview_report = ""
+    s.diagnostic_report = ""
+    s.maintenance_report = ""
     addon._clear_collection(s.preview_items)
     addon._clear_collection(s.diagnostic_items)
     for obj in bpy.data.objects:
@@ -345,8 +349,10 @@ try:
             payload = json.load(handle)
     check("export_json FINISHED", res == {'FINISHED'}, res)
     check("file JSON creato", os.path.isfile(path), path)
+    # Versione attesa derivata da bl_info: nessun aggiornamento ai futuri bump
+    versione_attesa = ".".join(str(x) for x in addon.bl_info["version"])
     check("versione e timestamp presenti",
-          payload.get("versione") == "1.1.0"
+          payload.get("versione") == versione_attesa
           and "T" in str(payload.get("generato_il", "")),
           payload.get("versione"))
     righe = payload.get("righe", [])
@@ -373,6 +379,525 @@ try:
           addon.ACTD_PT_maintenance in addon._classes)
     check("pannello registrato in Blender",
           hasattr(bpy.types, "ACTD_PT_maintenance"))
+
+    # Layout: i controlli avanzati sono un vero pannello figlio richiudibile,
+    # registrato subito dopo il principale, e l'anteprima non è più chiusa.
+    check("pannello ACTD_PT_advanced in _classes",
+          addon.ACTD_PT_advanced in addon._classes)
+    check("pannello Avanzate registrato in Blender",
+          hasattr(bpy.types, "ACTD_PT_advanced"))
+    check("Avanzate figlio del pannello principale",
+          addon.ACTD_PT_advanced.bl_parent_id == "ACTD_PT_main")
+    check("Avanzate subito dopo il principale in _classes",
+          addon._classes.index(addon.ACTD_PT_advanced)
+          == addon._classes.index(addon.ACTD_PT_main) + 1)
+    check("Avanzate richiudibile di default",
+          'DEFAULT_CLOSED' in addon.ACTD_PT_advanced.bl_options,
+          addon.ACTD_PT_advanced.bl_options)
+    check("anteprima aperta di default (lista visibile)",
+          addon.ACTD_PT_preview.bl_options == set(),
+          addon.ACTD_PT_preview.bl_options)
+    check("manutenzione e diagnostica restano richiudibili",
+          'DEFAULT_CLOSED' in addon.ACTD_PT_maintenance.bl_options
+          and 'DEFAULT_CLOSED' in addon.ACTD_PT_diagnostics.bl_options)
+
+    # La label della mappatura segue i token correnti, non resta al default.
+    s = settings()
+    tokens = (s.source_token, s.dest_token, s.source_token_type,
+              s.dest_token_type)
+    try:
+        s.source_token = "DEF_"
+        s.dest_token = "MCH_"
+        s.source_token_type = 'PREFIX'
+        s.dest_token_type = 'PREFIX'
+        etichetta = addon._mapping_label_text(s)
+        check("label mappatura con i token correnti",
+              etichetta.endswith("DEF_* → MCH_*"), etichetta)
+        s.source_token = "ORG_"
+        s.dest_token = "_ctrl"
+        s.dest_token_type = 'SUFFIX'
+        etichetta = addon._mapping_label_text(s)
+        check("label mappatura segue prefisso e suffisso",
+              etichetta.endswith("ORG_* → *_ctrl"), etichetta)
+    finally:
+        (s.source_token, s.dest_token, s.source_token_type,
+         s.dest_token_type) = tokens
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[10] Report isolati: anteprima, diagnostica e manutenzione", flush=True)
+try:
+    reset_scene()
+    arm = make_rig("Rig10")
+    s = base_settings()
+    res = bpy.ops.actd.apply_transforms()
+    anteprima = s.preview_report
+    check("apply scrive preview_report",
+          res == {'FINISHED'} and "Constraint creati" in anteprima,
+          anteprima.replace("\n", " / "))
+    check("manutenzione ancora vuota dopo apply",
+          s.maintenance_report == "", s.maintenance_report)
+
+    bpy.ops.actd.diagnose()
+    check("la diagnostica non tocca il report di anteprima",
+          s.preview_report == anteprima, s.preview_report)
+    check("la diagnostica scrive diagnostic_report",
+          bool(s.diagnostic_report), s.diagnostic_report)
+
+    bpy.ops.actd.mute_all()
+    check("mute_all aggiorna solo la manutenzione",
+          "mutati: 2" in s.maintenance_report
+          and s.preview_report == anteprima,
+          s.maintenance_report.replace("\n", " / "))
+
+    res = bpy.ops.actd.convert_to_manual()
+    check("convert_to_manual scrive maintenance_report",
+          res == {'FINISHED'}
+          and "convertiti in manuali" in s.maintenance_report,
+          s.maintenance_report.replace("\n", " / "))
+    check("anteprima intatta dopo la manutenzione",
+          s.preview_report == anteprima, s.preview_report)
+    check("nessuna duplicazione tra anteprima e manutenzione",
+          s.maintenance_report != s.preview_report
+          and "Constraint creati" not in s.maintenance_report,
+          s.maintenance_report.replace("\n", " / "))
+    check("last_report segue l'ultima azione",
+          s.last_report == s.maintenance_report, s.last_report)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[11] Layout headless: ordine, label e disegno dei pannelli", flush=True)
+
+
+class _FakeOperator:
+    """Operatore finto per le proprietà impostate dai pannelli."""
+
+    def __init__(self):
+        self.preset = None
+        self.token_type = None
+        self.clear = None
+        self.url = None
+
+
+class _FakeLayout:
+    """Layout finto minimale che registra le chiamate dei pannelli.
+
+    Non disegna nulla: serve solo a eseguire `draw` in headless per verificare
+    che i pannelli non sollevino eccezioni, che le proprietà usate esistano e
+    che gli operatori invocati siano registrati. Ogni sotto-layout ha il proprio
+    stato `enabled`, così i test possono verificare i controlli disabilitati.
+    """
+
+    def __init__(self, record):
+        self._record = record
+        self.enabled = True
+
+    def _child(self):
+        return _FakeLayout(self._record)
+
+    def box(self):
+        self._record.append(("box", None))
+        return self._child()
+
+    def row(self, align=False, **kwargs):
+        self._record.append(("row", align))
+        return self._child()
+
+    def column(self, align=False, **kwargs):
+        self._record.append(("column", align))
+        return self._child()
+
+    def label(self, text="", icon='NONE', **kwargs):
+        self._record.append(("label", text, icon))
+
+    def prop(self, data, name, text="", **kwargs):
+        if not hasattr(data, name):
+            raise AttributeError("proprietà mancante nella UI: " + name)
+        # Il testo è registrato: i test di layout verificano le label esterne.
+        self._record.append(("prop", name, text))
+
+    def prop_search(self, data, name, search_data, search_prop, text="",
+                    **kwargs):
+        if not hasattr(data, name):
+            raise AttributeError("proprietà mancante nella UI: " + name)
+        if not hasattr(search_data, search_prop):
+            raise AttributeError(
+                "collezione di ricerca mancante: " + search_prop
+            )
+        self._record.append(
+            ("prop_search", name, search_prop, self.enabled)
+        )
+
+    def operator(self, idname, text="", icon='NONE', **kwargs):
+        if not idname.startswith("actd."):
+            raise ValueError("operatore inatteso: " + idname)
+        if not hasattr(bpy.ops.actd, idname.split(".", 1)[1]):
+            raise ValueError("operatore non registrato: " + idname)
+        self._record.append(
+            ("operator", idname, text, icon, self.enabled)
+        )
+        return _FakeOperator()
+
+    def template_list(self, *args, **kwargs):
+        self._record.append(("template_list", args[0] if args else ""))
+
+
+class _FakePanel:
+    """Sostituto di `self` per chiamare `draw` sui pannelli reali."""
+
+    def __init__(self, record):
+        self.layout = _FakeLayout(record)
+
+
+def draw_panel(panel, context):
+    record = []
+    panel.draw(_FakePanel(record), context)
+    return record
+
+
+try:
+    # (a) Senza un osso selezionato la nota spiega la condizione di Learn.
+    reset_scene()
+    nota, icona = addon._learn_condition_note(bpy.context)
+    # La nota deve citare la Pose Mode: è la condizione richiesta dal poll.
+    check("Learn: condizione spiegata quando il poll è falso",
+          addon.ACTD_OT_learn_pattern.poll(bpy.context) is False
+          and icona == 'INFO' and "constraint" in nota
+          and "Pose Mode" in nota, (nota, icona))
+    nota_en = addon._EN_TRANSLATIONS[
+        "Serve un osso in Pose Mode con un constraint di copia"]
+    check("Learn: variante inglese della nota cita Pose Mode",
+          "Pose Mode" in nota_en, nota_en)
+
+    # (b) Con osso selezionato e constraint di copia il poll è vero e la nota
+    #     diventa di conferma: la semantica dell'operatore non cambia.
+    arm = make_armature("RigLayout", ["DEF_Hand.L", "MCH_Hand.L"])
+    s = base_settings()
+    s.source_token = "DEF_"
+    s.dest_token = "MCH_"
+    s.source_token_type = 'PREFIX'
+    s.dest_token_type = 'PREFIX'
+    pb = arm.pose.bones["MCH_Hand.L"]
+    con = pb.constraints.new('COPY_TRANSFORMS')
+    con.target = arm
+    con.subtarget = "DEF_Hand.L"
+    for pose_bone in arm.pose.bones:
+        pose_bone.select = False
+    arm.pose.bones["MCH_Hand.L"].select = True
+    bpy.context.view_layer.update()
+    nota, icona = addon._learn_condition_note(bpy.context)
+    check("Learn: nota di conferma quando il poll è vero",
+          addon.ACTD_OT_learn_pattern.poll(bpy.context) is True
+          and icona == 'CHECKMARK', (nota, icona))
+
+    # (c) Disegno dei pannelli senza eccezioni.
+    for panel, nome in (
+        (addon.ACTD_PT_main, "principale"),
+        (addon.ACTD_PT_advanced, "Avanzate"),
+        (addon.ACTD_PT_preview, "anteprima"),
+        (addon.ACTD_PT_maintenance, "manutenzione"),
+        (addon.ACTD_PT_diagnostics, "diagnostica"),
+    ):
+        try:
+            record = draw_panel(panel, bpy.context)
+            check("draw del pannello " + nome + " senza errori",
+                  any(r[0] in ("label", "operator") for r in record),
+                  record[:4])
+        except Exception:
+            traceback.print_exc()
+            check("draw del pannello " + nome + " senza errori", False,
+                  traceback.format_exc().strip().splitlines()[-1])
+
+    # (d) Flusso del principale: Anteprima e Applica prima dei token.
+    record = draw_panel(addon.ACTD_PT_main, bpy.context)
+    operatori = [r[1] for r in record if r[0] == "operator"]
+    check("anteprima e applica in cima al pannello",
+          operatori[:2] == ["actd.preview", "actd.apply_transforms"],
+          operatori[:4])
+
+    # (e) I controlli avanzati vivono solo nel pannello figlio.
+    props_main = [r[1] for r in record if r[0] == "prop"]
+    props_avanzate = [
+        r[1] for r in draw_panel(addon.ACTD_PT_advanced, bpy.context)
+        if r[0] == "prop"
+    ]
+    avanzati = {"mix_mode", "use_collection_filter", "custom_pattern",
+                "stack_position"}
+    check("filtro, pattern e mix nel pannello Avanzate",
+          avanzati <= set(props_avanzate), props_avanzate)
+    check("il pannello principale non ridisegna i controlli avanzati",
+          not (avanzati & set(props_main)), props_main)
+
+    # (f) Nota del preset disabilitato: deve arrivare spezzata, con l'icona
+    #     solo sulla prima riga e nessuna label oltre la larghezza della UI.
+    s.source_token = "MCH_"
+    s.source_token_type = 'PREFIX'
+    record = draw_panel(addon.ACTD_PT_main, bpy.context)
+    label_righe = [r for r in record if r[0] == "label"]
+    note_lines = addon._ui_report_lines(addon._dest_preset_note(s))
+    disegnate = [(r[1], r[2]) for r in label_righe if r[1] in note_lines]
+    check("nota preset spezzata con icona solo sulla prima riga",
+          bool(note_lines) and len(note_lines) >= 2
+          and [d[0] for d in disegnate] == note_lines
+          and disegnate[0][1] == 'INFO'
+          and all(icona == 'NONE' for _t, icona in disegnate[1:]),
+          (note_lines, disegnate))
+    check("nessuna label oltre la larghezza della UI",
+          all(len(r[1]) <= addon._UI_TEXT_WIDTH for r in label_righe),
+          [r[1] for r in label_righe if len(r[1]) > addon._UI_TEXT_WIDTH])
+    # Larghezza ridotta: la sidebar reale tronca con '…' oltre ~40 caratteri.
+    check("larghezza testo UI entro la sidebar (34)",
+          addon._UI_TEXT_WIDTH == 34, addon._UI_TEXT_WIDTH)
+    check("nota preset entro la larghezza della UI",
+          bool(note_lines) and all(len(r) <= 34 for r in note_lines),
+          [len(r) for r in note_lines])
+    learn_lines = addon._ui_report_lines(
+        addon._learn_condition_note(bpy.context)[0])
+    check("nota Learn spezzata entro la larghezza della UI",
+          bool(learn_lines) and all(len(r) <= 34 for r in learn_lines),
+          learn_lines)
+
+    # (g) Il vecchio rimando al pannello Avanzate non deve più comparire:
+    #     si troncava ed era ridondante rispetto al pannello figlio.
+    check("nessun rimando ridondante al pannello Avanzate",
+          not any("Avanzate" in r[1] for r in label_righe),
+          [r[1] for r in label_righe if "Avanzate" in r[1]])
+
+    # (h) Nome constraint: label esterna e campo senza testo, così il nome
+    #     usa tutta la larghezza disponibile invece di essere troncato.
+    idx_label = next(
+        (i for i, r in enumerate(record)
+         if r[0] == "label" and r[1] == "Nome constraint"), -1
+    )
+    idx_prop = next(
+        (i for i, r in enumerate(record)
+         if r[0] == "prop" and r[1] == "constraint_name"), -1
+    )
+    check("nome constraint a piena larghezza con label esterna",
+          0 <= idx_label < idx_prop and record[idx_prop][2] == "",
+          (idx_label, idx_prop))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[12] Preset destinazione: nessun invito al self-match", flush=True)
+try:
+    s = settings()
+    s.source_token = "DEF_"
+    s.source_token_type = 'PREFIX'
+    check("preset uguale alla sorgente riconosciuto",
+          addon._dest_preset_is_self_match(s, "DEF_", 'PREFIX') is True)
+    check("preset diverso resta attivo",
+          addon._dest_preset_is_self_match(s, "MCH_", 'PREFIX') is False)
+    s.source_token = "_ctrl"
+    s.source_token_type = 'SUFFIX'
+    check("preset suffisso uguale alla sorgente riconosciuto",
+          addon._dest_preset_is_self_match(s, "_ctrl", 'SUFFIX') is True)
+    check("stesso token ma tipo diverso non è self-match",
+          addon._dest_preset_is_self_match(s, "_ctrl", 'PREFIX') is False)
+    s.source_token = ""
+    check("sorgente vuota non disabilita preset",
+          addon._dest_preset_is_self_match(s, "DEF_", 'PREFIX') is False)
+
+    s.source_token = "DEF_"
+    s.source_token_type = 'PREFIX'
+    expected_note = bpy.app.translations.pgettext(
+        "Preset '%s' disabilitato: coincide con la sorgente."
+    ) % "DEF_*"
+    note = addon._dest_preset_note(s)
+    check("nota esplicativa presente sul preset disabilitato",
+          note == expected_note and "DEF_*" in note, note)
+    s.source_token = "CTRL_"
+    check("altri preset non producono nota",
+          addon._dest_preset_note(s) == "", addon._dest_preset_note(s))
+    check("operatore preset ancora registrato (4 preset)",
+          hasattr(bpy.ops.actd, "dest_preset")
+          and len(addon._DEST_PRESETS) == 4,
+          addon._DEST_PRESETS)
+
+    s.source_token = "DEF_"
+    s.source_token_type = 'PREFIX'
+    record = draw_panel(addon.ACTD_PT_main, bpy.context)
+    preset_ops = [
+        r for r in record
+        if r[0] == "operator" and r[1] == "actd.dest_preset"
+    ]
+    check("i quattro preset restano nel pannello", len(preset_ops) == 4,
+          [r[2] for r in preset_ops])
+    disabilitati = [r[2] for r in preset_ops if not r[4]]
+    check("solo il preset uguale alla sorgente è disabilitato",
+          disabilitati == ["DEF_"], disabilitati)
+    check("gli altri preset restano attivi",
+          [r[2] for r in preset_ops if r[4]] == ["MCH_", "ORG_", "_ctrl"],
+          [r[2] for r in preset_ops if r[4]])
+    # La nota arriva spezzata da _ui_report_lines: righe attese in ordine,
+    # icona INFO solo sulla prima e NONE sulle successive.
+    note_lines = addon._ui_report_lines(expected_note)
+    disegnate = [(r[1], r[2]) for r in record
+                 if r[0] == "label" and r[1] in note_lines]
+    check("la nota esplicativa è disegnata",
+          bool(note_lines) and disegnate
+          and [d[0] for d in disegnate] == note_lines
+          and disegnate[0][1] == 'INFO'
+          and all(icona == 'NONE' for _t, icona in disegnate[1:]),
+          (note_lines, disegnate))
+
+    s.source_token = "ORG_"
+    record = draw_panel(addon.ACTD_PT_main, bpy.context)
+    disabilitati = [
+        r[2] for r in record
+        if r[0] == "operator" and r[1] == "actd.dest_preset" and not r[4]
+    ]
+    check("cambiando sorgente cambia il preset disabilitato",
+          disabilitati == ["ORG_"], disabilitati)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[13] Bone collection: prop_search con fallback testo", flush=True)
+
+
+def make_collection(arm, name, bone_names):
+    coll = arm.data.collections.new(name)
+    for bn in bone_names:
+        coll.assign(arm.data.bones[bn])
+    return coll
+
+
+try:
+    reset_scene()
+    dst = make_armature("RigSearchDst", ["DEF-a", "MCH-a"])
+    src = make_armature("RigSearchSrc", ["DEF-a", "MCH-a"])
+    make_collection(dst, "Meccaniche", ["MCH-a"])
+    make_collection(src, "Deform", ["DEF-a"])
+    for other in bpy.context.view_layer.objects:
+        other.select_set(False)
+    bpy.context.view_layer.objects.active = dst
+    dst.select_set(True)
+    bpy.ops.object.mode_set(mode='POSE')
+    s = base_settings()
+    s.source_object = src
+    s.use_collection_filter = True
+
+    src_arm = addon._collection_search_armature(bpy.context, s, True)
+    dst_arm = addon._collection_search_armature(bpy.context, s, False)
+    check("ricerca sorgente sull'armatura sorgente",
+          src_arm is src, src_arm)
+    check("ricerca destinazione sull'armatura attiva",
+          dst_arm is dst, dst_arm)
+    check("helper prop_search disponibile su 5.x",
+          addon._collection_search_available(dst) is True)
+    check("helper prop_search assente senza armatura",
+          addon._collection_search_available(None) is False)
+
+    class _NoCollectionsData:
+        pass
+
+    class _FakeArm:
+        type = 'ARMATURE'
+        data = _NoCollectionsData()
+
+    check("fallback: armatura senza API collections",
+          addon._collection_search_available(_FakeArm()) is False)
+
+    record = draw_panel(addon.ACTD_PT_advanced, bpy.context)
+    ricerche = [r for r in record if r[0] == "prop_search"]
+    check("prop_search usato per entrambe le collection",
+          [r[1] for r in ricerche]
+          == ["collection_source", "collection_dest"],
+          [r[1] for r in ricerche])
+    check("la ricerca punta a Armature.collections",
+          all(r[2] == "collections" for r in ricerche),
+          [r[2] for r in ricerche])
+
+    s.source_object = None
+    dst_arm = addon._collection_search_armature(bpy.context, s, True)
+    check("senza armatura sorgente si usa la destinazione",
+          dst_arm is dst, dst_arm)
+
+    # Proprietà e ID invariati: restano StringProperty.
+    props = addon.ACTD_Settings.bl_rna.properties
+    check("collection_source resta una StringProperty",
+          props["collection_source"].type == 'STRING',
+          props["collection_source"].type)
+    check("collection_dest resta una StringProperty",
+          props["collection_dest"].type == 'STRING',
+          props["collection_dest"].type)
+
+    # Fallback esplicito: armatura mancante/non valida -> campo testo.
+    mesh = bpy.data.meshes.new("FallbackMesh")
+    mesh_obj = bpy.data.objects.new("FallbackMesh", mesh)
+    bpy.context.scene.collection.objects.link(mesh_obj)
+    for other in bpy.context.view_layer.objects:
+        other.select_set(False)
+    bpy.context.view_layer.objects.active = mesh_obj
+    mesh_obj.select_set(True)
+    record = draw_panel(addon.ACTD_PT_advanced, bpy.context)
+    campi = [r[1] for r in record if r[0] == "prop"]
+    check("fallback al campo testo senza armatura valida",
+          "collection_source" in campi and "collection_dest" in campi,
+          campi)
+    check("nessun prop_search nel fallback",
+          not any(r[0] == "prop_search" for r in record), record[:8])
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[14] Icone semantiche valide e non duplicate", flush=True)
+try:
+    # Icone realmente disponibili nella build Blender in uso.
+    icon_items = bpy.types.UILayout.bl_rna.functions["label"].parameters[
+        "icon"
+    ].enum_items
+    valid_icons = {item.identifier for item in icon_items}
+    record_main = draw_panel(addon.ACTD_PT_main, bpy.context)
+    record_diag = draw_panel(addon.ACTD_PT_diagnostics, bpy.context)
+    record_maint = draw_panel(addon.ACTD_PT_maintenance, bpy.context)
+
+    guess = [
+        r for r in record_main
+        if r[0] == "operator" and r[1] == "actd.guess_prefixes"
+    ]
+    check("Guess prefixes non usa più SORTALPHA",
+          guess and guess[0][3] != 'SORTALPHA', guess)
+    check("icona Guess prefixes valida",
+          guess and guess[0][3] in valid_icons, guess)
+
+    diagnose = [
+        r for r in record_diag
+        if r[0] == "operator" and r[1] == "actd.diagnose"
+    ]
+    check("Rig check usa un'icona di verifica valida",
+          diagnose and diagnose[0][3] == 'CHECKMARK'
+          and 'CHECKMARK' in valid_icons, diagnose)
+
+    export_icons = {
+        r[1]: r[3] for r in record_maint
+        if r[0] == "operator" and r[1] in ("actd.export_csv", "actd.export_json")
+    }
+    check("export CSV/JSON con icona di export valida",
+          export_icons == {"actd.export_csv": 'EXPORT',
+                           "actd.export_json": 'EXPORT'}
+          and 'EXPORT' in valid_icons, export_icons)
+
+    used = set()
+    for panel_record in (record_main, record_diag, record_maint):
+        for entry in panel_record:
+            if entry[0] == "label" and len(entry) >= 3:
+                used.add(entry[2])
+            elif entry[0] == "operator" and len(entry) >= 4:
+                used.add(entry[3])
+    used.discard('NONE')
+    used.discard(None)
+    check("tutte le icone usate esistono in Blender",
+          used <= valid_icons, used - valid_icons)
 except Exception:
     traceback.print_exc()
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])

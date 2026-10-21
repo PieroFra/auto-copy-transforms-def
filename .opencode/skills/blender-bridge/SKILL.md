@@ -105,6 +105,24 @@ with bpy.context.temp_override(window=win):
 If a popup is taller than the window it can be clipped. Keep info dialogs
 short; put long documentation in files or a web page.
 
+## Verifica UI A.C.T.D. (deterministica)
+
+Oltre agli screenshot, c'è un probe che **legge la UI e la misura**:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\run_ui_probe.ps1
+```
+
+- Avvia Blender in GUI con il ponte, carica l'addon, prepara la scena neutra, apre la sidebar sul tab
+  "Auto Copy Transforms" e per ogni lingua (IT/EN) stampa il report e salva il ritaglio.
+- Report: `UI_REGION width=… available=…` (larghezza reale della regione), `UI_TEXT <OK|TIGHT|TRUNC?> kind=… w=…
+  avail=… "<testo>"` per ogni etichetta disegnata, `UI_SUMMARY labels=… flagged=… min_safe_width=…`.
+- Screenshot ritagliati: `%TEMP%\opencode\actd_gui\actd-ui-it.png` e `actd-ui-en.png` (max 1024 px di larghezza).
+- **Il troncamento è un dato**, non un'ipotesi: se `flagged=0` non c'è niente da segnalare. Il modello vision serve
+  solo per l'estetica (gerarchia, spaziatura, leggibilità) e **non deve rileggere le parole** (già misurate).
+- Limiti noti: le stringhe provengono dal sorgente in italiano (per l'EN la misura è un'approssimazione) e
+  l'altezza della finestra mostra solo la parte superiore del pannello.
+
 ## Install an extension
 
 Build and validate first:

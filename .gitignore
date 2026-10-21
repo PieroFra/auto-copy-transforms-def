@@ -22,8 +22,9 @@ dist/
 # Test output
 test_out*.txt
 test_output*.txt
-actd_export_*.csv
-actd_export_*.json
+/actd_export_*.csv
+/actd_export_*.json
+*.log
 
 # Internal project notes (do not publish)
 AGENTS.md
@@ -33,7 +34,7 @@ ACTD_work.rar
 /opencode.json
 actd_build/backup_*
 
-# Local OpenCode session export and agent configuration
+# File locale voluminoso di sessione OpenCode e agenti/comandi personali
 /regole-del-progetto-file-modificabile-e-5-lavori-in-agents-md.json
 # Keep .opencode/skills/ tracked.
 /.opencode/agents/
@@ -88,4 +89,8 @@ actd_build/backup_*
 
 
 # Diario personale (solo locale)
-docs/DIARIO.md
+/docs/DIARIO.md
+
+# File di scratch locali non tracciati
+actd_build/t1.txt
+runner_out.txt

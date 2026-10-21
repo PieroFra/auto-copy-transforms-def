@@ -270,6 +270,124 @@ except Exception:
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
 
 # ---------------------------------------------------------------------------
+print("\n[11] Report di anteprima e diagnostica isolati", flush=True)
+try:
+    reset_scene()
+    arm = make_armature("Rig11", [("DEF-a", None), ("MCH-a", None)])
+    activate(arm, pose=True)
+    s = base_settings()
+    s.last_report = ""
+    s.preview_report = ""
+    s.diagnostic_report = ""
+    s.maintenance_report = ""
+
+    res = bpy.ops.actd.preview()
+    anteprima = s.preview_report
+    check("anteprima eseguita", res == {'FINISHED'}, res)
+    check("anteprima scrive preview_report",
+          "Anteprima completata" in anteprima,
+          anteprima.replace("\n", " / "))
+    check("anteprima allinea last_report (compatibilita')",
+          s.last_report == anteprima, s.last_report)
+
+    res = bpy.ops.actd.diagnose()
+    check("diagnostica eseguita", res == {'FINISHED'}, res)
+    check("actd.diagnose non cancella il report di anteprima",
+          s.preview_report == anteprima,
+          s.preview_report.replace("\n", " / "))
+    check("diagnostica scrive diagnostic_report",
+          bool(s.diagnostic_report), s.diagnostic_report)
+    check("diagnostic_report ha il prefisso di livello",
+          s.diagnostic_report.split("\n")[0].startswith("["),
+          s.diagnostic_report.replace("\n", " / "))
+    check("preview_report e diagnostic_report distinti",
+          s.preview_report != s.diagnostic_report)
+    check("last_report segue l'ultima azione",
+          s.last_report == s.diagnostic_report, s.last_report)
+    check("la diagnostica non tocca il report di manutenzione",
+          s.maintenance_report == "", s.maintenance_report)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[12] Helper di wrapping delle label UI", flush=True)
+try:
+    lungo = ("Riga molto lunga " * 8) + "\n\n" + ("x" * 100)
+    righe = addon._ui_report_lines(lungo, width=32)
+    check("il wrapping produce piu' righe", len(righe) > 4, len(righe))
+    check("nessuna riga oltre la larghezza richiesta",
+          all(len(r) <= 32 for r in righe),
+          max(len(r) for r in righe))
+    check("le parole lunghe vengono spezzate",
+          any(len(r) >= 20 for r in righe), righe[-3:])
+    check("le righe vuote diventano spazi", " " in righe, righe[:6])
+    check("testo vuoto -> nessuna riga", addon._ui_report_lines("") == [])
+    righe_default = addon._ui_report_lines("parola " * 40)
+    check("larghezza di default rispettata",
+          all(len(r) <= addon._UI_TEXT_WIDTH for r in righe_default),
+          max(len(r) for r in righe_default))
+    check("_draw_report_text esiste ed e' usato dai pannelli",
+          callable(addon._draw_report_text))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[13] Traduzione inglese dei messaggi di diagnostica", flush=True)
+original_language = bpy.context.preferences.view.language
+try:
+    bpy.context.preferences.view.language = 'en_US'
+    check("locale inglese attivo",
+          addon._is_english_ui() is True, bpy.app.translations.locale)
+
+    riga_tag = "[ERROR] Nessuna armatura attiva."
+    check("prefisso di livello conservato e testo tradotto",
+          addon._translate_report_text(riga_tag) == "[ERROR] No active armature.",
+          addon._translate_report_text(riga_tag))
+    check("tag legacy italiano normalizzato",
+          addon._translate_report_text("[AVVISO] Nessuna armatura attiva.")
+          == "[WARNING] No active armature.",
+          addon._translate_report_text("[AVVISO] Nessuna armatura attiva."))
+
+    driver = ("2 ossa destinazione hanno già driver sulle trasformazioni: "
+              "MCH-a. Il constraint si sommerà al driver.")
+    tradotto = addon._translate_report_text(driver)
+    check("messaggio dinamico tradotto",
+          tradotto.startswith("2 target bones already have drivers")
+          and "constraint" in tradotto,
+          tradotto)
+
+    spazio = ("Spazio consigliato: WORLD (gerarchie miste: WORLD è il "
+              "compromesso più sicuro). Attuale: LOCAL.")
+    check("motivazione dello spazio tradotta",
+          addon._translate_report_text(spazio)
+          == ("Suggested space: WORLD (mixed hierarchies: WORLD is the safest "
+              "compromise). Current: LOCAL."),
+          addon._translate_report_text(spazio))
+
+    righe_en = addon._ui_report_lines(riga_tag, width=20)
+    check("wrapping applicato al testo tradotto",
+          all(len(r) <= 20 for r in righe_en)
+          and "No active" in " ".join(righe_en),
+          righe_en)
+
+    # I dati restano in italiano: la traduzione avviene solo in visualizzazione.
+    findings = addon.diagnose_rig(None, settings())
+    check("dati italiani invariati con UI inglese",
+          findings[0][1] == "Nessuna armatura attiva.",
+          findings[0][1])
+    check("report salvato resta in italiano",
+          addon._diagnostic_report_text(findings)
+          == "[ERROR] Nessuna armatura attiva.",
+          addon._diagnostic_report_text(findings))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+finally:
+    bpy.context.preferences.view.language = original_language
+
+# ---------------------------------------------------------------------------
 print("\n===== RIEPILOGO TEST MODULO 4 =====", flush=True)
 print("Passati: %d" % len(OK), flush=True)
 print("Falliti: %d" % len(FAIL), flush=True)

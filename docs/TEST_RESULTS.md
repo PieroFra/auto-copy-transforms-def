@@ -1,8 +1,7 @@
 # Test results
 
-Environment recorded by the completed audit: **Blender 5.2 LTS**, headless mode.
-These are documented audit results; this document-alignment task did not rerun
-tests or build the extension.
+Environment: **Blender 5.2 LTS**, headless mode. Results recorded by the latest
+regression run after the visual-review fixes (all 11 suites rerun).
 
 Command used for every suite:
 
@@ -15,21 +14,24 @@ Command used for every suite:
 |---|---:|---|
 | `test_mod1.py` | 40/40 | SUPERATO |
 | `test_mod2.py` | 18/18 | SUPERATO |
-| `test_mod3.py` | 16/16 | SUPERATO |
-| `test_mod4.py` | 18/18 | SUPERATO |
+| `test_mod3.py` | 24/24 | SUPERATO |
+| `test_mod4.py` | 43/43 | SUPERATO |
 | `test_func1.py` | 5/5 | SUPERATO |
-| `test_actd.py` | 106/106 | SUPERATO |
+| `test_actd.py` | 106/106 | TUTTI I TEST SUPERATI |
 | `test_mod_types.py` | 49/49 | SUPERATO |
 | `test_mod_autoprefix.py` | 35/35 | SUPERATO |
 | `test_mod_learn.py` | 40/40 | SUPERATO |
-| `test_mod6.py` | 48/48 | SUPERATO |
-| `test_i18n.py` | 14/14 | SUPERATO |
+| `test_mod6.py` | 114/114 | SUPERATO |
+| `test_i18n.py` | 65/65 | SUPERATO |
 
-**Total: 389/389 passed (SUPERATO), 0 failures.**
+**Total: 539/539 passed, 0 failures.**
 
-Le suite stampano `Passati`, `Falliti` e `RISULTATO: SUPERATO/FALLITO`; la
-suite storica `test_actd.py` riporta `TUTTI I TEST SUPERATI`.
+Nell'esecuzione corrente `test_mod1.py`–`test_mod4.py` totalizzano **125/125**.
 
-The test image in `docs/test-results.png` is a summary generated from these
-results. The GUI screenshots in this folder were captured from a real Blender
-5.2 session through a local bridge, not mocked.
+Esito delle suite: `SUPERATO`; la suite storica `test_actd.py` riporta
+`TUTTI I TEST SUPERATI`.
+
+L'immagine `docs/test-results.png` è un riepilogo grafico dei risultati,
+non un output grezzo della console. Le schermate GUI in questa cartella sono
+state catturate da una sessione Blender 5.2 reale tramite bridge locale, non
+simulate.

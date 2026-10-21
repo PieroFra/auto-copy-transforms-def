@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
- Auto Copy Transforms DEF (v1.1.0)
+ Auto Copy Transforms DEF (v1.1.1)
 =============================================================================
 
 Addon per Blender 3.6.x, 4.x e 5.x che automatizza la creazione di constraint
@@ -58,7 +58,7 @@ from bpy.types import Operator, Panel, PropertyGroup, UIList
 bl_info = {
     "name": "Auto Copy Transforms DEF",
     "author": "Pierfrancesco Diodato",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (3, 6, 0),
     "location": "View3D > Sidebar (N) > Auto Copy Transforms",
     "description": (
@@ -150,18 +150,176 @@ _REPORT_PATTERNS = (
 )
 
 
+# -----------------------------------------------------------------------------
+#  TRADUZIONE DELLA DIAGNOSTICA (solo visualizzazione)
+# -----------------------------------------------------------------------------
+# I messaggi di diagnose_rig restano in italiano: sono dati usati dai test e
+# dal registro dei report. La traduzione avviene solo quando si disegna la UI.
+
+# Frammenti dinamici annidati dentro i messaggi (es. "3 ambigue, 2 senza
+# destinazione" dentro "Nessuna coppia valida (...)").
+_DETAIL_PATTERNS = (
+    (re.compile(r"^(\d+) ambigue$"), r"\1 ambiguous"),
+    (re.compile(r"^(\d+) senza destinazione$"), r"\1 without target"),
+    (re.compile(r"^nessuna corrispondenza$"), r"no match"),
+    (re.compile(r"^nessuna$"), r"none"),
+)
+
+# Motivazioni dello spazio consigliato.
+_SPACE_WHY_TRANSLATIONS = {
+    "tutte le coppie hanno lo stesso parent": (
+        "all pairs share the same parent"
+    ),
+    "le coppie stanno in gerarchie diverse": (
+        "the pairs live in different hierarchies"
+    ),
+    "gerarchie miste: WORLD è il compromesso più sicuro": (
+        "mixed hierarchies: WORLD is the safest compromise"
+    ),
+}
+
+
+def _translate_detail(text):
+    """Traduce un frammento dinamico di un messaggio diagnostico."""
+    for pattern, replacement in _DETAIL_PATTERNS:
+        new_text = pattern.sub(replacement, text)
+        if new_text != text:
+            return new_text
+    return text
+
+
+def _translate_missing_collection(match):
+    """Collection sorgente/destinazione non trovata sull'armatura."""
+    which = "source" if match.group(1) == "sorgente" else "destination"
+    available = _translate_detail(match.group(4).strip())
+    return (
+        f"Collection {which} '{match.group(2)}' missing on "
+        f"'{match.group(3)}'. Available: {available}"
+    )
+
+
+def _translate_no_valid_pair(match):
+    """Nessuna coppia valida: il dettaglio e' una lista di conteggi."""
+    detail = ", ".join(
+        _translate_detail(part.strip())
+        for part in match.group(1).split(",")
+    )
+    return (
+        f"No valid pair ({detail}): nothing would be created. "
+        f"Check the tokens and the pattern."
+    )
+
+
+def _translate_suggested_space(match):
+    """Spazio consigliato: traduce anche la motivazione tra parentesi."""
+    why = _SPACE_WHY_TRANSLATIONS.get(match.group(2), match.group(2))
+    return (
+        f"Suggested space: {match.group(1)} ({why}). "
+        f"Current: {match.group(3)}."
+    )
+
+
+# Messaggi dinamici della diagnostica pre-flight.
+_DIAGNOSTIC_PATTERNS = (
+    (re.compile(r"^Nessuna armatura attiva\.$"), r"No active armature."),
+    (re.compile(r"^Armatura sorgente non valida\.$"),
+     r"Source armature is not valid."),
+    (re.compile(r"^L'oggetto sorgente non e' un'armatura\.$"),
+     r"The source object is not an armature."),
+    (re.compile(r"^L'armatura sorgente e' in Edit Mode\.$"),
+     r"The source armature is in Edit Mode."),
+    (re.compile(r"^L'armatura sorgente e' nascosta\.$"),
+     r"The source armature is hidden."),
+    (re.compile(r"^L'armatura sorgente non ha ossa\.$"),
+     r"The source armature has no bones."),
+    (re.compile(r"^Regex non valida: (.+)$"), r"Invalid regex: \1"),
+    (re.compile(r"^La regex deve includere il gruppo \(\?P<name>\.\.\.\)\.$"),
+     r"The regex must include the (?P<name>...) group."),
+    (re.compile(r"^Placeholder non riconosciuto: (.+)$"),
+     r"Unrecognized placeholder: \1"),
+    (re.compile(r"^Il template deve contenere esattamente un \{name\}\.$"),
+     r"The template must contain exactly one {name}."),
+    (re.compile(r"^Il template può contenere al massimo un \{side\}\.$"),
+     r"The template can contain at most one {side}."),
+    (re.compile(
+        r"^Collection (sorgente|destinazione) '(.+)' inesistente su "
+        r"'(.+)'\. Disponibili: (.+)$"),
+     _translate_missing_collection),
+    (re.compile(
+        r"^Nessuna coppia valida \((.+)\): non verrebbe creato nulla\. "
+        r"Controlla i token e il pattern\.$"),
+     _translate_no_valid_pair),
+    (re.compile(
+        r"^(\d+) ossa ambigue \((.+)\)\. Con 'Risolvi ambiguità' l'addon "
+        r"sceglie automaticamente\.$"),
+     r"\1 ambiguous bones (\2). With 'Resolve ambiguity' the add-on picks "
+     r"one automatically."),
+    (re.compile(r"^(\d+) ossa sorgente non trovate in Pose: (.+)$"),
+     r"\1 source bones not found in Pose: \2"),
+    (re.compile(
+        r"^(\d+) coppie con orientamento di rest molto diverso \(>15°\): "
+        r"(.+)\. Con spazi LOCAL la posa potrebbe risultare ruotata: "
+        r"valuta WORLD o riallinea i roll\.$"),
+     r"\1 pairs with very different rest orientation (>15°): \2. With "
+     r"LOCAL spaces the pose may look rotated: use WORLD or realign the "
+     r"rolls."),
+    (re.compile(
+        r"^(\d+) ossa destinazione hanno già driver sulle trasformazioni: "
+        r"(.+)\. Il constraint si sommerà al driver\.$"),
+     r"\1 target bones already have drivers on transforms: \2. The "
+     r"constraint will add to the driver."),
+    (re.compile(
+        r"^(\d+) ossa sorgente sono animate da driver \(l'addon copierà il "
+        r"risultato finale, non il driver\)\.$"),
+     r"\1 source bones are driven (the add-on copies the final result, not "
+     r"the driver)."),
+    (re.compile(r"^Spazio consigliato: (.+) \((.+)\)\. Attuale: (.+)\.$"),
+     _translate_suggested_space),
+)
+
+# Etichette di livello dei report di diagnostica. I tag restano identici nelle
+# due lingue: qui serve riconoscerli per tradurre il testo che li segue e per
+# normalizzare eventuali tag legacy scritti in italiano.
+_LEVEL_TAGS = {
+    "INFO": "[INFO]",
+    "ERROR": "[ERROR]",
+    "WARNING": "[WARNING]",
+    "AVVISO": "[WARNING]",
+    "ERRORE": "[ERROR]",
+    "SUGGERIMENTO": "[INFO]",
+}
+_LEVEL_TAG_RX = re.compile(r"^\[([A-Za-z]+)\]\s*(.*)$")
+
+
+def _translate_message(text):
+    """Traduce una singola riga di report/diagnostica, se riconosciuta."""
+    for patterns in (_REPORT_PATTERNS, _DIAGNOSTIC_PATTERNS):
+        for pattern, replacement in patterns:
+            new_text = pattern.sub(replacement, text)
+            if new_text != text:
+                return new_text
+    return text
+
+
 def _translate_report_text(text):
-    """Traduce per la UI le righe di report note, senza toccare i dati."""
+    """Traduce per la UI le righe di report note, senza toccare i dati.
+
+    Riconosce anche le righe di diagnostica con prefisso di livello
+    ([INFO]/[ERROR]/[WARNING]): il tag resta in testa e viene tradotto solo il
+    messaggio che lo segue.
+    """
     if not text or not _is_english_ui():
         return text
     translated = []
     for line in text.split("\n"):
-        for pattern, replacement in _REPORT_PATTERNS:
-            new_line = pattern.sub(replacement, line)
-            if new_line != line:
-                line = new_line
-                break
-        translated.append(line)
+        match = _LEVEL_TAG_RX.match(line)
+        if match:
+            raw_tag = match.group(1)
+            tag = _LEVEL_TAGS.get(raw_tag.upper(), f"[{raw_tag}]")
+            message = _translate_message(match.group(2))
+            translated.append((tag + " " + message).rstrip())
+            continue
+        translated.append(_translate_message(line))
     return "\n".join(translated)
 
 
@@ -175,14 +333,22 @@ _EN_TRANSLATIONS = {
     "1. Scegli i token  2. Anteprima  3. Applica": (
         "1. Choose tokens  2. Preview  3. Apply"
     ),
+    # L'avvio rapido ora usa due etichette separate: servono chiavi dedicate,
+    # altrimenti in UI inglese restano in italiano.
+    "1. Scegli i token": "1. Choose tokens",
+    "2. Anteprima  3. Applica": "2. Preview  3. Apply",
     "Default: DEF_ → MCH_": "Default: DEF_ → MCH_",
     "Sviluppato con assistenza AI": "Developed with AI assistance",
     "2. Opzioni constraint": "2. Constraint options",
     "3. Azioni": "3. Actions",
     "Sorgente (Target)": "Source (Target)",
-    "Dest. (Owner)": "Destination (Owner)",
+    "Destinazione (Owner)": "Destination (Owner)",
     "Preset destinazione:": "Destination presets:",
     "Preset destinazione": "Destination preset",
+    # Nota mostrata quando un preset coinciderebbe col token sorgente attivo.
+    "Preset '%s' disabilitato: coincide con la sorgente.": (
+        "Preset '%s' disabled: matches the source token."
+    ),
     "Indovina prefissi": "Guess prefixes",
     "Impara da constraint": "Learn from constraint",
     "Usa regex": "Use regex",
@@ -190,6 +356,10 @@ _EN_TRANSLATIONS = {
     "Opzioni constraint": "Constraint options",
     "Applica a": "Apply to",
     "Influenza": "Influence",
+    # Etichette corte delle righe spazio/owner: identiche nelle due lingue,
+    # così la traduzione automatica di Blender non le allunga e non le tronca.
+    "Src": "Src",
+    "Dest": "Dest",
     "Spazio target": "Target space",
     "Spazio owner": "Owner space",
     "Esistenti": "Existing",
@@ -214,6 +384,21 @@ _EN_TRANSLATIONS = {
         "Copy Rotation is the typical DEF → MCH case"
     ),
     "Avanzate": "Advanced",
+    "Constraint generati": "Generated constraints",
+    "Mix e posizione nello stack": "Mix and stack position",
+    "Filtro bone collection": "Bone collection filter",
+    "Pattern di mappatura": "Mapping pattern",
+    "Filtro, mix e pattern: pannello Avanzate": (
+        "Filter, mix and pattern: Advanced panel"
+    ),
+    "Token attuali: ": "Current tokens: ",
+    "Legge il constraint di copia attivo sull'osso selezionato": (
+        "Reads the active copy constraint on the selected bone"
+    ),
+    # La nota cita la Pose Mode: è la condizione reale richiesta dal poll.
+    "Serve un osso in Pose Mode con un constraint di copia": (
+        "Needs a bone in Pose Mode with a copy constraint"
+    ),
     "Usa offset": "Use offset",
     "Posizione": "Position",
     "Posizione nello stack": "Stack position",
@@ -256,6 +441,9 @@ _EN_TRANSLATIONS = {
     ),
     "Creatore: ": "Creator: ",
     "Discord: ": "Discord: ",
+    # Etichetta umana del link Discord nel popup informazioni: al posto
+    # dell'ID numerico mostriamo il nome del profilo.
+    "Profilo Discord": "Discord profile",
     "Licenza: ": "License: ",
     "Licenza GPL completa": "Full GPL license",
     "Apri ": "Open ",
@@ -288,6 +476,10 @@ _EN_TRANSLATIONS = {
     "Prima del primo IK": "Before first IK",
     "Risolto": "Resolved",
     "Ambiguo": "Ambiguous",
+    # Stato delle righe della lista di mappatura: la sorgente resta in italiano
+    # (come i report, che usano già "senza match") e in UI inglese diventa
+    # "No match", così la colonna di stato parla una sola lingua.
+    "Senza match": "No match",
 }
 
 TRANSLATIONS = {
@@ -401,12 +593,15 @@ STACK_POSITION_ITEMS = [
     ('BEFORE_IK', "Prima del primo IK", "Lo inserisce subito prima del primo constraint IK"),
 ]
 
+# Stato delle righe di mappatura: etichetta sorgente in italiano e icona.
+# La traduzione avviene al momento del disegno (vedi `_mapping_row_data`), così
+# la lista segue la lingua dell'interfaccia senza duplicare le tabelle.
 STATUS_META = {
     'match': ("OK", 'CHECKMARK'),
     'resolved': ("Risolto", 'INFO'),
     'ambiguous': ("Ambiguo", 'ERROR'),
-    'unmatched_src': ("No match", 'CANCEL'),
-    'unmatched_dst': ("No match", 'CANCEL'),
+    'unmatched_src': ("Senza match", 'CANCEL'),
+    'unmatched_dst': ("Senza match", 'CANCEL'),
 }
 
 DEFAULT_CONSTRAINT_NAME = "AUTO_COPY_DEF_to_MCH"
@@ -922,11 +1117,12 @@ def diagnose_rig(arm_obj, settings):
 
     if ambiguous:
         preview = ", ".join(r.source for r in ambiguous[:5])
+        if len(ambiguous) > 5:
+            preview += ", …"
         findings.append((
             'warning',
-            f"{len(ambiguous)} ossa ambigue ({preview}"
-            + ("…" if len(ambiguous) > 5 else ")")
-            + ". Con 'Risolvi ambiguità' l'addon sceglie automaticamente.",
+            f"{len(ambiguous)} ossa ambigue ({preview}). "
+            f"Con 'Risolvi ambiguità' l'addon sceglie automaticamente.",
         ))
 
     # --- Analisi per coppia ---
@@ -1029,13 +1225,16 @@ def diagnose_rig(arm_obj, settings):
     return findings
 
 def _store_diagnostics(settings, findings):
-    """Salva i risultati della diagnostica nelle proprietà della Scene."""
+    """Salva esito e report della diagnostica nelle proprietà della Scene."""
     _clear_collection(settings.diagnostic_items)
     for level, text in findings:
         item = settings.diagnostic_items.add()
         item.level = level
         item.text = text
     settings.diagnostic_is_stale = False
+    # Report testuale della sola diagnostica: non tocca preview_report, cosi'
+    # il pannello di anteprima conserva il suo esito dopo "Verifica rig".
+    settings.diagnostic_report = _diagnostic_report_text(findings)
 
 
 def compute_mapping(arm_obj, settings):
@@ -1351,6 +1550,33 @@ def _source_obj(arm_obj, settings):
     if src is None or src.type != 'ARMATURE':
         return arm_obj
     return src
+
+
+def _collection_search_available(owner):
+    """True se l'armatura espone le bone collection ricercabili.
+
+    Blender 4.x/5.x hanno Armature.collections; su 3.6 l'API non esiste e la
+    UI deve ripiegare sul campo testo. Accetta anche None/oggetti non armatura:
+    in quel caso non c'e' nulla su cui cercare.
+    """
+    if owner is None or getattr(owner, "type", None) != 'ARMATURE':
+        return False
+    data = getattr(owner, "data", None)
+    return getattr(data, "collections", None) is not None
+
+
+def _collection_search_armature(context, settings, is_source):
+    """Armatura su cui cercare la bone collection per il prop_search.
+
+    Ritorna l'armatura sorgente (o destinazione) quando l'API bone collection
+    e' disponibile; ritorna None quando manca l'armatura o l'API (3.6/4.x):
+    in quel caso il pannello usa esplicitamente il campo testo.
+    """
+    arm_obj = getattr(context, "object", None)
+    if arm_obj is None:
+        return None
+    owner = _source_obj(arm_obj, settings) if is_source else arm_obj
+    return owner if _collection_search_available(owner) else None
 
 
 # --- Marcatura dei constraint generati -------------------------------------
@@ -1926,7 +2152,15 @@ class ACTD_Settings(PropertyGroup):
     # --- Anteprima / report ---
     preview_items: CollectionProperty(type=ACTD_MappingItem)
     preview_index: IntProperty(default=0)
+    # Report generico: resta allineato all'ultima azione eseguita per
+    # compatibilita' con la 1.1.x e con le suite di test. La UI legge invece le
+    # proprieta' dedicate qui sotto: cosi' anteprima, diagnostica e
+    # manutenzione non si sovrascrivono piu' a vicenda.
     last_report: StringProperty(default="")
+    # Stato isolato per pannello (testo mostrato dalla UI).
+    preview_report: StringProperty(default="")
+    diagnostic_report: StringProperty(default="")
+    maintenance_report: StringProperty(default="")
     preview_is_stale: BoolProperty(default=False)
     preview_armature: StringProperty(default="")
 
@@ -1988,26 +2222,111 @@ def _build_report(created, updated, skipped, replaced,
     return "\n".join(lines)
 
 
+# --- Report isolati per pannello ---------------------------------------------
+# Ogni azione aggiorna la propria proprieta' e, per compatibilita' con la 1.1.x
+# e con le suite di test, anche `last_report` (ultimo report generico). La UI
+# legge solo la proprieta' dedicata al pannello: la diagnostica non cancella il
+# report di anteprima e la manutenzione non duplica quello dell'anteprima.
+
+def _set_preview_report(settings, text):
+    """Scrive il report del pannello anteprima/mappatura."""
+    settings.preview_report = text
+    settings.last_report = text
+
+
+def _set_maintenance_report(settings, text):
+    """Scrive il report del pannello manutenzione."""
+    settings.maintenance_report = text
+    settings.last_report = text
+
+
+def _diagnostic_report_text(findings):
+    """Testo del report di diagnostica, con prefisso di livello."""
+    return "\n".join(
+        f"[{level.upper()}] {text}" for level, text in findings
+    ) or "Nessun problema rilevato."
+
+
+# --- Helper di visualizzazione ------------------------------------------------
+# Blender tronca le label piu' larghe della sidebar (troncamento con '…' oltre
+# ~40 caratteri): i report vanno spezzati in righe corte e disegnati una label
+# per riga. La larghezza 34 entra nella sidebar reale anche con i margini.
+_UI_TEXT_WIDTH = 34
+
+
+def _ui_report_lines(text, width=_UI_TEXT_WIDTH):
+    """Righe pronte per le label della UI: testo tradotto e spezzato.
+
+    Usato da anteprima, diagnostica e manutenzione. Le righe vuote diventano
+    uno spazio, altrimenti Blender non disegna la label e il paragrafo si
+    compatta.
+    """
+    if not text:
+        return []
+    lines = _wrap_text(_translate_report_text(text), width=width)
+    return [line if line else " " for line in lines]
+
+
+def _draw_report_text(layout, text, width=_UI_TEXT_WIDTH):
+    """Disegna un report tradotto e spezzato su piu' label Blender."""
+    for line in _ui_report_lines(text, width=width):
+        layout.label(text=line)
+
+
 # =============================================================================
 #  UI LIST
 # =============================================================================
+
+# Freccia che associa sorgente e destinazione nella lista di mappatura e punto
+# medio che separa la destinazione dall'etichetta di stato.
+_MAPPING_ARROW = "→"
+_MAPPING_DOT = "·"
+
+
+def _mapping_row_data(item):
+    """Testi e icona di una riga della lista di mappatura.
+
+    Restituisce `(sorgente, destinazione, stato, icona)`. Lo stato viene
+    tradotto solo al momento del disegno con `pgettext`: i dati salvati in
+    `ACTD_MappingItem` (e quindi i `MappingResult` da cui derivano) restano
+    invariati. Un nome assente diventa "-" per non lasciare la cella vuota.
+    Tenuta separata da `draw_item` per poterla verificare nei test headless.
+    """
+    label, icon_name = STATUS_META.get(item.status, ("?", 'QUESTION'))
+    return (
+        item.source_name or "-",
+        item.dest_name or "-",
+        bpy.app.translations.pgettext(label),
+        icon_name,
+    )
+
 
 class ACTD_UL_mapping(UIList):
     """Lista delle coppie di mappatura con stato evidenziato."""
 
     def draw_item(self, context, layout, data, item, icon,
                   active_data, active_propname, index=0, flt_flag=0):
-        label, icon_name = STATUS_META.get(item.status, ("?", 'QUESTION'))
+        source, dest, status_label, status_icon = _mapping_row_data(item)
 
-        split = layout.split(factor=0.38, align=True)
-        split.label(text=item.source_name or "-")
+        # La UIList impila le voci su una sola riga: le chiamate dirette su
+        # `layout` finiscono affiancate (era il caso dello split fisso
+        # 0.38/0.62, che troncava entrambi i nomi). La `column` fa crescere
+        # l'altezza della voce e permette due righe vere, una per nome.
+        column = layout.column(align=True)
 
-        right = split.split(factor=0.62, align=True)
-        right.label(text=item.dest_name or "-")
+        # Prima riga: icona di stato + nome sorgente, a tutta larghezza.
+        column.label(text=source, icon=status_icon)
 
-        status_row = right.row(align=True)
-        status_row.alignment = 'RIGHT'
-        status_row.label(text=label, icon=icon_name)
+        # Seconda riga: freccia di associazione, destinazione e stato. Lo
+        # stato sta in coda alla stessa label: senza colonne fisse i due nomi
+        # usano tutta la larghezza e, quando lo spazio finisce, il troncamento
+        # colpisce l'etichetta di stato (già anticipata dall'icona), non i nomi.
+        column.label(
+            text=(
+                f"{_MAPPING_ARROW} {dest}"
+                f"  {_MAPPING_DOT}  {status_label}"
+            )
+        )
 
 
 # =============================================================================
@@ -2072,6 +2391,45 @@ class ACTD_OT_dest_preset(Operator):
         return {'FINISHED'}
 
 
+# Preset del token destinazione mostrati nella UI: (testo, token, tipo).
+# La tabella resta una sola: la UI e la nota esplicativa la leggono da qui.
+_DEST_PRESETS = (
+    ("MCH_", "MCH_", 'PREFIX'),
+    ("ORG_", "ORG_", 'PREFIX'),
+    ("DEF_", "DEF_", 'PREFIX'),
+    ("_ctrl", "_ctrl", 'SUFFIX'),
+)
+
+
+def _dest_preset_is_self_match(settings, preset, token_type):
+    """True se il preset coinciderebbe con il token sorgente attivo.
+
+    Un preset uguale alla sorgente (stesso token e stesso tipo) porterebbe a
+    mappare ogni osso su se stesso: la UI lo disabilita, senza rimuovere
+    l'operatore.
+    """
+    if settings is None:
+        return False
+    source = (getattr(settings, "source_token", "") or "").strip()
+    source_type = getattr(settings, "source_token_type", 'PREFIX')
+    return bool(source) and source == preset and source_type == token_type
+
+
+def _dest_preset_note(settings):
+    """Nota esplicativa per il preset disabilitato, tradotta.
+
+    Ritorna stringa vuota quando nessun preset e' in conflitto con la
+    sorgente: in quel caso la UI non aggiunge righe.
+    """
+    for _label, preset, token_type in _DEST_PRESETS:
+        if _dest_preset_is_self_match(settings, preset, token_type):
+            display = _token_display(preset, token_type)
+            return bpy.app.translations.pgettext(
+                "Preset '%s' disabilitato: coincide con la sorgente."
+            ) % display
+    return ""
+
+
 class ACTD_OT_refresh_constraint_name(Operator):
     """Ricalcola il nome del constraint dai token correnti."""
 
@@ -2118,9 +2476,10 @@ class ACTD_OT_guess_prefixes(Operator):
         settings.dest_token = dst_token
         settings.source_token_type = 'PREFIX'
         settings.dest_token_type = 'PREFIX'
-        settings.last_report = (
+        _set_preview_report(
+            settings,
             f"Prefissi: sorgente '{src_token}', destinazione '{dst_token}'.\n"
-            f"{detail}"
+            f"{detail}",
         )
 
         if reliable:
@@ -2210,7 +2569,7 @@ class ACTD_OT_learn_pattern(Operator):
             )
 
         righe.extend(note)
-        settings.last_report = "\n".join(righe)
+        _set_preview_report(settings, "\n".join(righe))
         settings.preview_is_stale = True
 
         if regola:
@@ -2251,12 +2610,13 @@ class ACTD_OT_preview(Operator):
         unm_dst = sum(1 for r in results if r.status == 'unmatched_dst')
         valid = sum(1 for r in results if r.status in ('match', 'resolved'))
 
-        settings.last_report = (
+        _set_preview_report(
+            settings,
             f"Anteprima completata su '{arm_obj.name}'.\n"
             f"Coppie valide: {valid}\n"
             f"Coppie ambigue: {ambiguous}\n"
             f"Ossa sorgente senza match: {unm_src}\n"
-            f"Ossa destinazione senza match: {unm_dst}"
+            f"Ossa destinazione senza match: {unm_dst}",
         )
 
         self.report(
@@ -2306,15 +2666,16 @@ class ACTD_OT_diagnose(Operator):
         arm_obj = context.object
         settings = _settings(context)
         findings = diagnose_rig(arm_obj, settings)
+        # La diagnostica scrive solo il proprio stato: il report di anteprima
+        # resta intatto (prima entrambi usavano last_report).
         _store_diagnostics(settings, findings)
 
         errors = sum(1 for level, _ in findings if level == 'error')
         warnings = sum(1 for level, _ in findings if level == 'warning')
         infos = sum(1 for level, _ in findings if level == 'info')
 
-        settings.last_report = "\n".join(
-            f"[{level.upper()}] {text}" for level, text in findings
-        ) or "Nessun problema rilevato."
+        # `last_report` resta l'ultimo report generico (compatibilita').
+        settings.last_report = settings.diagnostic_report
 
         self.report(
             {'INFO'} if not errors else {'WARNING'},
@@ -2369,7 +2730,10 @@ class ACTD_OT_apply(Operator):
             selected = {pb.name for pb in arm_obj.pose.bones if _is_pose_bone_selected(pb)}
             if not selected:
                 self.report({'WARNING'}, "Nessuna osso selezionato in Pose Mode.")
-                settings.last_report = "Applicazione annullata: nessun osso selezionato."
+                _set_preview_report(
+                    settings,
+                    "Applicazione annullata: nessun osso selezionato.",
+                )
                 return {'CANCELLED'}
 
         created = 0
@@ -2482,9 +2846,12 @@ class ACTD_OT_apply(Operator):
                 unique_warnings.append(warn)
 
         _store_preview(settings, arm_obj, results)
-        settings.last_report = _build_report(
-            created, updated, skipped, replaced,
-            ambiguous, unm_src, unm_dst, errors, unique_warnings,
+        _set_preview_report(
+            settings,
+            _build_report(
+                created, updated, skipped, replaced,
+                ambiguous, unm_src, unm_dst, errors, unique_warnings,
+            ),
         )
 
         self.report(
@@ -2521,7 +2888,10 @@ class ACTD_OT_remove(Operator):
             selected = {pb.name for pb in arm_obj.pose.bones if _is_pose_bone_selected(pb)}
             if not selected:
                 self.report({'WARNING'}, "Nessun osso selezionato: rimozione annullata.")
-                settings.last_report = "Rimozione annullata: nessun osso selezionato."
+                _set_preview_report(
+                    settings,
+                    "Rimozione annullata: nessun osso selezionato.",
+                )
                 return {'CANCELLED'}
 
         removed = 0
@@ -2540,7 +2910,7 @@ class ACTD_OT_remove(Operator):
 
         _prune_registry(arm_obj)
 
-        settings.last_report = f"Constraint rimossi: {removed}"
+        _set_preview_report(settings, f"Constraint rimossi: {removed}")
         self.report({'INFO'}, f"Rimossi {removed} constraint.")
         return {'FINISHED'}
 
@@ -2568,7 +2938,9 @@ class ACTD_OT_clean_registry(Operator):
             return {'CANCELLED'}
 
         removed = _prune_registry(arm_obj)
-        settings.last_report = f"Voci orfane rimosse dal registro: {removed}"
+        _set_maintenance_report(
+            settings, f"Voci orfane rimosse dal registro: {removed}"
+        )
         self.report({'INFO'}, f"Registro pulito: {removed} voci orfane rimosse.")
         return {'FINISHED'}
 
@@ -2651,7 +3023,7 @@ def _write_export_csv(path, rows):
 
 def _write_export_json(path, rows):
     payload = {
-        "versione": "1.1.0",
+        "versione": "1.1.1",
         "generato_il": datetime.now().isoformat(timespec="seconds"),
         "righe": rows,
     }
@@ -2690,8 +3062,8 @@ class ACTD_OT_convert_to_manual(Operator):
                     converted += 1
         _prune_registry(arm_obj)
 
-        settings.last_report = (
-            f"Constraint convertiti in manuali: {converted}"
+        _set_maintenance_report(
+            settings, f"Constraint convertiti in manuali: {converted}"
         )
         self.report({'INFO'}, f"Convertiti {converted} constraint in manuali.")
         return {'FINISHED'}
@@ -2728,7 +3100,9 @@ class ACTD_OT_mute_all(Operator):
                         changed += 1
 
         azione = "mutati" if state else "riattivati"
-        settings.last_report = f"Constraint generati {azione}: {changed}"
+        _set_maintenance_report(
+            settings, f"Constraint generati {azione}: {changed}"
+        )
         self.report({'INFO'}, f"Constraint generati {azione}: {changed}.")
         return {'FINISHED'}
 
@@ -2757,8 +3131,9 @@ class ACTD_OT_export_csv(Operator):
             self.report({'ERROR'}, f"Impossibile scrivere il CSV: {exc}")
             return {'CANCELLED'}
 
-        settings.last_report = (
-            f"Report salvato in: {path}\nRighe esportate: {len(rows)}"
+        _set_maintenance_report(
+            settings,
+            f"Report salvato in: {path}\nRighe esportate: {len(rows)}",
         )
         self.report({'INFO'}, f"CSV salvato: {path}")
         return {'FINISHED'}
@@ -2788,8 +3163,9 @@ class ACTD_OT_export_json(Operator):
             self.report({'ERROR'}, f"Impossibile scrivere il JSON: {exc}")
             return {'CANCELLED'}
 
-        settings.last_report = (
-            f"Report salvato in: {path}\nRighe esportate: {len(rows)}"
+        _set_maintenance_report(
+            settings,
+            f"Report salvato in: {path}\nRighe esportate: {len(rows)}",
         )
         self.report({'INFO'}, f"JSON salvato: {path}")
         return {'FINISHED'}
@@ -2818,8 +3194,12 @@ class ACTD_OT_show_info(Operator):
         )
 
         row = layout.row(align=True)
+        # Link cliccabile con etichetta umana/localizzata: l'ID numerico non
+        # dice nulla all'utente.
         op = row.operator(
-            "wm.url_open", text="Discord: " + DISCORD_ID, icon='URL'
+            "wm.url_open",
+            text=bpy.app.translations.pgettext("Profilo Discord"),
+            icon='URL',
         )
         op.url = DISCORD_URL
         op = row.operator(
@@ -2857,6 +3237,53 @@ class ACTD_OT_show_info(Operator):
 
 
 # =============================================================================
+#  TESTO DINAMICO DEI PANNELLI
+# =============================================================================
+
+def _token_display(token, token_type):
+    """Token come compare nel nome osso: 'DEF_*' (prefisso) o '*_ctrl' (suffisso)."""
+    token = (token or "").strip()
+    if not token:
+        return "-"
+    if token_type == 'SUFFIX':
+        return "*" + token
+    return token + "*"
+
+
+def _mapping_label_text(settings):
+    """Riga con la mappatura attualmente impostata.
+
+    Sostituisce la vecchia label statica "Default: DEF_ → MCH_", che restava
+    vera solo finché l'utente non cambiava i token.
+    """
+    source = _token_display(settings.source_token, settings.source_token_type)
+    dest = _token_display(settings.dest_token, settings.dest_token_type)
+    prefix = bpy.app.translations.pgettext("Token attuali: ")
+    return f"{prefix}{source} → {dest}"
+
+
+def _learn_condition_note(context):
+    """Testo e icona della condizione che abilita "Impara da constraint".
+
+    Usa lo stesso poll dell'operatore, senza modificarne la semantica: serve
+    solo a spiegare accanto al pulsante perché risulta grigio.
+    """
+    if ACTD_OT_learn_pattern.poll(context):
+        return (
+            bpy.app.translations.pgettext(
+                "Legge il constraint di copia attivo sull'osso selezionato"
+            ),
+            'CHECKMARK',
+        )
+    return (
+        bpy.app.translations.pgettext(
+            "Serve un osso in Pose Mode con un constraint di copia"
+        ),
+        'INFO',
+    )
+
+
+# =============================================================================
 #  PANNELLI UI
 # =============================================================================
 
@@ -2878,55 +3305,74 @@ class ACTD_PT_main(Panel):
         settings = _settings(context)
 
         # ---------------- Avvio rapido ----------------
+        # Anteprima e Applica stanno qui, in cima: prima erano in fondo al
+        # pannello e serviva lo scroll per raggiungerle.
         box = layout.box()
         box.label(text="Avvio rapido", icon='INFO')
-        box.label(text="1. Scegli i token  2. Anteprima  3. Applica")
+        # Avvio rapido spezzato in due label: una riga unica superava la
+        # larghezza della sidebar e veniva troncata con '…'.
+        box.label(text="1. Scegli i token")
+        box.label(text="2. Anteprima  3. Applica")
+        actions = box.column(align=True)
+        actions.operator("actd.preview", icon='ZOOM_SELECTED')
+        actions.operator("actd.apply_transforms", icon='CONSTRAINT')
 
         # ---------------- Token di mappatura ----------------
         box = layout.box()
-        box.label(text="1. Token di mappatura", icon='SORTALPHA')
+        box.label(text="Token di mappatura", icon='SORTALPHA')
 
         box.label(text="Sorgente (Target)")
         row = box.row(align=True)
         row.prop(settings, "source_token", text="")
         row.prop(settings, "source_token_type", text="")
 
-        box.label(text="Dest. (Owner)")
+        box.label(text="Destinazione (Owner)")
         row = box.row(align=True)
         row.prop(settings, "dest_token", text="")
         row.prop(settings, "dest_token_type", text="")
 
         box.label(text="Preset destinazione:")
         row = box.row(align=True)
-        op = row.operator("actd.dest_preset", text="MCH_")
-        op.preset = "MCH_"
-        op.token_type = "PREFIX"
-        op = row.operator("actd.dest_preset", text="ORG_")
-        op.preset = "ORG_"
-        op.token_type = "PREFIX"
-        op = row.operator("actd.dest_preset", text="DEF_")
-        op.preset = "DEF_"
-        op.token_type = "PREFIX"
-        op = row.operator("actd.dest_preset", text="_ctrl")
-        op.preset = "_ctrl"
-        op.token_type = "SUFFIX"
+        for preset_label, preset, token_type in _DEST_PRESETS:
+            # Un preset uguale al token sorgente attivo resta visibile ma
+            # disabilitato: eviterebbe la mappatura 1:1 osso su se stesso.
+            cell = row.row(align=True)
+            cell.enabled = not _dest_preset_is_self_match(
+                settings, preset, token_type
+            )
+            op = cell.operator("actd.dest_preset", text=preset_label)
+            op.preset = preset
+            op.token_type = token_type
+
+        # Nota del preset disabilitato: spezzata in righe corte come i report.
+        # L'icona sta solo sulla prima label, le continuazioni restano testo.
+        preset_lines = _ui_report_lines(_dest_preset_note(settings))
+        if preset_lines:
+            box.label(text=preset_lines[0], icon='INFO')
+            for line in preset_lines[1:]:
+                box.label(text=line)
 
         col = box.column(align=True)
         col.operator(
-            "actd.guess_prefixes", text="Indovina prefissi", icon='SORTALPHA'
+            "actd.guess_prefixes", text="Indovina prefissi", icon='AUTO'
         )
         col.operator(
             "actd.learn_pattern", text="Impara da constraint", icon='IMPORT'
         )
-        box.label(text="Default: DEF_ → MCH_", icon='INFO')
+        # Condizione concreta accanto al pulsante: senza questa riga il
+        # pulsante appare grigio senza spiegare cosa manca (stesso poll
+        # dell'operatore, nessun cambio di semantica).
+        learn_text, learn_icon = _learn_condition_note(context)
+        learn_lines = _ui_report_lines(learn_text) or [" "]
+        box.label(text=learn_lines[0], icon=learn_icon)
+        for line in learn_lines[1:]:
+            box.label(text=line)
 
-        col = box.column(align=True)
-        col.prop(settings, "custom_pattern", text="Pattern")
-        col.prop(settings, "use_regex", text="Usa regex")
-
-        pattern_warning = _validate_pattern(settings)
-        if pattern_warning:
-            box.label(text=pattern_warning, icon='ERROR')
+        # Mappatura corrente: la vecchia label statica "Default: DEF_ → MCH_"
+        # restava falsa appena si cambiavano i token.
+        # Pattern, filtro e mix stanno nel pannello figlio "Avanzate": il
+        # rimando testuale è stato tolto perché si troncava e ridondava.
+        box.label(text=_mapping_label_text(settings), icon='INFO')
 
         # ---------------- Armatura sorgente (Modulo 1) ----------------
         box = layout.box()
@@ -2945,13 +3391,15 @@ class ACTD_PT_main(Panel):
 
         # ---------------- Opzioni constraint ----------------
         box = layout.box()
-        box.label(text="2. Opzioni constraint", icon='CONSTRAINT')
+        box.label(text="Opzioni constraint", icon='CONSTRAINT')
 
         col = box.column(align=True)
         col.prop(settings, "apply_mode", text="Applica a")
         col.prop(settings, "influence", text="Influenza")
-        col.prop(settings, "target_space", text="Target")
-        col.prop(settings, "owner_space", text="Owner")
+        # Etichette corte e stabili: le parole "Target"/"Owner" vengono tradotte
+        # da Blender ("Proprietario") e troncano la riga nella sidebar.
+        col.prop(settings, "target_space", text="Src")
+        col.prop(settings, "owner_space", text="Dest")
         col.prop(settings, "existing_mode", text="Esistenti")
 
         # Disabilita update_mode e avoid_duplicates se si è in modalità REPLACE
@@ -2962,29 +3410,6 @@ class ACTD_PT_main(Panel):
 
         col.prop(settings, "resolve_ambiguous", text="Risolvi ambiguità")
 
-        # ---------------- Filtro bone collection (Modulo 3) ----------------
-        flt = box.column(align=True)
-        flt.prop(settings, "use_collection_filter", text="Filtra per bone collection")
-        sub = flt.column(align=True)
-        sub.enabled = settings.use_collection_filter
-        sub.label(text="Collection sorgente")
-        sub.prop(settings, "collection_source", text="")
-        sub.label(text="Collection destinazione")
-        sub.prop(settings, "collection_dest", text="")
-        sub.prop(settings, "deform_only", text="Solo ossa deform")
-
-        if settings.use_collection_filter:
-            arm_owner = context.object
-            if arm_owner is not None and arm_owner.type == 'ARMATURE':
-                names = _collection_names(arm_owner.data)
-                if names:
-                    shown = ", ".join(names[:6]) + ("…" if len(names) > 6 else "")
-                    sub.label(text="Collection: " + shown, icon='GROUP_BONE')
-                elif not hasattr(arm_owner.data, "collections"):
-                    sub.label(text="Bone collections non disponibili", icon='ERROR')
-                else:
-                    sub.label(text="Nessuna bone collection nell'armatura", icon='INFO')
-
         # ---------------- Tipo di constraint (Modulo 5) ----------------
         typ = box.column(align=True)
         typ.row().prop(settings, "constraint_type", text="Tipo")
@@ -2994,9 +3419,61 @@ class ACTD_PT_main(Panel):
                 icon='INFO',
             )
 
-        # ---------------- Opzioni avanzate constraint (Modulo 2) ----------------
+        # Nome constraint: label esterna e campo a tutta larghezza, così il
+        # nome resta leggibile invece di essere troncato dal pulsante.
+        box.label(text="Nome constraint", icon='CONSTRAINT')
+        name_row = box.row(align=True)
+        name_row.prop(settings, "constraint_name", text="")
+        name_row.operator("actd.refresh_constraint_name", text="", icon='FILE_REFRESH')
+
+        # Filtro bone collection, opzioni avanzate e pattern sono diventati il
+        # pannello figlio "Avanzate": qui restano solo i pulitori dei constraint
+        # già creati.
+        # ---------------- Constraint generati ----------------
+        box = layout.box()
+        box.label(text="Constraint generati", icon='PLAY')
+        col = box.column(align=True)
+        col.operator("actd.remove_generated", icon='TRASH')
+        row = col.row(align=True)
+        row.operator("actd.clean_registry", icon='BRUSH_DATA')
+
+        # ---------------- Informazioni / README ----------------
+        row = layout.row()
+        row.operator(
+            "actd.show_info", text="Informazioni / README", icon='INFO'
+        )
+
+
+class ACTD_PT_advanced(Panel):
+    """Sotto-pannello richiudibile con i controlli avanzati.
+
+    Raccoglie le opzioni che prima erano stipate nel pannello principale
+    (mix/posizione nello stack, filtro bone collection, pattern): restano
+    tutte disponibili, ma non occupano più la parte alta della sidebar.
+    """
+
+    bl_label = "Avanzate"
+    bl_idname = "ACTD_PT_advanced"
+    bl_parent_id = "ACTD_PT_main"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Auto Copy Transforms"
+    # Richiudibile e chiuso di default: sono regolazioni facoltative.
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return _poll_armature(context)
+
+    def draw(self, context):
+        layout = self.layout
+        settings = _settings(context)
+
+        # ---------------- Mix e posizione nello stack (Modulo 2) ----------------
+        box = layout.box()
+        box.label(text="Mix e posizione nello stack", icon='PREFERENCES')
+
         adv = box.column(align=True)
-        adv.label(text="Avanzate", icon='PREFERENCES')
         adv.prop(settings, "mix_mode", text="Mix")
         if _constraint_supports_offset(settings.constraint_type):
             adv.prop(settings, "use_offset", text="Usa offset")
@@ -3027,26 +3504,60 @@ class ACTD_PT_main(Panel):
             if not has_ik:
                 adv.label(text="Nessun constraint IK: posizione ignorata", icon='ERROR')
 
-        # Nome constraint con pulsante refresh integrato sulla stessa riga
-        name_row = box.row(align=True)
-        name_row.prop(settings, "constraint_name", text="Nome")
-        name_row.operator("actd.refresh_constraint_name", text="", icon='FILE_REFRESH')
-
-        # ---------------- Azioni ----------------
+        # ---------------- Filtro bone collection (Modulo 3) ----------------
         box = layout.box()
-        box.label(text="3. Azioni", icon='PLAY')
-        col = box.column(align=True)
-        col.operator("actd.preview", icon='ZOOM_SELECTED')
-        col.operator("actd.apply_transforms", icon='CONSTRAINT')
-        col.operator("actd.remove_generated", icon='TRASH')
-        row = col.row(align=True)
-        row.operator("actd.clean_registry", icon='BRUSH_DATA')
+        box.label(text="Filtro bone collection", icon='GROUP_BONE')
 
-        # ---------------- Informazioni / README ----------------
-        row = layout.row()
-        row.operator(
-            "actd.show_info", text="Informazioni / README", icon='INFO'
-        )
+        flt = box.column(align=True)
+        flt.prop(settings, "use_collection_filter", text="Filtra per bone collection")
+        sub = flt.column(align=True)
+        sub.enabled = settings.use_collection_filter
+        sub.label(text="Collection sorgente")
+        # Sulle armature con bone collection (Blender 4.x/5.x) il campo è un
+        # prop_search sulle collection reali; senza API (3.6) o senza armatura
+        # valida si ripiega esplicitamente sul campo testo.
+        src_search = _collection_search_armature(context, settings, True)
+        if src_search is not None:
+            sub.prop_search(
+                settings, "collection_source",
+                src_search.data, "collections", text="",
+            )
+        else:
+            sub.prop(settings, "collection_source", text="")
+        sub.label(text="Collection destinazione")
+        dst_search = _collection_search_armature(context, settings, False)
+        if dst_search is not None:
+            sub.prop_search(
+                settings, "collection_dest",
+                dst_search.data, "collections", text="",
+            )
+        else:
+            sub.prop(settings, "collection_dest", text="")
+        sub.prop(settings, "deform_only", text="Solo ossa deform")
+
+        if settings.use_collection_filter:
+            arm_owner = context.object
+            if arm_owner is not None and arm_owner.type == 'ARMATURE':
+                names = _collection_names(arm_owner.data)
+                if names:
+                    shown = ", ".join(names[:6]) + ("…" if len(names) > 6 else "")
+                    sub.label(text="Collection: " + shown, icon='GROUP_BONE')
+                elif not hasattr(arm_owner.data, "collections"):
+                    sub.label(text="Bone collections non disponibili", icon='ERROR')
+                else:
+                    sub.label(text="Nessuna bone collection nell'armatura", icon='INFO')
+
+        # ---------------- Pattern di mappatura ----------------
+        box = layout.box()
+        box.label(text="Pattern di mappatura", icon='SORTALPHA')
+
+        col = box.column(align=True)
+        col.prop(settings, "custom_pattern", text="Pattern")
+        col.prop(settings, "use_regex", text="Usa regex")
+
+        pattern_warning = _validate_pattern(settings)
+        if pattern_warning:
+            box.label(text=pattern_warning, icon='ERROR')
 
 
 class ACTD_PT_maintenance(Panel):
@@ -3086,17 +3597,16 @@ class ACTD_PT_maintenance(Panel):
         )
 
         row = box.row(align=True)
-        row.operator("actd.export_csv", text="Export CSV", icon='FILE_TEXT')
+        row.operator("actd.export_csv", text="Export CSV", icon='EXPORT')
         row.operator(
-            "actd.export_json", text="Export JSON", icon='FILEBROWSER'
+            "actd.export_json", text="Export JSON", icon='EXPORT'
         )
 
-        if settings.last_report:
+        # Solo il report di manutenzione: l'anteprima ha il suo pannello.
+        if settings.maintenance_report:
             box = layout.box()
             box.label(text="Report:", icon='TEXT')
-            report = _translate_report_text(settings.last_report)
-            for line in report.split("\n"):
-                box.label(text=line if line else " ")
+            _draw_report_text(box, settings.maintenance_report)
 
 
 class ACTD_PT_diagnostics(Panel):
@@ -3119,7 +3629,7 @@ class ACTD_PT_diagnostics(Panel):
         settings = _settings(context)
 
         row = layout.row(align=True)
-        row.operator("actd.diagnose", icon='VIEWZOOM')
+        row.operator("actd.diagnose", icon='CHECKMARK')
 
         if settings.diagnostic_is_stale:
             layout.label(text="Diagnostica non aggiornata", icon='INFO')
@@ -3130,13 +3640,20 @@ class ACTD_PT_diagnostics(Panel):
 
         icons = {
             'error': ('ERROR', 'ERROR'),
-            'warning': ('WARNING', 'ERROR'),
+            # 'WARNING' non e' un'icona valida in Blender 5.x: usiamo l'icona
+            # di stato equivalente, che esiste su tutte le versioni.
+            'warning': ('STATUS_WARNING', 'ERROR'),
             'info': ('INFO', 'NONE'),
         }
         for item in settings.diagnostic_items:
             icon = icons.get(item.level, ('INFO', 'NONE'))[0]
             box = layout.box()
-            box.label(text=item.text, icon=icon)
+            # Anche i messaggi di diagnostica sono tradotti e spezzati: la
+            # sidebar e' stretta e Blender tronca le label lunghe.
+            lines = _ui_report_lines(item.text) or [" "]
+            box.label(text=lines[0], icon=icon)
+            for line in lines[1:]:
+                box.label(text=line)
 
 
 class ACTD_PT_preview(Panel):
@@ -3148,7 +3665,10 @@ class ACTD_PT_preview(Panel):
     bl_region_type = 'UI'
     bl_category = "Auto Copy Transforms"
     bl_parent_id = "ACTD_PT_main"
-    bl_options = {'DEFAULT_CLOSED'}
+    # Aperto di default: la lista di anteprima e il report sono l'esito
+    # dell'operazione e devono essere visibili subito, non dopo un click.
+    # `set()` esplicito evita di ereditare un DEFAULT_CLOSED futuro.
+    bl_options = set()
 
     @classmethod
     def poll(cls, context):
@@ -3180,14 +3700,17 @@ class ACTD_PT_preview(Panel):
             item = settings.preview_items[settings.preview_index]
             if item.note:
                 col = layout.column(align=True)
-                col.label(text=item.note, icon='INFO')
+                # Anche le note seguono il wrapping: sono testi lunghi.
+                lines = _ui_report_lines(item.note) or [" "]
+                col.label(text=lines[0], icon='INFO')
+                for line in lines[1:]:
+                    col.label(text=line)
 
-        if settings.last_report:
+        # Solo il report di anteprima: la manutenzione ha il suo pannello.
+        if settings.preview_report:
             box = layout.box()
             box.label(text="Report:", icon='TEXT')
-            report = _translate_report_text(settings.last_report)
-            for line in report.split("\n"):
-                box.label(text=line if line else " ")
+            _draw_report_text(box, settings.preview_report)
 
 
 # =============================================================================
@@ -3218,6 +3741,7 @@ _classes = (
     ACTD_OT_export_json,
     ACTD_OT_show_info,
     ACTD_PT_main,
+    ACTD_PT_advanced,
     ACTD_PT_maintenance,
     ACTD_PT_diagnostics,
     ACTD_PT_preview,
