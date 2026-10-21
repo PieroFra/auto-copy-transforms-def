@@ -50,9 +50,12 @@ For a GUI instance:
 
 ```powershell
 $p = Start-Process -FilePath $blender `
-  -ArgumentList @('--factory-startup', '--python', ('"' + $bridge + '"')) `
+  -ArgumentList @('--factory-startup', '--no-window-focus', '--python', ('"' + $bridge + '"')) `
   -PassThru
 ```
+
+`--no-window-focus` opens the test window behind other windows, so it does not
+steal focus. Use GUI mode only when pixels are required.
 
 The bridge prints `BRIDGE_MODE background` or `BRIDGE_MODE gui` to stdout.
 
