@@ -166,6 +166,20 @@ check("README e licenza incorporati",
       bool(mod.README_TEXT.strip()) and bool(mod.LICENSE_NOTICE.strip())
       and mod.LICENSE_NAME == "GPL-3.0-or-later")
 
+# Default v1.1.x: token con underscore, non con trattino.
+check("default token sorgente DEF_", S.source_token == "DEF_", S.source_token)
+check("default token destinazione MCH_", S.dest_token == "MCH_", S.dest_token)
+clear_scene()
+arm_default = make_armature("ArmDefault", ["DEF_Hand.L", "MCH_Hand.L"])
+bpy.ops.actd.apply_transforms()
+check("default: coppia DEF_ -> MCH_ riconosciuta",
+      len(arm_default.pose.bones["MCH_Hand.L"].constraints) == 1
+      and arm_default.pose.bones["MCH_Hand.L"].constraints[0].subtarget
+      == "DEF_Hand.L",
+      str([c.subtarget
+           for c in arm_default.pose.bones["MCH_Hand.L"].constraints]))
+reset_settings(S)
+
 # =============================================================================
 #  T1 - Comportamento di default invariato
 # =============================================================================

@@ -8,8 +8,8 @@ License: GPL-3.0-or-later
 
 WHAT IT DOES
 ------------
-Creates copy constraints on destination bones (MCH-, ORG-, ...) by
-automatically mapping the names of source bones (DEF-).
+Creates copy constraints on destination bones (MCH_, ORG_, ...) by
+automatically mapping the names of source bones (DEF_).
 
 
 MAIN FEATURES
@@ -48,6 +48,12 @@ Tested on Blender 5.2 LTS. The code contains fallbacks for Blender 3.6/4.x,
 but those versions have not been tested.
 
 The interface follows Blender's interface language: Italian or English.
+
+
+AI DISCLOSURE
+-------------
+Developed with AI assistance (OpenCode), under the direction and review of
+Pierfrancesco Diodato. The author remains responsible for the code and tests.
 
 
 LICENSE

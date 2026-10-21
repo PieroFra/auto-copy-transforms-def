@@ -25,6 +25,7 @@ il constraint) tramite una mappatura intelligente dei nomi.
 Copyright (C) 2026 Pierfrancesco Diodato
 SPDX-License-Identifier: GPL-3.0-or-later
 Discord: https://discord.com/users/1176582483165327382
+Sviluppato con l'assistenza di AI (OpenCode) sotto la direzione dell'autore.
 =============================================================================
 """
 
@@ -62,7 +63,8 @@ bl_info = {
     "location": "View3D > Sidebar (N) > Auto Copy Transforms",
     "description": (
         "Crea automaticamente constraint Copy Transforms mappando "
-        "intelligentemente i nomi tra ossa sorgente (target) e destinazione (owner)."
+        "intelligentemente i nomi tra ossa sorgente (target) e destinazione (owner). "
+        "Sviluppato con assistenza AI."
     ),
     "warning": "",
     "doc_url": "",
@@ -80,8 +82,8 @@ DISCORD_URL = "https://discord.com/users/1176582483165327382"
 LICENSE_NAME = "GPL-3.0-or-later"
 LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
 
-README_TEXT = """Crea constraint di copia tra le ossa sorgente (DEF-) e le ossa
-di destinazione (MCH-, ORG-, ecc.).
+README_TEXT = """Crea constraint di copia tra le ossa sorgente (DEF_) e le ossa
+di destinazione (MCH_, ORG_, ecc.).
 
 USO: seleziona l'armatura in Pose Mode > sidebar N > Auto Copy Transforms >
 imposta i token > Anteprima > Applica constraint.
@@ -90,13 +92,14 @@ FUNZIONI: Copy Transforms/Rotation/Location/Scale, mix, spazi, influenza,
 offset, filtri per bone collection, diagnostica, auto-prefisso, apprendimento
 del pattern, manutenzione, export CSV/JSON.
 
-Testato su Blender 5.2. Fallback 3.6/4.x non verificati."""
+Testato su Blender 5.2. Fallback 3.6/4.x non verificati.
+Sviluppato con l'assistenza di AI (OpenCode)."""
 
 LICENSE_NOTICE = """GPL-3.0-or-later - Copyright (C) 2026 Pierfrancesco Diodato.
 Software libero, distribuito SENZA GARANZIA. Vedi il testo completo."""
 
-README_TEXT_EN = """Creates copy constraints between source bones (DEF-) and destination bones
-(MCH-, ORG-, ...).
+README_TEXT_EN = """Creates copy constraints between source bones (DEF_) and destination bones
+(MCH_, ORG_, ...).
 
 USAGE: select the armature in Pose Mode > sidebar N > Auto Copy Transforms >
 set the tokens > Preview > Apply constraints.
@@ -105,7 +108,8 @@ FEATURES: Copy Transforms/Rotation/Location/Scale, mix, spaces, influence,
 offset, bone-collection filters, diagnostics, auto-prefix, pattern learning,
 maintenance, CSV/JSON export.
 
-Tested on Blender 5.2. 3.6/4.x fallbacks are unverified."""
+Tested on Blender 5.2. 3.6/4.x fallbacks are unverified.
+Developed with AI assistance (OpenCode)."""
 
 LICENSE_NOTICE_EN = """GPL-3.0-or-later - Copyright (C) 2026 Pierfrancesco Diodato.
 Free software, distributed WITHOUT WARRANTY. See the full text."""
@@ -120,11 +124,61 @@ def _is_english_ui():
     return locale.lower().startswith("en")
 
 
+# Il report testuale viene generato in italiano (utile per i test e per i log).
+# In UI inglese traduciamo solo le righe note al momento della visualizzazione.
+_REPORT_PATTERNS = (
+    (re.compile(r"^Anteprima completata su '(.+)'\.$"),
+     r"Preview completed on '\1'."),
+    (re.compile(r"^Coppie valide: (\d+)$"), r"Valid pairs: \1"),
+    (re.compile(r"^Coppie ambigue: (\d+)$"), r"Ambiguous pairs: \1"),
+    (re.compile(r"^Ossa sorgente senza match: (\d+)$"),
+     r"Source bones without match: \1"),
+    (re.compile(r"^Ossa destinazione senza match: (\d+)$"),
+     r"Target bones without match: \1"),
+    (re.compile(r"^Constraint creati: (\d+)$"), r"Constraints created: \1"),
+    (re.compile(r"^Constraint aggiornati: (\d+)$"),
+     r"Constraints updated: \1"),
+    (re.compile(r"^Constraint saltati: (\d+)$"), r"Constraints skipped: \1"),
+    (re.compile(r"^Constraint sostituiti \(rimossi\): (\d+)$"),
+     r"Constraints replaced (removed): \1"),
+    (re.compile(r"^Avvisi \((\d+)\):$"), r"Warnings (\1):"),
+    (re.compile(r"^Errori \((\d+)\):$"), r"Errors (\1):"),
+    (re.compile(r"^Righe esportate: (\d+)$"), r"Rows exported: \1"),
+    (re.compile(r"^Report salvato in: (.+)$"), r"Report saved to: \1"),
+    (re.compile(r"^Constraint rimossi: (\d+)$"), r"Constraints removed: \1"),
+    (re.compile(r"^Nessun problema rilevato\.$"), r"No issues found."),
+)
+
+
+def _translate_report_text(text):
+    """Traduce per la UI le righe di report note, senza toccare i dati."""
+    if not text or not _is_english_ui():
+        return text
+    translated = []
+    for line in text.split("\n"):
+        for pattern, replacement in _REPORT_PATTERNS:
+            new_line = pattern.sub(replacement, line)
+            if new_line != line:
+                line = new_line
+                break
+        translated.append(line)
+    return "\n".join(translated)
+
+
 # Traduzioni italiane -> inglesi. Le chiavi vengono replicate per i contesti
 # usati da Blender (label, proprietà, operatori), così la UI segue la lingua
 # dell'interfaccia senza duplicare il codice.
 _EN_TRANSLATIONS = {
     "Token di mappatura": "Mapping tokens",
+    "1. Token di mappatura": "1. Mapping tokens",
+    "Avvio rapido": "Quick start",
+    "1. Scegli i token  2. Anteprima  3. Applica": (
+        "1. Choose tokens  2. Preview  3. Apply"
+    ),
+    "Default: DEF_ → MCH_": "Default: DEF_ → MCH_",
+    "Sviluppato con assistenza AI": "Developed with AI assistance",
+    "2. Opzioni constraint": "2. Constraint options",
+    "3. Azioni": "3. Actions",
     "Sorgente (Target)": "Source (Target)",
     "Dest. (Owner)": "Destination (Owner)",
     "Preset destinazione:": "Destination presets:",
@@ -561,11 +615,11 @@ class _Normalizer:
                     side = side.upper() if side else None
                     return _clean(extracted), side
 
-        # 2) Tentativo A: prima rimuove il side esterno, poi il token (es. "L_DEF_hand" o "DEF-hand.L")
+        # 2) Tentativo A: prima rimuove il side esterno, poi il token (es. "L_DEF_hand" o "DEF_hand.L")
         base_a, side_a, _ = _split_side(name)
         base_a = _strip_token(base_a, self.token, self.token_type)
 
-        # 3) Tentativo B: prima rimuove il token, poi il side (es. "DEF-L_hand" o "hand.L_DEF")
+        # 3) Tentativo B: prima rimuove il token, poi il side (es. "DEF_L_hand" o "hand.L_DEF")
         tmp = _strip_token(name, self.token, self.token_type)
         base_b, side_b, _ = _split_side(tmp)
 
@@ -657,7 +711,7 @@ def _guess_prefixes(src_obj, dst_obj):
 
     Con la stessa armatura le due stime non possono essere indipendenti: si
     prendono i due prefissi piu' frequenti, privilegiando i default storici
-    DEF-/MCH- in caso di parita' (l'ordine alfabetico li mette davanti).
+    DEF_/MCH_ in caso di parita' (l'ordine alfabetico li mette davanti).
     """
     src_rank = _rank_prefixes(src_obj)
     dst_rank = _rank_prefixes(dst_obj)
@@ -671,11 +725,11 @@ def _guess_prefixes(src_obj, dst_obj):
             )
         if len(reliable) == 1:
             return (
-                reliable[0], "MCH-", False,
-                "Un solo prefisso ripetuto: destinazione lasciata a MCH-.",
+                reliable[0], "MCH_", False,
+                "Un solo prefisso ripetuto: destinazione lasciata a MCH_.",
             )
         return (
-            "DEF-", "MCH-", False,
+            "DEF_", "MCH_", False,
             "Nessun prefisso ripetuto almeno 2 volte.",
         )
 
@@ -683,7 +737,7 @@ def _guess_prefixes(src_obj, dst_obj):
     dst = _best_prefix(dst_rank)
     if not src or not dst:
         return (
-            "DEF-", "MCH-", False,
+            "DEF_", "MCH_", False,
             "Prefissi non affidabili in una delle due armature.",
         )
 
@@ -697,8 +751,8 @@ def _guess_prefixes(src_obj, dst_obj):
                 "Prefisso destinazione uguale alla sorgente: usato il secondo.",
             )
         return (
-            src, "MCH-", False,
-            "Prefisso destinazione uguale alla sorgente: usato MCH-.",
+            src, "MCH_", False,
+            "Prefisso destinazione uguale alla sorgente: usato MCH_.",
         )
 
     return (
@@ -1204,7 +1258,7 @@ def _infer_token_rule(owner_name, source_name):
     src_prefix = source[:match.b]
     src_suffix = source[match.b + match.size:]
 
-    # La LCS puo' inglobare il separatore adiacente ("MCH-Hand" vs "DEF-Hand"
+    # La LCS puo' inglobare il separatore adiacente ("MCH_Hand" vs "DEF_Hand"
     # trova "-Hand"): il separatore va spostato nel token, non perso.
     if match.size:
         first = owner[match.a]
@@ -1729,8 +1783,8 @@ class ACTD_Settings(PropertyGroup):
 
     source_token: StringProperty(
         name="Token sorgente (Target)",
-        description="Token che identifica le ossa sorgente da cui copiare la trasformazione (es. 'DEF-' o 'MCH-')",
-        default="DEF-",
+        description="Token che identifica le ossa sorgente da cui copiare la trasformazione (es. 'DEF_' o 'MCH_')",
+        default="DEF_",
         update=_mark_preview_stale,
     )
     source_token_type: EnumProperty(
@@ -1743,8 +1797,8 @@ class ACTD_Settings(PropertyGroup):
 
     dest_token: StringProperty(
         name="Token destinazione (Owner)",
-        description="Token che identifica le ossa destinazione su cui viene aggiunto il constraint (es. 'MCH-')",
-        default="MCH-",
+        description="Token che identifica le ossa destinazione su cui viene aggiunto il constraint (es. 'MCH_')",
+        default="MCH_",
         update=_mark_preview_stale,
     )
     dest_token_type: EnumProperty(
@@ -2823,23 +2877,24 @@ class ACTD_PT_main(Panel):
         layout = self.layout
         settings = _settings(context)
 
+        # ---------------- Avvio rapido ----------------
+        box = layout.box()
+        box.label(text="Avvio rapido", icon='INFO')
+        box.label(text="1. Scegli i token  2. Anteprima  3. Applica")
+
         # ---------------- Token di mappatura ----------------
         box = layout.box()
-        box.label(text="Token di mappatura", icon='SORTALPHA')
+        box.label(text="1. Token di mappatura", icon='SORTALPHA')
 
+        box.label(text="Sorgente (Target)")
         row = box.row(align=True)
-        split = row.split(factor=0.38)
-        split.label(text="Sorgente (Target)")
-        sub = split.row(align=True)
-        sub.prop(settings, "source_token", text="")
-        sub.prop(settings, "source_token_type", text="")
+        row.prop(settings, "source_token", text="")
+        row.prop(settings, "source_token_type", text="")
 
+        box.label(text="Dest. (Owner)")
         row = box.row(align=True)
-        split = row.split(factor=0.38)
-        split.label(text="Dest. (Owner)")
-        sub = split.row(align=True)
-        sub.prop(settings, "dest_token", text="")
-        sub.prop(settings, "dest_token_type", text="")
+        row.prop(settings, "dest_token", text="")
+        row.prop(settings, "dest_token_type", text="")
 
         box.label(text="Preset destinazione:")
         row = box.row(align=True)
@@ -2856,13 +2911,14 @@ class ACTD_PT_main(Panel):
         op.preset = "_ctrl"
         op.token_type = "SUFFIX"
 
-        row = box.row(align=True)
-        row.operator(
+        col = box.column(align=True)
+        col.operator(
             "actd.guess_prefixes", text="Indovina prefissi", icon='SORTALPHA'
         )
-        row.operator(
+        col.operator(
             "actd.learn_pattern", text="Impara da constraint", icon='IMPORT'
         )
+        box.label(text="Default: DEF_ → MCH_", icon='INFO')
 
         col = box.column(align=True)
         col.prop(settings, "custom_pattern", text="Pattern")
@@ -2889,13 +2945,13 @@ class ACTD_PT_main(Panel):
 
         # ---------------- Opzioni constraint ----------------
         box = layout.box()
-        box.label(text="Opzioni constraint", icon='CONSTRAINT')
+        box.label(text="2. Opzioni constraint", icon='CONSTRAINT')
 
         col = box.column(align=True)
         col.prop(settings, "apply_mode", text="Applica a")
         col.prop(settings, "influence", text="Influenza")
-        col.prop(settings, "target_space", text="Spazio target")
-        col.prop(settings, "owner_space", text="Spazio owner")
+        col.prop(settings, "target_space", text="Target")
+        col.prop(settings, "owner_space", text="Owner")
         col.prop(settings, "existing_mode", text="Esistenti")
 
         # Disabilita update_mode e avoid_duplicates se si è in modalità REPLACE
@@ -2911,8 +2967,10 @@ class ACTD_PT_main(Panel):
         flt.prop(settings, "use_collection_filter", text="Filtra per bone collection")
         sub = flt.column(align=True)
         sub.enabled = settings.use_collection_filter
-        sub.prop(settings, "collection_source", text="Sorgente")
-        sub.prop(settings, "collection_dest", text="Destinazione")
+        sub.label(text="Collection sorgente")
+        sub.prop(settings, "collection_source", text="")
+        sub.label(text="Collection destinazione")
+        sub.prop(settings, "collection_dest", text="")
         sub.prop(settings, "deform_only", text="Solo ossa deform")
 
         if settings.use_collection_filter:
@@ -2976,7 +3034,7 @@ class ACTD_PT_main(Panel):
 
         # ---------------- Azioni ----------------
         box = layout.box()
-        box.label(text="Azioni", icon='PLAY')
+        box.label(text="3. Azioni", icon='PLAY')
         col = box.column(align=True)
         col.operator("actd.preview", icon='ZOOM_SELECTED')
         col.operator("actd.apply_transforms", icon='CONSTRAINT')
@@ -3036,7 +3094,8 @@ class ACTD_PT_maintenance(Panel):
         if settings.last_report:
             box = layout.box()
             box.label(text="Report:", icon='TEXT')
-            for line in settings.last_report.split("\n"):
+            report = _translate_report_text(settings.last_report)
+            for line in report.split("\n"):
                 box.label(text=line if line else " ")
 
 
@@ -3126,7 +3185,8 @@ class ACTD_PT_preview(Panel):
         if settings.last_report:
             box = layout.box()
             box.label(text="Report:", icon='TEXT')
-            for line in settings.last_report.split("\n"):
+            report = _translate_report_text(settings.last_report)
+            for line in report.split("\n"):
                 box.label(text=line if line else " ")
 
 

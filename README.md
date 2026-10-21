@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-1.1.0-green.svg)]()
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
-Map source bones (`DEF-`) to destination bones (`MCH-`, `ORG-`, ...) and build
+Map source bones (`DEF_`) to destination bones (`MCH_`, `ORG_`, ...) and build
 the constraint stack in a few clicks.
 
 ![Info popup](docs/info-popup-en.png)
@@ -38,7 +38,7 @@ the result inspectable and reversible.
 | Fine control | Mix mode, target/owner space, influence, offset, stack position, remove shear |
 | Filters | Bone collections and deform-only bones |
 | Diagnostics | Pre-flight checks for missing targets, rest orientation, drivers, collections |
-| Auto-prefix | Guesses `DEF-` / `MCH-` / `ORG-` from bone names, never silently changing defaults |
+| Auto-prefix | Guesses `DEF_` / `MCH_` / `ORG_` from bone names, never silently changing defaults |
 | Learn pattern | Reads an existing copy constraint and reuses its rule on the rest of the rig |
 | Maintenance | Convert generated constraints to manual, clean the registry, mute/unmute generated constraints |
 | Export | Mapping/registry export to CSV or JSON |
@@ -72,13 +72,37 @@ Open the 3D View, press `N`, and select the **Auto Copy Transforms** tab.
 
 1. Select the destination armature and enter **Pose Mode**.
 2. Open the sidebar: `N → Auto Copy Transforms`.
-3. Set the source token (`DEF-`) and destination token (`MCH-`).
+3. Set the source token (`DEF_`) and destination token (`MCH_`).
 4. Click **Preview** to inspect the mapping.
 5. Click **Apply constraints**.
 6. Use **Remove generated constraints** to undo the operation.
 
-> The defaults are intentionally unchanged from version 1.0.0:
-> `COPY_TRANSFORMS`, `DEF-` / `MCH-`.
+> Defaults: `COPY_TRANSFORMS`, tokens `DEF_` / `MCH_`.
+
+---
+
+## How it works
+
+### 1. Choose the tokens
+
+![Main panel](docs/demo-panel.png)
+
+The main panel is organized in three steps: tokens, constraint options and
+actions. The quick-start box always shows the flow: **choose tokens → preview →
+apply**.
+
+### 2. Check the mapping
+
+![Mapping preview](docs/demo-preview.png)
+
+The preview lists every `DEF_` → `MCH_` pair with its status. Nothing is
+applied until you click **Apply constraints**.
+
+### 3. Apply and verify
+
+The preview report confirms the number of valid pairs and the generated
+constraints are tracked in the JSON registry. The regression suite verifies
+the same behavior on Blender 5.2 (see below).
 
 ---
 
@@ -156,7 +180,12 @@ Run a suite with the full Blender executable:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Current status: **381 checks, 0 failures** on Blender 5.2.
+Current status: **389 checks, 0 failures** on Blender 5.2.
+
+![Test results](docs/test-results.png)
+
+Raw table: [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md).  
+Release checklist: [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md).
 
 ### Build the extension
 
@@ -171,6 +200,14 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 It creates `dist/auto_copy_transforms_def-1.1.0.zip` and runs Blender's
 extension validator. Pass `-Blender <path>` to use a different Blender
 executable.
+
+---
+
+## AI disclosure
+
+This add-on and its documentation were developed with **AI assistance**
+(OpenCode agent), under the direction and review of **Pierfrancesco Diodato**.
+The author remains responsible for the code, tests, and licensing.
 
 ---
 

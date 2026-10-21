@@ -46,6 +46,14 @@ try:
           == "Source token (Target)")
     check("traduzione creatore",
           bpy.app.translations.pgettext("Creatore: ") == "Creator: ")
+    check("traduzione nota AI",
+          bpy.app.translations.pgettext("Sviluppato con assistenza AI")
+          == "Developed with AI assistance")
+    report = "Coppie valide: 3\nOssa sorgente senza match: 0"
+    check("report tradotto in inglese",
+          addon._translate_report_text(report)
+          == "Valid pairs: 3\nSource bones without match: 0",
+          addon._translate_report_text(report))
     check("README inglese disponibile",
           bool(addon.README_TEXT_EN.strip())
           and "Creates copy constraints" in addon.README_TEXT_EN)
@@ -60,6 +68,10 @@ try:
     check("sorgente italiana invariata",
           bpy.app.translations.pgettext("Token di mappatura")
           == "Token di mappatura")
+    check("report italiano invariato",
+          addon._translate_report_text(
+              "Coppie valide: 3\nOssa sorgente senza match: 0"
+          ) == "Coppie valide: 3\nOssa sorgente senza match: 0")
 except Exception:
     traceback.print_exc()
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])

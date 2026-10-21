@@ -22,8 +22,8 @@ tags = [
 ]
 
 description = """
-Automatically create copy constraints on destination bones (MCH-, ORG-, ...)
-by mapping the names of source bones (DEF-).
+Automatically create copy constraints on destination bones (MCH_, ORG_, ...)
+by mapping the names of source bones (DEF_).
 
 Features: separate source armature, Copy Transforms/Rotation/Location/Scale,
 configurable mix and spaces, bone-collection filters, pre-flight diagnostics,
@@ -32,6 +32,9 @@ registry maintenance and CSV/JSON export.
 
 The interface is available in Italian and English, following Blender's
 interface language. English and Italian documentation are included.
+
+Developed with AI assistance (OpenCode), under the direction and review of
+the author.
 
 Creator: Pierfrancesco Diodato
 Discord: https://discord.com/users/1176582483165327382

@@ -5,7 +5,7 @@
 [![Versione](https://img.shields.io/badge/versione-1.1.0-green.svg)]()
 
 **Constraint Copy Transforms automatici per rig Blender.**  
-Mappa le ossa sorgente (`DEF-`) sulle ossa di destinazione (`MCH-`, `ORG-`, ...)
+Mappa le ossa sorgente (`DEF_`) sulle ossa di destinazione (`MCH_`, `ORG_`, ...)
 e costruisce lo stack di constraint in pochi click.
 
 ![Popup Informazioni](docs/info-popup.png)
@@ -38,7 +38,7 @@ risultato ispezionabile e reversibile.
 | Controllo fine | Mix, spazi target/owner, influenza, offset, posizione nello stack, rimozione shear |
 | Filtri | Bone collection e solo ossa deform |
 | Diagnostica | Controlli pre-flight per target mancanti, orientamento di rest, driver, collection |
-| Auto-prefisso | Stima `DEF-` / `MCH-` / `ORG-` dai nomi osso, senza cambiare i default |
+| Auto-prefisso | Stima `DEF_` / `MCH_` / `ORG_` dai nomi osso, senza cambiare i default |
 | Impara pattern | Legge un constraint di copia esistente e riusa la regola sul resto del rig |
 | Manutenzione | Converti in manuali, pulisci registro, mute/unmute dei generati |
 | Export | Export di mappatura/registro in CSV o JSON |
@@ -72,13 +72,37 @@ Apri la 3D View, premi `N` e seleziona la scheda **Auto Copy Transforms**.
 
 1. Seleziona l'armatura di destinazione ed entra in **Pose Mode**.
 2. Apri la sidebar: `N → Auto Copy Transforms`.
-3. Imposta il token sorgente (`DEF-`) e quello di destinazione (`MCH-`).
+3. Imposta il token sorgente (`DEF_`) e quello di destinazione (`MCH_`).
 4. Clicca **Anteprima** per controllare la mappatura.
 5. Clicca **Applica constraint**.
 6. Usa **Rimuovi constraint creati** per annullare.
 
-> I default restano volutamente quelli della 1.0.0:
-> `COPY_TRANSFORMS`, `DEF-` / `MCH-`.
+> Default: `COPY_TRANSFORMS`, token `DEF_` / `MCH_`.
+
+---
+
+## Come funziona
+
+### 1. Scegli i token
+
+![Pannello principale](docs/demo-panel.png)
+
+Il pannello principale è organizzato in tre passaggi: token, opzioni del
+constraint e azioni. Il box di avvio rapido mostra sempre il flusso:
+**scegli i token → anteprima → applica**.
+
+### 2. Controlla la mappatura
+
+![Anteprima mappatura](docs/demo-preview.png)
+
+L'anteprima elenca ogni coppia `DEF_` → `MCH_` con il suo stato. Nulla viene
+applicato finché non clicchi **Applica constraint**.
+
+### 3. Applica e verifica
+
+Il report dell'anteprima conferma il numero di coppie valide e i constraint
+generati vengono tracciati nel registro JSON. La suite di regressione verifica
+lo stesso comportamento su Blender 5.2 (vedi sotto).
 
 ---
 
@@ -156,7 +180,12 @@ Esegui una suite con l'eseguibile completo di Blender:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Stato attuale: **381 controlli, 0 falliti** su Blender 5.2.
+Stato attuale: **389 controlli, 0 falliti** su Blender 5.2.
+
+![Risultati test](docs/test-results.png)
+
+Tabella completa: [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md).  
+Checklist di release: [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md).
 
 ### Costruire l'estensione
 
@@ -170,6 +199,15 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 
 Crea `dist/auto_copy_transforms_def-1.1.0.zip` ed esegue il validatore delle
 estensioni Blender. Usa `-Blender <path>` per indicare un altro eseguibile.
+
+---
+
+## Nota sull'uso dell'AI
+
+Questo add-on e la sua documentazione sono stati sviluppati con
+**l'assistenza di AI** (agente OpenCode), sotto la direzione e la revisione di
+**Pierfrancesco Diodato**. L'autore resta responsabile del codice, dei test e
+della licenza.
 
 ---
 

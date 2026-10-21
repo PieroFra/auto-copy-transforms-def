@@ -76,6 +76,10 @@ def prepare(source_object=None):
 
 print("===== TEST AUTO-PREFISSO =====", flush=True)
 addon.register()
+check("default token sorgente DEF_", settings().source_token == "DEF_",
+      settings().source_token)
+check("default token destinazione MCH_", settings().dest_token == "MCH_",
+      settings().dest_token)
 
 # ---------------------------------------------------------------------------
 print("\n[1] Estrazione del prefisso", flush=True)
@@ -147,8 +151,8 @@ try:
     s = prepare()
     res = bpy.ops.actd.guess_prefixes()
     check("operatore FINISHED", res == {'FINISHED'}, res)
-    check("default sorgente DEF-", s.source_token == "DEF-", s.source_token)
-    check("default destinazione MCH-", s.dest_token == "MCH-", s.dest_token)
+    check("default sorgente DEF_", s.source_token == "DEF_", s.source_token)
+    check("default destinazione MCH_", s.dest_token == "MCH_", s.dest_token)
     check("report segnala l'assenza di prefissi",
           "Nessun prefisso" in s.last_report,
           s.last_report.replace("\n", " / "))
@@ -164,7 +168,7 @@ try:
     s = prepare()
     bpy.ops.actd.guess_prefixes()
     check("sorgente stimata DEF-", s.source_token == "DEF-", s.source_token)
-    check("destinazione lasciata a MCH-", s.dest_token == "MCH-", s.dest_token)
+    check("destinazione lasciata a MCH_", s.dest_token == "MCH_", s.dest_token)
     check("report segnala un solo prefisso",
           "Un solo prefisso" in s.last_report,
           s.last_report.replace("\n", " / "))
@@ -181,8 +185,8 @@ try:
     s = prepare(source_object=src)
     bpy.ops.actd.guess_prefixes()
     check("sorgente ORG-", s.source_token == "ORG-", s.source_token)
-    check("destinazione MCH- (nessuna alternativa)",
-          s.dest_token == "MCH-", s.dest_token)
+    check("destinazione MCH_ (nessuna alternativa)",
+          s.dest_token == "MCH_", s.dest_token)
     check("report segnala l'uguaglianza",
           "uguale alla sorgente" in s.last_report,
           s.last_report.replace("\n", " / "))

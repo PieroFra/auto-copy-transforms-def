@@ -8,8 +8,8 @@ Licenza: GPL-3.0-or-later
 
 COSA FA
 -------
-Crea constraint di copia sulle ossa di destinazione (MCH-, ORG-, ecc.)
-mappando automaticamente i nomi delle ossa sorgente (DEF-).
+Crea constraint di copia sulle ossa di destinazione (MCH_, ORG_, ecc.)
+mappando automaticamente i nomi delle ossa sorgente (DEF_).
 
 
 FUNZIONI PRINCIPALI
@@ -48,6 +48,13 @@ Testato su Blender 5.2 LTS. Il codice contiene fallback per Blender 3.6/4.x,
 ma non e' stato eseguito su quelle versioni.
 
 L'interfaccia segue la lingua di Blender: italiano o inglese.
+
+
+NOTA SULL'AI
+------------
+Sviluppato con l'assistenza di AI (OpenCode), sotto la direzione e la
+revisione di Pierfrancesco Diodato. L'autore resta responsabile del codice
+e dei test.
 
 
 LICENZA
