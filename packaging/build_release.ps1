@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Blender = 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe',
     [string]$Rar = ''
 )
@@ -70,15 +70,15 @@ if ($Rar) {
 
 & $builder -Blender $Blender
 if ($LASTEXITCODE -ne 0) {
-    throw 'Il builder ZIP è terminato con un errore.'
+    throw 'Il builder ZIP Ã¨ terminato con un errore.'
 }
 
-$zip = Join-Path $dist 'auto_copy_transforms_def-1.1.3.zip'
+$zip = Join-Path $dist 'auto_copy_transforms_def-1.1.4.zip'
 if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) {
     throw "ZIP atteso non trovato: $zip"
 }
 
-$rar = Join-Path $dist 'Auto_Copy_Transforms_DEF_1.1.3.rar'
+$rar = Join-Path $dist 'Auto_Copy_Transforms_DEF_1.1.4.rar'
 $stage = Join-Path $env:TEMP ('actd_release_' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stage 'legacy') -Force | Out-Null
@@ -90,7 +90,7 @@ try {
     Copy-Item -LiteralPath $readmeIt -Destination (Join-Path $stage 'README.it.txt')
     Copy-Item -LiteralPath $license -Destination (Join-Path $stage 'LICENSE.txt')
     @'
-A.C.T.D. versione 1.1.3
+A.C.T.D. versione 1.1.4
 
 Installazione: installa l'add-on dal file ZIP incluso. In alternativa, nel RAR
 installa legacy/auto_copy_transforms_def.py.
@@ -103,7 +103,7 @@ Licenza: GNU General Public License (GPL), consultare LICENSE.txt.
     Push-Location -LiteralPath $stage
     try {
         & $rarExe a -idq -o+ $rar `
-            'auto_copy_transforms_def-1.1.3.zip' `
+            'auto_copy_transforms_def-1.1.4.zip' `
             'legacy\auto_copy_transforms_def.py' `
             'README.txt' 'README.it.txt' 'LICENSE.txt' 'LEGGIMI.txt'
         if ($LASTEXITCODE -ne 0) {

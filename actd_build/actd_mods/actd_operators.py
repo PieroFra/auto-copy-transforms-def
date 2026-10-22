@@ -654,7 +654,7 @@ def _write_export_csv(path, rows):
 
 def _write_export_json(path, rows):
     payload = {
-        "versione": "1.1.3",
+        "versione": "1.1.4",
         "generato_il": datetime.now().isoformat(timespec="seconds"),
         "righe": rows,
     }
