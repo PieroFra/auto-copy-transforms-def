@@ -23,6 +23,7 @@ import ast
 import importlib
 import os
 import sys
+import time
 import tempfile
 from pathlib import Path
 
@@ -87,6 +88,14 @@ MAX_WIDTH = 1024       # larghezza massima dei PNG finali
 # In Blender 5.x i pannelli senza bl_category finiscono in un tab col nome del
 # bl_label: il tab di A.C.T.D. e' quindi "Auto Copy Transforms".
 PANEL_CATEGORIES = ("Auto Copy Transforms", "Rigging")
+
+REPORT = []          # righe di report accumulate (finite su file)
+
+
+def _say(line):
+    """Stampa e accumula una riga di report."""
+    REPORT.append(line)
+    print(line)
 
 
 # --- estrazione delle etichette disegnate -------------------------------------
@@ -179,6 +188,33 @@ def _sidebar_region():
     return win, None, None
 
 
+def _activate_tab(region):
+    """Attiva il tab A.C.T.D. e verifica che resti attivo.
+
+    Va fatto DOPO che i pannelli esistono (dopo il primo redraw): prima di
+    allora la regione resetta la categoria al tab predefinito ("Oggetto").
+    """
+    if region is None:
+        return False
+    for _ in range(3):
+        for category in PANEL_CATEGORIES:
+            try:
+                region.active_panel_category = category
+            except Exception:
+                continue
+        try:
+            bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=2)
+        except Exception:
+            pass
+        time.sleep(0.3)
+        try:
+            if region.active_panel_category == PANEL_CATEGORIES[0]:
+                return True
+        except Exception:
+            pass
+    return False
+
+
 def _region_box(region, area=None):
     """(x, y, w, h) della regione in coordinate finestra (origine in basso)."""
     if region is None:
@@ -253,7 +289,7 @@ def probe(lang):
     scale = _ui_scale()
     available = max(0.0, float(width) - MARGIN)
 
-    print("UI_REGION width={0} available={1:.0f} scale={2:g}".format(width, available, scale))
+    _say("UI_REGION width={0} available={1:.0f} scale={2:g}".format(width, available, scale))
 
     labels = _drawn_labels()
     flagged = 0
@@ -275,13 +311,19 @@ def probe(lang):
             status = "TIGHT"
         else:
             status = "OK"
-        print('UI_TEXT {0} kind={1} w={2:.0f} avail={3:.0f} "{4}"'.format(
+        _say('UI_TEXT {0} kind={1} w={2:.0f} avail={3:.0f} "{4}"'.format(
             status, kind, w, available, text))
 
     min_safe = widest + MARGIN
-    print("UI_SUMMARY labels={0} flagged={1} region_width={2} min_safe_width={3:.0f}".format(
+    _say("UI_SUMMARY labels={0} flagged={1} region_width={2} min_safe_width={3:.0f}".format(
         len(labels), flagged, width, min_safe))
+    # Nota: il pannello non ha un catalogo di traduzione proprio, quindi le
+    # etichette sono le stesse in IT ed EN: le misure valgono per entrambe.
+    _say("UI_NOTE le etichette del pannello sono le stesse in IT ed EN (nessun catalogo .po): "
+          "le misure valgono per entrambe le lingue")
     # screenshot nella stessa sessione: niente doppia preparazione
+    tab_ok = _activate_tab(region)
+    _say("UI_TAB active={0}".format(region.active_panel_category if region is not None else '?'))
     try:
         capture(lang, box)
     except Exception as exc:
@@ -310,10 +352,19 @@ def main():
     for lang in LANGS:
         try:
             width, labels, flagged, min_safe = probe(lang)
-            print("PROBE {0} region_width={1} labels={2} flagged={3} min_safe={4:.0f}".format(
+            _say("PROBE {0} region_width={1} labels={2} flagged={3} min_safe={4:.0f}".format(
                 lang, width, labels, flagged, min_safe))
         except Exception as exc:
-            print("PROBE_ERROR {0} {1}: {2}".format(lang, type(exc).__name__, exc))
+            _say("PROBE_ERROR {0} {1}: {2}".format(lang, type(exc).__name__, exc))
+    # report su file: serve all'Architetto e all'escalation cloud
+    try:
+        os.makedirs(OUT_DIR, exist_ok=True)
+        path = os.path.join(OUT_DIR, "ui_report.txt")
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("\n".join(REPORT) + "\n")
+        print("REPORT_FILE {0}".format(path))
+    except Exception as exc:
+        print("REPORT_ERROR {0}: {1}".format(type(exc).__name__, exc))
     print("DONE")
 
 

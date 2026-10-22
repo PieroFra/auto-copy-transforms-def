@@ -25,6 +25,13 @@ import bpy
 HOST = os.environ.get("BLENDER_BRIDGE_HOST", "127.0.0.1")
 PORT = int(os.environ.get("BLENDER_BRIDGE_PORT", "9878"))
 
+# Lo splash all'avvio coprirebbe la sidebar nelle catture: lo disattiviamo subito
+# (vale solo per l'istanza di test, che gira con --factory-startup).
+try:
+    bpy.context.preferences.view.show_splash = False
+except Exception:
+    pass
+
 _requests = queue.Queue()
 
 
