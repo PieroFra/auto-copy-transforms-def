@@ -96,6 +96,8 @@ The main panel is organized in three steps: tokens, constraint options and
 actions. The quick-start box always shows the flow: **choose tokens → preview →
 apply**.
 
+![Demo](docs/demo-ui.gif)
+
 ### 2. Check the mapping
 
 ![Mapping preview](docs/demo-preview.png)
