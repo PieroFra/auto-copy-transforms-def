@@ -5,8 +5,13 @@
 [![Versione](https://img.shields.io/badge/versione-1.1.3-green.svg)]()
 
 **Constraint Copy Transforms automatici per rig Blender.**  
+Automatizza la creazione di constraint Copy Transforms tra armature in pochi
+click e ti fa risparmiare ore di lavoro di rigging ripetitivo.
+
 Mappa le ossa sorgente (`DEF_`) sulle ossa di destinazione (`MCH_`, `ORG_`, ...)
 e costruisce lo stack di constraint in pochi click.
+
+[Download v1.1.3](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.3) · [Documentazione (SPEC.md)](https://github.com/PieroFra/auto-copy-transforms-def/blob/main/SPEC.md) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
 
 ![Popup Informazioni](docs/info-popup.png)
 
@@ -138,16 +143,33 @@ sull'armatura, perché i constraint Blender non supportano le ID properties.
 
 ## Compatibilità
 
-- **Testato:** Blender 5.2 LTS.
-- I metadati dell'add-on legacy dichiarano Blender 3.6.0; il manifest
-  dell'estensione richiede Blender 4.2.0. Queste dichiarazioni non equivalgono
-  a test eseguiti: Blender 3.6 e 4.x restano non verificati.
+- **Testato ufficialmente: Blender 5.2 LTS.**
+- **Dichiarato compatibile ma non verificato: Blender 3.6 e 4.x.** I metadati
+  dell'add-on legacy dichiarano Blender 3.6.0; il manifest dell'estensione
+  richiede Blender 4.2.0. Queste dichiarazioni non equivalgono a test eseguiti.
 - **Lingua UI:** italiano e inglese, in base alla lingua dell'interfaccia Blender.
 - **Documentazione:** inglese e italiano.
 
 La suite copre operatori, mappatura, tipi di constraint, diagnostica,
 auto-prefisso, apprendimento del pattern, manutenzione ed export. La UI viene
 verificata a mano perché i test headless non possono cliccare l'interfaccia.
+
+---
+
+## Limitazioni note
+
+- **Dichiarazioni di versione non allineate:** il file legacy nella root
+  `auto_copy_transforms_def.py` dichiara Blender 3.6.0 nei suoi metadati,
+  mentre il manifest dell'estensione richiede Blender 4.2.0; Blender 3.6 e
+  4.x non sono mai stati testati.
+- **I test headless non sostituiscono una verifica GUI interattiva completa:**
+  le suite di regressione verificano comportamento e logica, ma l'interfaccia
+  è stata verificata a mano solo su Blender 5.2.
+- **I constraint generati usano un registro JSON interno:** i constraint
+  Blender non supportano le ID properties, quindi i constraint generati sono
+  tracciati tramite un registro salvato sull'armatura. Rimuoverli o rinominarli
+  a mano fuori dal pannello Manutenzione può lasciare voci orfane (rimuovibili
+  via **Pulisci registro**).
 
 ---
 

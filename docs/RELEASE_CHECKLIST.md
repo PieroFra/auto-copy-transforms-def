@@ -13,10 +13,12 @@ alla fine, prima di aggiornare i risultati documentati o creare i pacchetti.
 ## 2. Test automatici — sviluppo iterativo
 
 ```powershell
-python -m py_compile actd_build\auto_copy_transforms_def.py
+& 'C:\Program Files\Blender Foundation\Blender 5.2\5.2\python\bin\python.exe' -m py_compile actd_build\auto_copy_transforms_def.py
 powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1 -Suites test_mod1.py,test_mod_types.py
 ```
 
+Attenzione: `python` nel PATH è la stub del Microsoft Store e non funziona — per
+`py_compile` usare sempre il percorso completo del Python di Blender.
 Sostituire `-Suites` con le suite mirate alla modifica. Se il Tester stateless
 esegue subito le verifiche, il Coder non ripete i test.
 
@@ -83,3 +85,6 @@ Il tag `v1.1.0` è antecedente al branch `main` e agli asset pubblicati con
 underscore nei nomi. Non alterare né riscrivere la release/tag esistente. Al
 prossimo rilascio incrementare la versione e usare un nuovo tag, quindi
 pubblicare asset coerenti con quel rilascio.
+
+**Risolto con `v1.1.3`**: la versione corrente usa un tag nuovo e asset
+coerenti. Da `v1.1.3` in poi ogni rilascio incrementale segue questa regola.

@@ -10,6 +10,12 @@ Command used for every suite:
   --background --factory-startup --python actd_build\<test>.py
 ```
 
+Runner canonico (tutte le 11 suite in sequenza, conteggi attesi verificati):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1
+```
+
 | Suite | Checks | Result |
 |---|---:|---|
 | `test_mod1.py` | 40/40 | SUPERATO |

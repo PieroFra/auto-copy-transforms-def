@@ -123,6 +123,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\run_ui_pro
 - Limiti noti: le stringhe provengono dal sorgente in italiano (per l'EN la misura è un'approssimazione) e
   l'altezza della finestra mostra solo la parte superiore del pannello.
 
+## Scout AST (mappa Simbolo -> Righe)
+
+Per sapere **a che righe** sta una classe o una funzione del monolite **senza caricarlo** nel contesto:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\run_scout.ps1 -Filter Panel
+powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\run_scout.ps1 -Line 3200
+```
+
+- Usa il modulo `ast` di Python (nessuna dipendenza, nessun import dell'addon): legge solo il sorgente.
+- Output: `SCOUT_FILE <file> righe=… simboli=…` e una riga `SIMBOLO <Classe|Funzione> <nome> <inizio>-<fine>`.
+- `-Filter <testo>`: solo i simboli il cui nome contiene il testo (case-insensitive).
+- `-Line <n>`: il simbolo che contiene la riga `n`.
+- Serve all'Architetto per passare al Coder **righe esatte** invece di file interi: risparmia migliaia di token.
+
 ## Install an extension
 
 Build and validate first:

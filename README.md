@@ -5,8 +5,13 @@
 [![Version](https://img.shields.io/badge/version-1.1.3-green.svg)]()
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
+Automate the creation of Copy Transforms constraints between armatures in a
+few clicks and save hours of repetitive rigging work.
+
 Map source bones (`DEF_`) to destination bones (`MCH_`, `ORG_`, ...) and build
 the constraint stack in a few clicks.
+
+[Download v1.1.3](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.3) · [Documentation (SPEC.md)](https://github.com/PieroFra/auto-copy-transforms-def/blob/main/SPEC.md) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
 
 ![Info popup](docs/info-popup-en.png)
 
@@ -138,16 +143,33 @@ armature object, because Blender constraints do not support ID properties.
 
 ## Compatibility
 
-- **Tested:** Blender 5.2 LTS.
-- The legacy add-on metadata declares Blender 3.6.0; the extension manifest
-  requires Blender 4.2.0. These declarations do not mean those versions were
-  tested: Blender 3.6 and 4.x remain unverified.
+- **Tested officially: Blender 5.2 LTS.**
+- **Declared compatible but not verified: Blender 3.6 and 4.x.** The legacy
+  add-on metadata declares Blender 3.6.0; the extension manifest requires
+  Blender 4.2.0. These declarations do not mean those versions were tested.
 - **UI language:** Italian and English, following Blender's interface language.
 - **Documentation:** English and Italian.
 
 The test suite covers operators, mapping, constraint types, diagnostics,
 auto-prefix, pattern learning, maintenance and exports. GUI drawing is tested
 manually because headless tests cannot click the interface.
+
+---
+
+## Known limitations
+
+- **Version declarations not aligned:** the legacy root file
+  `auto_copy_transforms_def.py` declares Blender 3.6.0 in its metadata, while
+  the extension manifest requires Blender 4.2.0; Blender 3.6 and 4.x were
+  never tested.
+- **Headless tests do not replace a full interactive GUI check:** the
+  regression suites verify behavior and logic, but the interface has been
+  verified manually on Blender 5.2 only.
+- **Generated constraints use an internal JSON registry:** Blender constraints
+  do not support ID properties, so generated constraints are tracked via a
+  registry stored on the armature object. Removing or renaming them manually
+  outside the Maintenance panel can leave orphan entries (removable via
+  **Clean registry**).
 
 ---
 
