@@ -59,7 +59,7 @@ bl_info = {
     "name": "Auto Copy Transforms DEF",
     "author": "Pierfrancesco Diodato",
     "version": (1, 1, 3),
-    "blender": (3, 6, 0),
+    "blender": (4, 2, 0),
     "location": "View3D > Sidebar (N) > Auto Copy Transforms",
     "description": (
         "Crea automaticamente constraint Copy Transforms mappando "
@@ -70,6 +70,10 @@ bl_info = {
     "doc_url": "",
     "category": "Rigging",
 }
+
+# Matrice versioni definitiva: l'estensione Blender richiede almeno 4.2
+# (allineata al manifest dell'estensione), l'addon legacy resta installabile
+# da Blender 4.2 in su ma è testato ufficialmente solo su Blender 5.2 LTS.
 
 
 # =============================================================================
