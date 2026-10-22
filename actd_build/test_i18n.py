@@ -170,8 +170,18 @@ try:
     tradotte_en = {
         chiave: bpy.app.translations.pgettext(chiave) for chiave in nuove_en
     }
+    # L'avviso REPLACE viene disegnato spezzato: le righe EN restano entro la
+    # larghezza utile della sidebar.
+    righe_avviso_en = addon._ui_report_lines(
+        bpy.app.translations.pgettext(
+            "Sostituisci rimuove anche i constraint manuali dello stesso tipo"))
     check("nuove etichette del pannello Avanzate tradotte",
-          tradotte_en == nuove_en, tradotte_en)
+          tradotte_en == nuove_en
+          and addon._EN_TRANSLATIONS.get("Se esiste già")
+          == "If already present"
+          and bool(righe_avviso_en)
+          and all(len(r) <= addon._UI_TEXT_WIDTH for r in righe_avviso_en),
+          (tradotte_en, righe_avviso_en))
     check("nota Learn tradotta in inglese",
           bpy.app.translations.pgettext(
               "Serve un osso in Pose Mode con un constraint di copia")

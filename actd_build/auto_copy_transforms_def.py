@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
- Auto Copy Transforms DEF (v1.1.2)
+ Auto Copy Transforms DEF (v1.1.3)
 =============================================================================
 
 Addon per Blender 3.6.x, 4.x e 5.x che automatizza la creazione di constraint
@@ -58,7 +58,7 @@ from bpy.types import Operator, Panel, PropertyGroup, UIList
 bl_info = {
     "name": "Auto Copy Transforms DEF",
     "author": "Pierfrancesco Diodato",
-    "version": (1, 1, 2),
+    "version": (1, 1, 3),
     "blender": (3, 6, 0),
     "location": "View3D > Sidebar (N) > Auto Copy Transforms",
     "description": (
@@ -2128,8 +2128,10 @@ class ACTD_Settings(PropertyGroup):
     )
 
     # Menu rapido dei preset destinazione (stessa tabella _DEST_PRESETS).
+    # La name resta corta ("Preset"): la label esplicativa e' disegnata a
+    # tutta larghezza nel pannello, altrimenti la sidebar la tronca.
     dest_preset_choice: EnumProperty(
-        name="Preset destinazione",
+        name="Preset",
         description="Imposta rapidamente il token di destinazione",
         items=DEST_PRESET_ITEMS,
         default='MCH_',
@@ -3090,7 +3092,7 @@ def _write_export_csv(path, rows):
 
 def _write_export_json(path, rows):
     payload = {
-        "versione": "1.1.2",
+        "versione": "1.1.3",
         "generato_il": datetime.now().isoformat(timespec="seconds"),
         "righe": rows,
     }
@@ -3399,9 +3401,10 @@ class ACTD_PT_main(Panel):
         row.prop(settings, "dest_token_type", text="")
 
         # Preset: un solo menu a tendina al posto dei quattro pulsanti.
-        box.row().prop(
-            settings, "dest_preset_choice", text="Preset destinazione:"
-        )
+        # Label del concetto a tutta larghezza e menu senza label propria:
+        # nella colonna stretta del prop la label lunga veniva troncata.
+        box.label(text="Preset destinazione:")
+        box.row().prop(settings, "dest_preset_choice", text="")
         # Avviso sotto il menu: il preset scelto coincide con la sorgente.
         notice = getattr(settings, "dest_preset_notice", "")
         if notice:
@@ -3524,12 +3527,19 @@ class ACTD_PT_advanced(Panel):
         box = layout.box()
         box.label(text="Constraint esistenti", icon='DUPLICATE')
 
+        # Il concetto sta su una label a tutta larghezza; le tre proprieta'
+        # usano etichette corte per non essere troncate nella colonna stretta.
+        box.label(text="Se esiste già")
         exi = box.column(align=True)
-        exi.prop(settings, "existing_mode", text="Se esiste già")
-        exi.label(
-            text="Sostituisci rimuove anche i constraint manuali dello stesso tipo",
-            icon='ERROR',
-        )
+        exi.prop(settings, "existing_mode", text="Esistenti")
+        # L'avviso e' spezzato come gli altri report: una label unica veniva
+        # troncata dalla sidebar stretta.
+        for line in _ui_report_lines(
+            bpy.app.translations.pgettext(
+                "Sostituisci rimuove anche i constraint manuali dello stesso tipo"
+            )
+        ):
+            exi.label(text=line, icon='ERROR')
 
         # Disabilita update_mode e avoid_duplicates se si è in modalità REPLACE
         keep_col = exi.column(align=True)

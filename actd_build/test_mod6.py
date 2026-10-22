@@ -645,12 +645,29 @@ try:
                     if r[0] == "prop" and r[1] == "dest_preset_choice"]
     check("menu preset destinazione disegnato nel principale",
           len(preset_props) == 1
-          and preset_props[0][2] == "Preset destinazione:"
+          and preset_props[0][2] == ""
+          and 0 <= next((i for i, r in enumerate(record)
+                         if r[0] == "label"
+                         and r[1] == "Preset destinazione:"), -1)
+          < record.index(preset_props[0])
           and hasattr(bpy.ops.actd, "dest_preset"),
           (preset_props, hasattr(bpy.ops.actd, "dest_preset")))
+    # Anche l'avviso REPLACE e' spezzato: le righe disegnate coincidono con
+    # `_ui_report_lines` e nessuna supera la larghezza utile della sidebar.
+    righe_replace = addon._ui_report_lines(
+        bpy.app.translations.pgettext(
+            "Sostituisci rimuove anche i constraint manuali dello stesso tipo"))
+    etichette_adv = [
+        r[1] for r in draw_panel(addon.ACTD_PT_advanced, bpy.context)
+        if r[0] == "label" and r[2] == 'ERROR'
+    ]
     check("nessuna label oltre la larghezza della UI",
-          all(len(r[1]) <= addon._UI_TEXT_WIDTH for r in label_righe),
-          [r[1] for r in label_righe if len(r[1]) > addon._UI_TEXT_WIDTH])
+          all(len(r[1]) <= addon._UI_TEXT_WIDTH for r in label_righe)
+          and bool(righe_replace)
+          and all(len(r) <= addon._UI_TEXT_WIDTH for r in righe_replace)
+          and etichette_adv == righe_replace,
+          ([r[1] for r in label_righe if len(r[1]) > addon._UI_TEXT_WIDTH],
+           etichette_adv))
     # Larghezza ridotta: la sidebar reale tronca con '…' oltre ~40 caratteri.
     check("larghezza testo UI entro la sidebar (34)",
           addon._UI_TEXT_WIDTH == 34, addon._UI_TEXT_WIDTH)
@@ -702,8 +719,9 @@ try:
     check("proprieta' dest_preset_choice registrata",
           proprieta_preset is not None
           and proprieta_preset.type == 'ENUM'
-          and proprieta_preset.is_enum_flag is False,
-          proprieta_preset)
+          and proprieta_preset.is_enum_flag is False
+          and proprieta_preset.name == "Preset",
+          (proprieta_preset, getattr(proprieta_preset, "name", None)))
     # (b) Le voci sono statiche: quattro preset, sempre gli stessi.
     preset_tokens = [voce[0] for voce in addon.DEST_PRESET_ITEMS]
     check("items statiche: quattro preset nell'ordine della tabella",
@@ -776,11 +794,14 @@ try:
     pulsanti = [r for r in record
                 if r[0] == "operator" and r[1] == "actd.dest_preset"]
     check("menu preset disegnato nel pannello principale",
-          len(menu) == 1 and menu[0][2] == "Preset destinazione:"
+          len(menu) == 1 and menu[0][2] == ""
+          and any(r[0] == "label" and r[1] == "Preset destinazione:"
+                  for r in record)
           and not pulsanti,
           (menu, pulsanti))
     avviso = [r for r in record
-              if r[0] == "label" and r[1].startswith("Preset ")]
+              if r[0] == "label" and r[1].startswith("Preset ")
+              and r[2] == 'ERROR']
     check("avviso preset mostrato come label spezzata",
           bool(avviso) and avviso[0][2] == 'ERROR'
           and all(len(r[1]) <= addon._UI_TEXT_WIDTH for r in avviso)

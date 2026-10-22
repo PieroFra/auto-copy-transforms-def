@@ -2,7 +2,7 @@
 
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.x-orange)](https://www.blender.org/)
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.2-green.svg)]()
+[![Version](https://img.shields.io/badge/version-1.1.3-green.svg)]()
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
 Map source bones (`DEF_`) to destination bones (`MCH_`, `ORG_`, ...) and build
@@ -51,7 +51,7 @@ The add-on is a **single Python file** and has no external dependencies.
 
 ### Blender 4.2+ / 5.x — Extension (recommended)
 
-1. Download `auto_copy_transforms_def-1.1.2.zip`.
+1. Download `auto_copy_transforms_def-1.1.3.zip`.
 2. Open **Edit → Preferences → Get Extensions**.
 3. Click the arrow in the top-right corner and choose **Install from Disk...**
 4. Select the ZIP and enable **Auto Copy Transforms DEF**.
@@ -216,7 +216,7 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File packaging\build_extension.ps1
 ```
 
-It creates `dist/auto_copy_transforms_def-1.1.2.zip` and runs Blender's
+It creates `dist/auto_copy_transforms_def-1.1.3.zip` and runs Blender's
 extension validator. Pass `-Blender <path>` to use a different Blender
 executable. To assemble the ZIP, RAR and SHA256 sidecars locally, run:
 
