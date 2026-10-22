@@ -35,7 +35,7 @@ INSTALL AS AN EXTENSION (Blender 4.2+ / 5.x)
 6. In the 3D View press N and open the "Auto Copy Transforms" tab.
 
 
-INSTALL AS A LEGACY ADD-ON (Blender 3.6 / 4.x)
+INSTALL AS A LEGACY ADD-ON (Blender 4.2+ / 5.x)
 -----------------------------------------------
 The standalone legacy .py is included only in the companion RAR, not in the
 extension ZIP.
@@ -47,9 +47,9 @@ extension ZIP.
 
 COMPATIBILITY
 -------------
-Tested on Blender 5.2 LTS. The legacy add-on metadata declares Blender 3.6.0;
-the extension manifest requires Blender 4.2.0. Blender 3.6 and 4.x have not
-been tested with the documented suites.
+Tested on Blender 5.2 LTS only. Both installation paths (legacy add-on and
+extension manifest) declare Blender 4.2+. Blender 4.2 to 5.1 are declared
+compatible but have not been tested with the documented suites.
 
 The interface follows Blender's interface language: Italian or English.
 

@@ -11,7 +11,7 @@ few clicks and save hours of repetitive rigging work.
 Map source bones (`DEF_`) to destination bones (`MCH_`, `ORG_`, ...) and build
 the constraint stack in a few clicks.
 
-[Download v1.1.4](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.4) · [Documentation (SPEC.md)](https://github.com/PieroFra/auto-copy-transforms-def/blob/main/SPEC.md) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
+[Download v1.1.4](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.4) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
 
 ![Info popup](docs/info-popup-en.png)
 
@@ -61,11 +61,14 @@ The add-on is a **single Python file** and has no external dependencies.
 3. Click the arrow in the top-right corner and choose **Install from Disk...**
 4. Select the ZIP and enable **Auto Copy Transforms DEF**.
 
-### Blender 3.6 / 4.x — Legacy add-on
+### Blender 4.2+ / 5.x — Legacy add-on
 
 1. Open **Edit → Preferences → Add-ons**.
 2. Use **Install from Disk...** and select `auto_copy_transforms_def.py`.
 3. Enable **Rigging: Auto Copy Transforms DEF**.
+
+The standalone file ships in the companion RAR under `legacy/`; it is not
+included in the extension ZIP.
 
 ### Where to find it
 
@@ -145,10 +148,10 @@ armature object, because Blender constraints do not support ID properties.
 
 ## Compatibility
 
-- **Tested officially: Blender 5.2 LTS.**
-- **Declared compatible but not verified: Blender 3.6 and 4.x.** The legacy
-  add-on metadata declares Blender 3.6.0; the extension manifest requires
-  Blender 4.2.0. These declarations do not mean those versions were tested.
+- **Tested officially: Blender 5.2 LTS only.**
+- **Declared compatibility: Blender 4.2+** for both installation paths (legacy
+  add-on and extension manifest). Blender 4.2–5.1 are declared compatible but
+  have not been tested with the full regression suite.
 - **UI language:** Italian and English, following Blender's interface language.
 - **Documentation:** English and Italian.
 
@@ -160,10 +163,8 @@ manually because headless tests cannot click the interface.
 
 ## Known limitations
 
-- **Version declarations not aligned:** the legacy root file
-  `auto_copy_transforms_def.py` declares Blender 3.6.0 in its metadata, while
-  the extension manifest requires Blender 4.2.0; Blender 3.6 and 4.x were
-  never tested.
+- **Blender 4.2–5.1 are declared compatible but have not been tested
+  officially.** The official regression environment is Blender 5.2 LTS.
 - **Headless tests do not replace a full interactive GUI check:** the
   regression suites verify behavior and logic, but the interface has been
   verified manually on Blender 5.2 only.
@@ -182,6 +183,10 @@ The project keeps the add-on in a single file:
 ```text
 actd_build/auto_copy_transforms_def.py
 ```
+
+This is the main (legacy) add-on file and the single source of truth. The
+install packages contain a copy of it: the extension ZIP ships it as the
+extension module, while the companion RAR ships it under `legacy/`.
 
 Regression suites live next to it:
 

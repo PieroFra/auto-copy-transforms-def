@@ -11,7 +11,7 @@ click e ti fa risparmiare ore di lavoro di rigging ripetitivo.
 Mappa le ossa sorgente (`DEF_`) sulle ossa di destinazione (`MCH_`, `ORG_`, ...)
 e costruisce lo stack di constraint in pochi click.
 
-[Download v1.1.4](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.4) · [Documentazione (SPEC.md)](https://github.com/PieroFra/auto-copy-transforms-def/blob/main/SPEC.md) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
+[Download v1.1.4](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.4) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
 
 ![Popup Informazioni](docs/info-popup.png)
 
@@ -61,11 +61,14 @@ L'add-on è un **unico file Python** e non ha dipendenze esterne.
 3. Clicca la freccia in alto a destra e scegli **Install from Disk...**
 4. Seleziona lo ZIP e attiva **Auto Copy Transforms DEF**.
 
-### Blender 3.6 / 4.x — Add-on classico
+### Blender 4.2+ / 5.x — Add-on classico
 
 1. Apri **Edit → Preferences → Add-ons**.
 2. Usa **Install from Disk...** e seleziona `auto_copy_transforms_def.py`.
 3. Attiva **Rigging: Auto Copy Transforms DEF**.
+
+Il file standalone è nel RAR abbinato, nella cartella `legacy/`; non è incluso
+nello ZIP dell'estensione.
 
 ### Dove si trova
 
@@ -145,10 +148,11 @@ sull'armatura, perché i constraint Blender non supportano le ID properties.
 
 ## Compatibilità
 
-- **Testato ufficialmente: Blender 5.2 LTS.**
-- **Dichiarato compatibile ma non verificato: Blender 3.6 e 4.x.** I metadati
-  dell'add-on legacy dichiarano Blender 3.6.0; il manifest dell'estensione
-  richiede Blender 4.2.0. Queste dichiarazioni non equivalgono a test eseguiti.
+- **Testato ufficialmente: solo Blender 5.2 LTS.**
+- **Compatibilità dichiarata: Blender 4.2+** per entrambi i percorsi di
+  installazione (add-on classico e manifest dell'estensione). Blender 4.2–5.1
+  sono dichiarate compatibili ma non sono state verificate con la suite
+  completa.
 - **Lingua UI:** italiano e inglese, in base alla lingua dell'interfaccia Blender.
 - **Documentazione:** inglese e italiano.
 
@@ -160,10 +164,8 @@ verificata a mano perché i test headless non possono cliccare l'interfaccia.
 
 ## Limitazioni note
 
-- **Dichiarazioni di versione non allineate:** il file legacy nella root
-  `auto_copy_transforms_def.py` dichiara Blender 3.6.0 nei suoi metadati,
-  mentre il manifest dell'estensione richiede Blender 4.2.0; Blender 3.6 e
-  4.x non sono mai stati testati.
+- **Blender 4.2–5.1 sono dichiarate compatibili ma non sono state testate
+  ufficialmente.** L'ambiente di regressione ufficiale è Blender 5.2 LTS.
 - **I test headless non sostituiscono una verifica GUI interattiva completa:**
   le suite di regressione verificano comportamento e logica, ma l'interfaccia
   è stata verificata a mano solo su Blender 5.2.
@@ -182,6 +184,10 @@ Il progetto tiene l'add-on in un unico file:
 ```text
 actd_build/auto_copy_transforms_def.py
 ```
+
+Questo è il file principale (add-on classico) e l'unica fonte di verità. I
+pacchetti di installazione ne contengono una copia: lo ZIP dell'estensione lo
+include come modulo dell'estensione, il RAR abbinato lo include in `legacy/`.
 
 Le suite di regressione stanno accanto:
 

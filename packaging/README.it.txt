@@ -35,8 +35,8 @@ INSTALLAZIONE COME ESTENSIONE (Blender 4.2+ / 5.x)
 6. Nella 3D View premi N e cerca la scheda "Auto Copy Transforms".
 
 
-INSTALLAZIONE COME ADD-ON CLASSICO (Blender 3.6 / 4.x)
-------------------------------------------------------
+INSTALLAZIONE COME ADD-ON CLASSICO (Blender 4.2+ / 5.x)
+-------------------------------------------------------
 Il file .py standalone legacy è incluso solo nel RAR abbinato, non nello ZIP
 dell'estensione.
 1. Edit > Preferences > Add-ons.
@@ -47,9 +47,10 @@ dell'estensione.
 
 COMPATIBILITA
 -------------
-Testato su Blender 5.2 LTS. I metadati dell'add-on legacy dichiarano Blender
-3.6.0; il manifest dell'estensione richiede Blender 4.2.0. Blender 3.6 e 4.x
-non sono stati testati con le suite documentate.
+Testato ufficialmente solo su Blender 5.2 LTS. Entrambi i percorsi di
+installazione (add-on classico e manifest dell'estensione) dichiarano
+Blender 4.2+. Blender 4.2-5.1 sono dichiarate compatibili ma non sono state
+verificate con le suite documentate.
 
 L'interfaccia segue la lingua di Blender: italiano o inglese.
 
