@@ -26,7 +26,7 @@ esegue subito le verifiche, il Coder non ripete i test.
 powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1
 ```
 
-- [ ] Verificati `test_out.txt` e tutti gli esiti: 11 suite, **539/539 controlli,
+- [ ] Verificati `test_out.txt` e tutti gli esiti: 11 suite, **538/538 controlli,
       0 fallimenti**.
 - [ ] Solo dopo il pass completo aggiornare la documentazione dei risultati e
       procedere con la creazione dei pacchetti.
@@ -39,9 +39,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1
 - [ ] `test_mod_types.py` 49/49 — SUPERATO
 - [ ] `test_mod_autoprefix.py` 35/35 — SUPERATO
 - [ ] `test_mod_learn.py` 40/40 — SUPERATO
-- [ ] `test_mod6.py` 114/114 — SUPERATO
+- [ ] `test_mod6.py` 113/113 — SUPERATO
 - [ ] `test_i18n.py` 65/65 — SUPERATO
-- [ ] Totale: **539/539 controlli, 0 falliti**
+- [ ] Totale: **538/538 controlli, 0 falliti**
 
 Esiti verificati: le suite riportano `SUPERATO`, mentre la suite storica
 `test_actd.py` riporta `TUTTI I TEST SUPERATI`. Le suite `test_mod1.py`–

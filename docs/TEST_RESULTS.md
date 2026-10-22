@@ -21,10 +21,10 @@ Command used for every suite:
 | `test_mod_types.py` | 49/49 | SUPERATO |
 | `test_mod_autoprefix.py` | 35/35 | SUPERATO |
 | `test_mod_learn.py` | 40/40 | SUPERATO |
-| `test_mod6.py` | 114/114 | SUPERATO |
+| `test_mod6.py` | 113/113 | SUPERATO |
 | `test_i18n.py` | 65/65 | SUPERATO |
 
-**Total: 539/539 passed, 0 failures.**
+**Total: 538/538 passed, 0 failures.**
 
 Nell'esecuzione corrente `test_mod1.py`–`test_mod4.py` totalizzano **125/125**.
 

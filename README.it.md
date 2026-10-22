@@ -2,7 +2,7 @@
 
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.x-orange)](https://www.blender.org/)
 [![Licenza](https://img.shields.io/badge/Licenza-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Versione](https://img.shields.io/badge/versione-1.1.1-green.svg)]()
+[![Versione](https://img.shields.io/badge/versione-1.1.2-green.svg)]()
 
 **Constraint Copy Transforms automatici per rig Blender.**  
 Mappa le ossa sorgente (`DEF_`) sulle ossa di destinazione (`MCH_`, `ORG_`, ...)
@@ -51,7 +51,7 @@ L'add-on è un **unico file Python** e non ha dipendenze esterne.
 
 ### Blender 4.2+ / 5.x — Estensione (consigliata)
 
-1. Scarica `auto_copy_transforms_def-1.1.1.zip`.
+1. Scarica `auto_copy_transforms_def-1.1.2.zip`.
 2. Apri **Edit → Preferences → Get Extensions**.
 3. Clicca la freccia in alto a destra e scegli **Install from Disk...**
 4. Seleziona lo ZIP e attiva **Auto Copy Transforms DEF**.
@@ -192,11 +192,11 @@ avvia Blender direttamente, ad esempio:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Esito dell'audit: **539/539 controlli superati, 0 falliti** su Blender 5.2. Il runner
+Esito dell'audit: **538/538 controlli superati, 0 falliti** su Blender 5.2. Il runner
 si aspetta: `test_mod1.py` 40, `test_mod2.py` 18, `test_mod3.py` 24,
 `test_mod4.py` 43, `test_func1.py` 5, `test_actd.py` 106,
 `test_mod_types.py` 49, `test_mod_autoprefix.py` 35,
-`test_mod_learn.py` 40, `test_mod6.py` 114 e `test_i18n.py` 65 controlli. Le suite
+`test_mod_learn.py` 40, `test_mod6.py` 113 e `test_i18n.py` 65 controlli. Le suite
 riportano `SUPERATO`; la storica `test_actd.py` stampa
 `TUTTI I TEST SUPERATI`. Le prime quattro suite totalizzano 125/125.
 
@@ -215,7 +215,7 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File packaging\build_extension.ps1
 ```
 
-Crea `dist/auto_copy_transforms_def-1.1.1.zip` ed esegue il validatore delle
+Crea `dist/auto_copy_transforms_def-1.1.2.zip` ed esegue il validatore delle
 estensioni Blender. Usa `-Blender <percorso>` per indicare un altro eseguibile.
 Per assemblare localmente ZIP, RAR e file SHA256:
 

@@ -159,13 +159,19 @@ try:
           bpy.app.translations.pgettext("Profilo Discord")
           == "Discord profile",
           bpy.app.translations.pgettext("Profilo Discord"))
-    preset_note_en = bpy.app.translations.pgettext(
-        "Preset '%s' disabilitato: coincide con la sorgente."
-    ) % "DEF_*"
-    check("nota preset tradotta in inglese",
-          preset_note_en
-          == "Preset 'DEF_*' disabled: matches the source token.",
-          preset_note_en)
+    # Nuove etichette del pannello Avanzate: chiave e traduzione dedicata.
+    nuove_en = {
+        "Se esiste già": "If already present",
+        "Aggiorna": "Update",
+        "Sostituisci rimuove anche i constraint manuali dello stesso tipo": (
+            "Replace also removes manual constraints of the same type"
+        ),
+    }
+    tradotte_en = {
+        chiave: bpy.app.translations.pgettext(chiave) for chiave in nuove_en
+    }
+    check("nuove etichette del pannello Avanzate tradotte",
+          tradotte_en == nuove_en, tradotte_en)
     check("nota Learn tradotta in inglese",
           bpy.app.translations.pgettext(
               "Serve un osso in Pose Mode con un constraint di copia")
@@ -322,13 +328,15 @@ try:
     check("etichetta destinazione in italiano",
           bpy.app.translations.pgettext("Destinazione (Owner)")
           == "Destinazione (Owner)")
-    preset_note_it = bpy.app.translations.pgettext(
-        "Preset '%s' disabilitato: coincide con la sorgente."
-    ) % "DEF_*"
-    check("nota preset in italiano invariata",
-          preset_note_it
-          == "Preset 'DEF_*' disabilitato: coincide con la sorgente.",
-          preset_note_it)
+    # Avviso del menu preset (preset uguale alla sorgente): la chiave inglese
+    # esiste e in italiano il testo resta invariato.
+    chiave_avviso = "Preset '%s' coincide con il token sorgente: non applicato"
+    check("avviso preset: chiave EN dedicata e testo IT invariato",
+          addon._EN_TRANSLATIONS.get(chiave_avviso)
+          == "Preset '%s' matches the source token: not applied"
+          and bpy.app.translations.pgettext(chiave_avviso) == chiave_avviso,
+          (addon._EN_TRANSLATIONS.get(chiave_avviso),
+           bpy.app.translations.pgettext(chiave_avviso)))
     check("nota Learn in italiano invariata",
           bpy.app.translations.pgettext(
               "Serve un osso in Pose Mode con un constraint di copia")
@@ -342,11 +350,13 @@ try:
           bool(note_it_lines)
           and all(len(r) <= addon._UI_TEXT_WIDTH for r in note_it_lines),
           note_it_lines)
-    preset_it_lines = addon._ui_report_lines(preset_note_it)
-    check("nota preset IT: righe entro la larghezza della UI",
-          bool(preset_it_lines)
-          and all(len(r) <= addon._UI_TEXT_WIDTH for r in preset_it_lines),
-          preset_it_lines)
+    # Le stesse chiavi restano invariate in interfaccia italiana.
+    tradotte_it = {
+        chiave: bpy.app.translations.pgettext(chiave) for chiave in nuove_en
+    }
+    check("nuove etichette del pannello Avanzate in italiano",
+          tradotte_it == {chiave: chiave for chiave in nuove_en},
+          tradotte_it)
     popup_it = _draw_info_popup()
     discord_it = [
         r for r in popup_it

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
- Auto Copy Transforms DEF (v1.1.1)
+ Auto Copy Transforms DEF (v1.1.2)
 =============================================================================
 
 Addon per Blender 3.6.x, 4.x e 5.x che automatizza la creazione di constraint
@@ -58,7 +58,7 @@ from bpy.types import Operator, Panel, PropertyGroup, UIList
 bl_info = {
     "name": "Auto Copy Transforms DEF",
     "author": "Pierfrancesco Diodato",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "blender": (3, 6, 0),
     "location": "View3D > Sidebar (N) > Auto Copy Transforms",
     "description": (
@@ -346,8 +346,8 @@ _EN_TRANSLATIONS = {
     "Preset destinazione:": "Destination presets:",
     "Preset destinazione": "Destination preset",
     # Nota mostrata quando un preset coinciderebbe col token sorgente attivo.
-    "Preset '%s' disabilitato: coincide con la sorgente.": (
-        "Preset '%s' disabled: matches the source token."
+    "Preset '%s' coincide con il token sorgente: non applicato": (
+        "Preset '%s' matches the source token: not applied"
     ),
     "Indovina prefissi": "Guess prefixes",
     "Impara da constraint": "Learn from constraint",
@@ -364,6 +364,12 @@ _EN_TRANSLATIONS = {
     "Spazio owner": "Owner space",
     "Esistenti": "Existing",
     "Constraint esistenti": "Existing constraints",
+    "Se esiste già": "If already present",
+    "Sostituisci rimuove anche i constraint manuali dello stesso tipo": (
+        "Replace also removes manual constraints of the same type"
+    ),
+    "Tipo e nome constraint": "Type and constraint name",
+    "Aggiorna": "Update",
     "Modalità": "Mode",
     "Modalità mix": "Mix mode",
     "Evita duplicati": "Avoid duplicates",
@@ -1904,6 +1910,92 @@ def _configured_constraint_matches(con, target_obj, src_name, settings):
 
 
 # =============================================================================
+#  PRESET DEL TOKEN DESTINAZIONE
+# =============================================================================
+
+# Preset del token destinazione mostrati nella UI: (testo, token, tipo).
+# La tabella resta una sola: la usano il menu a tendina e l'operatore storico.
+_DEST_PRESETS = (
+    ("MCH_", "MCH_", 'PREFIX'),
+    ("ORG_", "ORG_", 'PREFIX'),
+    ("DEF_", "DEF_", 'PREFIX'),
+    ("_ctrl", "_ctrl", 'SUFFIX'),
+)
+
+# Voci statiche dell'EnumProperty del menu preset. Sono fisse (non una callback
+# dinamica) perche' Blender 5.2 rifiuta la registrazione degli enum con items
+# da callback nelle PropertyGroup; l'identificatore e' il token stesso.
+DEST_PRESET_ITEMS = [
+    (token, label, f"Token destinazione {token}")
+    for label, token, _t in _DEST_PRESETS
+]
+
+
+def _dest_preset_is_self_match(settings, preset, token_type):
+    """True se il preset coinciderebbe con il token sorgente attivo.
+
+    Un preset uguale alla sorgente (stesso token e stesso tipo) porterebbe a
+    mappare ogni osso su se stesso: la UI lo nasconde, senza rimuovere
+    l'operatore.
+    """
+    if settings is None:
+        return False
+    # `self` puo' non essere ancora un'istanza valida durante la registrazione:
+    # qualsiasi accesso fallito vale "non e' un conflitto".
+    try:
+        source = (getattr(settings, "source_token", "") or "").strip()
+        source_type = getattr(settings, "source_token_type", 'PREFIX')
+    except Exception:
+        return False
+    return bool(source) and source == preset and source_type == token_type
+
+
+def _dest_preset_token_type(preset):
+    """Tipo (prefisso/suffisso) associato a un preset, PREFIX se sconosciuto."""
+    for _label, token, token_type in _DEST_PRESETS:
+        if token == preset:
+            return token_type
+    return 'PREFIX'
+
+
+def _apply_dest_preset(settings, preset, token_type):
+    """Imposta token e tipo destinazione da un preset (uso unico in UI)."""
+    if settings is None or not preset:
+        return
+    settings.dest_token = preset
+    settings.dest_token_type = token_type
+
+
+def _on_dest_preset_chosen(self, context):
+    """Update del menu preset: applica il token scelto alla destinazione.
+
+    Se il preset coincide con il token sorgente attivo (stesso token e stesso
+    tipo) la mappatura porterebbe ogni osso su se stesso: in quel caso il
+    token destinazione resta invariato e la UI mostra un avviso tradotto.
+    """
+    settings = None
+    scene = getattr(context, "scene", None)
+    if scene is not None:
+        settings = getattr(scene, "actd_settings", None)
+    if settings is None:
+        settings = self
+    preset = getattr(self, "dest_preset_choice", "")
+    token_type = _dest_preset_token_type(preset)
+    if _dest_preset_is_self_match(settings, preset, token_type):
+        # Il template si traduce prima della sostituzione: la chiave contiene
+        # il segnaposto %s, cosi' la UI inglese usa la voce in _EN_TRANSLATIONS.
+        template = "Preset '%s' coincide con il token sorgente: non applicato"
+        try:
+            template = bpy.app.translations.pgettext_iface(template) or template
+        except Exception:
+            pass
+        settings.dest_preset_notice = template % preset
+        return
+    _apply_dest_preset(settings, preset, token_type)
+    settings.dest_preset_notice = ""
+
+
+# =============================================================================
 #  PROPERTY GROUPS
 # =============================================================================
 
@@ -2033,6 +2125,22 @@ class ACTD_Settings(PropertyGroup):
         items=TOKEN_TYPE_ITEMS,
         default='PREFIX',
         update=_mark_preview_stale,
+    )
+
+    # Menu rapido dei preset destinazione (stessa tabella _DEST_PRESETS).
+    dest_preset_choice: EnumProperty(
+        name="Preset destinazione",
+        description="Imposta rapidamente il token di destinazione",
+        items=DEST_PRESET_ITEMS,
+        default='MCH_',
+        update=_on_dest_preset_chosen,
+    )
+    # Avviso mostrato sotto il menu quando il preset scelto coincide con la
+    # sorgente e quindi non viene applicato (vuoto = nessun avviso).
+    dest_preset_notice: StringProperty(
+        name="Avviso preset",
+        description="Avviso sul preset di destinazione non applicato",
+        default="",
     )
 
     custom_pattern: StringProperty(
@@ -2385,49 +2493,8 @@ class ACTD_OT_dest_preset(Operator):
     token_type: StringProperty(default="PREFIX")
 
     def execute(self, context):
-        settings = _settings(context)
-        settings.dest_token = self.preset
-        settings.dest_token_type = self.token_type
+        _apply_dest_preset(_settings(context), self.preset, self.token_type)
         return {'FINISHED'}
-
-
-# Preset del token destinazione mostrati nella UI: (testo, token, tipo).
-# La tabella resta una sola: la UI e la nota esplicativa la leggono da qui.
-_DEST_PRESETS = (
-    ("MCH_", "MCH_", 'PREFIX'),
-    ("ORG_", "ORG_", 'PREFIX'),
-    ("DEF_", "DEF_", 'PREFIX'),
-    ("_ctrl", "_ctrl", 'SUFFIX'),
-)
-
-
-def _dest_preset_is_self_match(settings, preset, token_type):
-    """True se il preset coinciderebbe con il token sorgente attivo.
-
-    Un preset uguale alla sorgente (stesso token e stesso tipo) porterebbe a
-    mappare ogni osso su se stesso: la UI lo disabilita, senza rimuovere
-    l'operatore.
-    """
-    if settings is None:
-        return False
-    source = (getattr(settings, "source_token", "") or "").strip()
-    source_type = getattr(settings, "source_token_type", 'PREFIX')
-    return bool(source) and source == preset and source_type == token_type
-
-
-def _dest_preset_note(settings):
-    """Nota esplicativa per il preset disabilitato, tradotta.
-
-    Ritorna stringa vuota quando nessun preset e' in conflitto con la
-    sorgente: in quel caso la UI non aggiunge righe.
-    """
-    for _label, preset, token_type in _DEST_PRESETS:
-        if _dest_preset_is_self_match(settings, preset, token_type):
-            display = _token_display(preset, token_type)
-            return bpy.app.translations.pgettext(
-                "Preset '%s' disabilitato: coincide con la sorgente."
-            ) % display
-    return ""
 
 
 class ACTD_OT_refresh_constraint_name(Operator):
@@ -3023,7 +3090,7 @@ def _write_export_csv(path, rows):
 
 def _write_export_json(path, rows):
     payload = {
-        "versione": "1.1.1",
+        "versione": "1.1.2",
         "generato_il": datetime.now().isoformat(timespec="seconds"),
         "righe": rows,
     }
@@ -3331,26 +3398,15 @@ class ACTD_PT_main(Panel):
         row.prop(settings, "dest_token", text="")
         row.prop(settings, "dest_token_type", text="")
 
-        box.label(text="Preset destinazione:")
-        row = box.row(align=True)
-        for preset_label, preset, token_type in _DEST_PRESETS:
-            # Un preset uguale al token sorgente attivo resta visibile ma
-            # disabilitato: eviterebbe la mappatura 1:1 osso su se stesso.
-            cell = row.row(align=True)
-            cell.enabled = not _dest_preset_is_self_match(
-                settings, preset, token_type
-            )
-            op = cell.operator("actd.dest_preset", text=preset_label)
-            op.preset = preset
-            op.token_type = token_type
-
-        # Nota del preset disabilitato: spezzata in righe corte come i report.
-        # L'icona sta solo sulla prima label, le continuazioni restano testo.
-        preset_lines = _ui_report_lines(_dest_preset_note(settings))
-        if preset_lines:
-            box.label(text=preset_lines[0], icon='INFO')
-            for line in preset_lines[1:]:
-                box.label(text=line)
+        # Preset: un solo menu a tendina al posto dei quattro pulsanti.
+        box.row().prop(
+            settings, "dest_preset_choice", text="Preset destinazione:"
+        )
+        # Avviso sotto il menu: il preset scelto coincide con la sorgente.
+        notice = getattr(settings, "dest_preset_notice", "")
+        if notice:
+            for line in _ui_report_lines(notice) or [" "]:
+                box.label(text=line, icon='ERROR')
 
         col = box.column(align=True)
         col.operator(
@@ -3400,31 +3456,7 @@ class ACTD_PT_main(Panel):
         # da Blender ("Proprietario") e troncano la riga nella sidebar.
         col.prop(settings, "target_space", text="Src")
         col.prop(settings, "owner_space", text="Dest")
-        col.prop(settings, "existing_mode", text="Esistenti")
-
-        # Disabilita update_mode e avoid_duplicates se si è in modalità REPLACE
-        keep_col = col.column(align=True)
-        keep_col.enabled = (settings.existing_mode == 'KEEP')
-        keep_col.prop(settings, "update_mode", text="Modalità")
-        keep_col.prop(settings, "avoid_duplicates", text="Evita duplicati")
-
         col.prop(settings, "resolve_ambiguous", text="Risolvi ambiguità")
-
-        # ---------------- Tipo di constraint (Modulo 5) ----------------
-        typ = box.column(align=True)
-        typ.row().prop(settings, "constraint_type", text="Tipo")
-        if settings.constraint_type != 'COPY_TRANSFORMS':
-            typ.label(
-                text="Copy Rotation e' il caso tipico DEF → MCH",
-                icon='INFO',
-            )
-
-        # Nome constraint: label esterna e campo a tutta larghezza, così il
-        # nome resta leggibile invece di essere troncato dal pulsante.
-        box.label(text="Nome constraint", icon='CONSTRAINT')
-        name_row = box.row(align=True)
-        name_row.prop(settings, "constraint_name", text="")
-        name_row.operator("actd.refresh_constraint_name", text="", icon='FILE_REFRESH')
 
         # Filtro bone collection, opzioni avanzate e pattern sono diventati il
         # pannello figlio "Avanzate": qui restano solo i pulitori dei constraint
@@ -3468,6 +3500,42 @@ class ACTD_PT_advanced(Panel):
     def draw(self, context):
         layout = self.layout
         settings = _settings(context)
+
+        # ---------------- Tipo e nome constraint (Modulo 5) ----------------
+        box = layout.box()
+        box.label(text="Tipo e nome constraint", icon='CONSTRAINT')
+
+        typ = box.column(align=True)
+        typ.row().prop(settings, "constraint_type", text="Tipo")
+        if settings.constraint_type != 'COPY_TRANSFORMS':
+            typ.label(
+                text="Copy Rotation e' il caso tipico DEF → MCH",
+                icon='INFO',
+            )
+
+        # Nome constraint: label esterna e campo a tutta larghezza, così il
+        # nome resta leggibile invece di essere troncato dal pulsante.
+        box.label(text="Nome constraint", icon='CONSTRAINT')
+        name_row = box.row(align=True)
+        name_row.prop(settings, "constraint_name", text="")
+        name_row.operator("actd.refresh_constraint_name", text="", icon='FILE_REFRESH')
+
+        # ---------------- Constraint esistenti ----------------
+        box = layout.box()
+        box.label(text="Constraint esistenti", icon='DUPLICATE')
+
+        exi = box.column(align=True)
+        exi.prop(settings, "existing_mode", text="Se esiste già")
+        exi.label(
+            text="Sostituisci rimuove anche i constraint manuali dello stesso tipo",
+            icon='ERROR',
+        )
+
+        # Disabilita update_mode e avoid_duplicates se si è in modalità REPLACE
+        keep_col = exi.column(align=True)
+        keep_col.enabled = (settings.existing_mode == 'KEEP')
+        keep_col.prop(settings, "update_mode", text="Aggiorna")
+        keep_col.prop(settings, "avoid_duplicates", text="Evita duplicati")
 
         # ---------------- Mix e posizione nello stack (Modulo 2) ----------------
         box = layout.box()

@@ -73,12 +73,12 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Il builder ZIP è terminato con un errore.'
 }
 
-$zip = Join-Path $dist 'auto_copy_transforms_def-1.1.1.zip'
+$zip = Join-Path $dist 'auto_copy_transforms_def-1.1.2.zip'
 if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) {
     throw "ZIP atteso non trovato: $zip"
 }
 
-$rar = Join-Path $dist 'Auto_Copy_Transforms_DEF_1.1.1.rar'
+$rar = Join-Path $dist 'Auto_Copy_Transforms_DEF_1.1.2.rar'
 $stage = Join-Path $env:TEMP ('actd_release_' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stage 'legacy') -Force | Out-Null
@@ -90,7 +90,7 @@ try {
     Copy-Item -LiteralPath $readmeIt -Destination (Join-Path $stage 'README.it.txt')
     Copy-Item -LiteralPath $license -Destination (Join-Path $stage 'LICENSE.txt')
     @'
-A.C.T.D. versione 1.1.1
+A.C.T.D. versione 1.1.2
 
 Installazione: installa l'add-on dal file ZIP incluso. In alternativa, nel RAR
 installa legacy/auto_copy_transforms_def.py.
@@ -103,7 +103,7 @@ Licenza: GNU General Public License (GPL), consultare LICENSE.txt.
     Push-Location -LiteralPath $stage
     try {
         & $rarExe a -idq -o+ $rar `
-            'auto_copy_transforms_def-1.1.1.zip' `
+            'auto_copy_transforms_def-1.1.2.zip' `
             'legacy\auto_copy_transforms_def.py' `
             'README.txt' 'README.it.txt' 'LICENSE.txt' 'LEGGIMI.txt'
         if ($LASTEXITCODE -ne 0) {
@@ -122,7 +122,8 @@ Licenza: GNU General Public License (GPL), consultare LICENSE.txt.
         "{0} *{1}" -f $hash, [System.IO.Path]::GetFileName($artifact)
     }
     Set-Content -LiteralPath (Join-Path $dist 'SHA256.txt') -Value $hashLines -Encoding ASCII
-    Remove-Item -LiteralPath (Join-Path $dist 'auto_copy_transforms_def-1.1.1.rar') -Force -ErrorAction SilentlyContinue
+    # Rimuove l'artefatto RAR superato dalla versione precedente.
+    Remove-Item -LiteralPath (Join-Path $dist 'Auto_Copy_Transforms_DEF_1.1.1.rar') -Force -ErrorAction SilentlyContinue
     Write-Host "Pacchetti locali pronti in: $dist"
 } finally {
     Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue

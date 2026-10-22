@@ -2,7 +2,7 @@
 
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.x-orange)](https://www.blender.org/)
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.1-green.svg)]()
+[![Version](https://img.shields.io/badge/version-1.1.2-green.svg)]()
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
 Map source bones (`DEF_`) to destination bones (`MCH_`, `ORG_`, ...) and build
@@ -51,7 +51,7 @@ The add-on is a **single Python file** and has no external dependencies.
 
 ### Blender 4.2+ / 5.x — Extension (recommended)
 
-1. Download `auto_copy_transforms_def-1.1.1.zip`.
+1. Download `auto_copy_transforms_def-1.1.2.zip`.
 2. Open **Edit → Preferences → Get Extensions**.
 3. Click the arrow in the top-right corner and choose **Install from Disk...**
 4. Select the ZIP and enable **Auto Copy Transforms DEF**.
@@ -192,11 +192,11 @@ invoke Blender directly, for example:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Audit status: **539/539 checks passed, 0 failures** on Blender 5.2. The runner
+Audit status: **538/538 checks passed, 0 failures** on Blender 5.2. The runner
 expects: `test_mod1.py` 40, `test_mod2.py` 18, `test_mod3.py` 24,
 `test_mod4.py` 43, `test_func1.py` 5, `test_actd.py` 106,
 `test_mod_types.py` 49, `test_mod_autoprefix.py` 35,
-`test_mod_learn.py` 40, `test_mod6.py` 114 and `test_i18n.py` 65. The suites
+`test_mod_learn.py` 40, `test_mod6.py` 113 and `test_i18n.py` 65. The suites
 report `SUPERATO` (the historical `test_actd.py` reports
 `TUTTI I TEST SUPERATI`). The first four suites total 125/125.
 
@@ -216,7 +216,7 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File packaging\build_extension.ps1
 ```
 
-It creates `dist/auto_copy_transforms_def-1.1.1.zip` and runs Blender's
+It creates `dist/auto_copy_transforms_def-1.1.2.zip` and runs Blender's
 extension validator. Pass `-Blender <path>` to use a different Blender
 executable. To assemble the ZIP, RAR and SHA256 sidecars locally, run:
 

@@ -625,36 +625,39 @@ try:
         r[1] for r in draw_panel(addon.ACTD_PT_advanced, bpy.context)
         if r[0] == "prop"
     ]
+    # I controlli avanzati includono anche tipo/nome constraint e le opzioni
+    # sui constraint esistenti: sono stati spostati nel pannello figlio.
     avanzati = {"mix_mode", "use_collection_filter", "custom_pattern",
-                "stack_position"}
+                "stack_position", "constraint_type", "constraint_name",
+                "existing_mode", "update_mode", "avoid_duplicates"}
     check("filtro, pattern e mix nel pannello Avanzate",
           avanzati <= set(props_avanzate), props_avanzate)
     check("il pannello principale non ridisegna i controlli avanzati",
           not (avanzati & set(props_main)), props_main)
 
-    # (f) Nota del preset disabilitato: deve arrivare spezzata, con l'icona
-    #     solo sulla prima riga e nessuna label oltre la larghezza della UI.
+    # (f) Il menu dei preset usa items statiche (Blender 5.2 non registra gli
+    #     enum con callback): le voci restano sempre le quattro della tabella.
     s.source_token = "MCH_"
     s.source_token_type = 'PREFIX'
     record = draw_panel(addon.ACTD_PT_main, bpy.context)
     label_righe = [r for r in record if r[0] == "label"]
-    note_lines = addon._ui_report_lines(addon._dest_preset_note(s))
-    disegnate = [(r[1], r[2]) for r in label_righe if r[1] in note_lines]
-    check("nota preset spezzata con icona solo sulla prima riga",
-          bool(note_lines) and len(note_lines) >= 2
-          and [d[0] for d in disegnate] == note_lines
-          and disegnate[0][1] == 'INFO'
-          and all(icona == 'NONE' for _t, icona in disegnate[1:]),
-          (note_lines, disegnate))
+    preset_props = [r for r in record
+                    if r[0] == "prop" and r[1] == "dest_preset_choice"]
+    check("menu preset destinazione disegnato nel principale",
+          len(preset_props) == 1
+          and preset_props[0][2] == "Preset destinazione:"
+          and hasattr(bpy.ops.actd, "dest_preset"),
+          (preset_props, hasattr(bpy.ops.actd, "dest_preset")))
     check("nessuna label oltre la larghezza della UI",
           all(len(r[1]) <= addon._UI_TEXT_WIDTH for r in label_righe),
           [r[1] for r in label_righe if len(r[1]) > addon._UI_TEXT_WIDTH])
     # Larghezza ridotta: la sidebar reale tronca con '…' oltre ~40 caratteri.
     check("larghezza testo UI entro la sidebar (34)",
           addon._UI_TEXT_WIDTH == 34, addon._UI_TEXT_WIDTH)
-    check("nota preset entro la larghezza della UI",
-          bool(note_lines) and all(len(r) <= 34 for r in note_lines),
-          [len(r) for r in note_lines])
+    preset_tokens = [voce[0] for voce in addon.DEST_PRESET_ITEMS]
+    check("menu preset con items statiche (4 voci)",
+          preset_tokens == ["MCH_", "ORG_", "DEF_", "_ctrl"],
+          preset_tokens)
     learn_lines = addon._ui_report_lines(
         addon._learn_condition_note(bpy.context)[0])
     check("nota Learn spezzata entro la larghezza della UI",
@@ -669,92 +672,120 @@ try:
 
     # (h) Nome constraint: label esterna e campo senza testo, così il nome
     #     usa tutta la larghezza disponibile invece di essere troncato.
+    record_adv = draw_panel(addon.ACTD_PT_advanced, bpy.context)
     idx_label = next(
-        (i for i, r in enumerate(record)
+        (i for i, r in enumerate(record_adv)
          if r[0] == "label" and r[1] == "Nome constraint"), -1
     )
     idx_prop = next(
-        (i for i, r in enumerate(record)
+        (i for i, r in enumerate(record_adv)
          if r[0] == "prop" and r[1] == "constraint_name"), -1
     )
     check("nome constraint a piena larghezza con label esterna",
-          0 <= idx_label < idx_prop and record[idx_prop][2] == "",
+          0 <= idx_label < idx_prop and record_adv[idx_prop][2] == "",
           (idx_label, idx_prop))
 except Exception:
     traceback.print_exc()
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
 
 # ---------------------------------------------------------------------------
-print("\n[12] Preset destinazione: nessun invito al self-match", flush=True)
+print("\n[12] Preset destinazione: items statiche e applicazione", flush=True)
 try:
     s = settings()
     s.source_token = "DEF_"
     s.source_token_type = 'PREFIX'
-    check("preset uguale alla sorgente riconosciuto",
-          addon._dest_preset_is_self_match(s, "DEF_", 'PREFIX') is True)
-    check("preset diverso resta attivo",
-          addon._dest_preset_is_self_match(s, "MCH_", 'PREFIX') is False)
+    s.dest_preset_choice = "MCH_"
+    s.dest_preset_notice = ""
+
+    # (a) La proprieta' del menu esiste ed e' un EnumProperty semplice.
+    proprieta_preset = s.bl_rna.properties.get("dest_preset_choice")
+    check("proprieta' dest_preset_choice registrata",
+          proprieta_preset is not None
+          and proprieta_preset.type == 'ENUM'
+          and proprieta_preset.is_enum_flag is False,
+          proprieta_preset)
+    # (b) Le voci sono statiche: quattro preset, sempre gli stessi.
+    preset_tokens = [voce[0] for voce in addon.DEST_PRESET_ITEMS]
+    check("items statiche: quattro preset nell'ordine della tabella",
+          preset_tokens == ["MCH_", "ORG_", "DEF_", "_ctrl"]
+          and len(addon._DEST_PRESETS) == 4
+          and all(len(voce) == 3 and "Token destinazione" in voce[2]
+                  for voce in addon.DEST_PRESET_ITEMS),
+          (preset_tokens, addon.DEST_PRESET_ITEMS))
+    check("proprieta' registrata con quattro voci statiche",
+          len(proprieta_preset.enum_items) == 4,
+          [voce.identifier for voce in proprieta_preset.enum_items])
+    # (c) Scegliendo un preset valido il token destinazione viene impostato.
+    s.dest_token = "MCH_"
+    s.dest_token_type = 'PREFIX'
+    s.dest_preset_choice = "ORG_"
+    check("scegliendo un preset cambia il token destinazione",
+          s.dest_token == "ORG_" and s.dest_token_type == 'PREFIX'
+          and s.dest_preset_notice == "",
+          (s.dest_token, s.dest_token_type, s.dest_preset_notice))
+    # (d) Il preset in conflitto con la sorgente non tocca il token.
+    s.source_token = "ORG_"
+    s.dest_token = "MCH_"
+    s.dest_token_type = 'PREFIX'
+    s.dest_preset_choice = "ORG_"
+    check("preset uguale alla sorgente: token invariato e avviso",
+          s.dest_token == "MCH_"
+          and "ORG_" in s.dest_preset_notice
+          and addon._dest_preset_is_self_match(s, "ORG_", 'PREFIX') is True,
+          (s.dest_token, s.dest_preset_notice))
+    check("stesso token ma tipo diverso non e' self-match",
+          addon._dest_preset_is_self_match(s, "_ctrl", 'SUFFIX') is False
+          and addon._dest_preset_is_self_match(s, "_ctrl", 'PREFIX') is False)
+    # (e) Con sorgente a suffisso il conflitto scatta solo a parita' di tipo.
     s.source_token = "_ctrl"
     s.source_token_type = 'SUFFIX'
-    check("preset suffisso uguale alla sorgente riconosciuto",
-          addon._dest_preset_is_self_match(s, "_ctrl", 'SUFFIX') is True)
-    check("stesso token ma tipo diverso non è self-match",
-          addon._dest_preset_is_self_match(s, "_ctrl", 'PREFIX') is False)
-    s.source_token = ""
-    check("sorgente vuota non disabilita preset",
-          addon._dest_preset_is_self_match(s, "DEF_", 'PREFIX') is False)
+    s.dest_token = "MCH_"
+    s.dest_token_type = 'PREFIX'
+    s.dest_preset_choice = "_ctrl"
+    check("preset suffisso uguale alla sorgente non applicato",
+          s.dest_token == "MCH_" and bool(s.dest_preset_notice),
+          (s.dest_token, s.dest_preset_notice))
 
+    # (f) L'aiutante unico applica token e tipo; lo usa anche l'operatore.
     s.source_token = "DEF_"
     s.source_token_type = 'PREFIX'
-    expected_note = bpy.app.translations.pgettext(
-        "Preset '%s' disabilitato: coincide con la sorgente."
-    ) % "DEF_*"
-    note = addon._dest_preset_note(s)
-    check("nota esplicativa presente sul preset disabilitato",
-          note == expected_note and "DEF_*" in note, note)
-    s.source_token = "CTRL_"
-    check("altri preset non producono nota",
-          addon._dest_preset_note(s) == "", addon._dest_preset_note(s))
+    addon._apply_dest_preset(
+        s, "_ctrl", addon._dest_preset_token_type("_ctrl")
+    )
+    check("_apply_dest_preset imposta token e tipo",
+          s.dest_token == "_ctrl" and s.dest_token_type == 'SUFFIX',
+          (s.dest_token, s.dest_token_type))
     check("operatore preset ancora registrato (4 preset)",
           hasattr(bpy.ops.actd, "dest_preset")
           and len(addon._DEST_PRESETS) == 4,
           addon._DEST_PRESETS)
+    risultato = bpy.ops.actd.dest_preset(preset="MCH_", token_type='PREFIX')
+    check("l'operatore preset applica il token",
+          'FINISHED' in risultato and s.dest_token == "MCH_",
+          (risultato, s.dest_token))
 
+    # (g) Il pannello principale disegna il menu e l'avviso spezzato.
     s.source_token = "DEF_"
     s.source_token_type = 'PREFIX'
+    s.dest_token = "MCH_"
+    s.dest_token_type = 'PREFIX'
+    s.dest_preset_choice = "DEF_"
     record = draw_panel(addon.ACTD_PT_main, bpy.context)
-    preset_ops = [
-        r for r in record
-        if r[0] == "operator" and r[1] == "actd.dest_preset"
-    ]
-    check("i quattro preset restano nel pannello", len(preset_ops) == 4,
-          [r[2] for r in preset_ops])
-    disabilitati = [r[2] for r in preset_ops if not r[4]]
-    check("solo il preset uguale alla sorgente è disabilitato",
-          disabilitati == ["DEF_"], disabilitati)
-    check("gli altri preset restano attivi",
-          [r[2] for r in preset_ops if r[4]] == ["MCH_", "ORG_", "_ctrl"],
-          [r[2] for r in preset_ops if r[4]])
-    # La nota arriva spezzata da _ui_report_lines: righe attese in ordine,
-    # icona INFO solo sulla prima e NONE sulle successive.
-    note_lines = addon._ui_report_lines(expected_note)
-    disegnate = [(r[1], r[2]) for r in record
-                 if r[0] == "label" and r[1] in note_lines]
-    check("la nota esplicativa è disegnata",
-          bool(note_lines) and disegnate
-          and [d[0] for d in disegnate] == note_lines
-          and disegnate[0][1] == 'INFO'
-          and all(icona == 'NONE' for _t, icona in disegnate[1:]),
-          (note_lines, disegnate))
-
-    s.source_token = "ORG_"
-    record = draw_panel(addon.ACTD_PT_main, bpy.context)
-    disabilitati = [
-        r[2] for r in record
-        if r[0] == "operator" and r[1] == "actd.dest_preset" and not r[4]
-    ]
-    check("cambiando sorgente cambia il preset disabilitato",
-          disabilitati == ["ORG_"], disabilitati)
+    menu = [r for r in record
+            if r[0] == "prop" and r[1] == "dest_preset_choice"]
+    pulsanti = [r for r in record
+                if r[0] == "operator" and r[1] == "actd.dest_preset"]
+    check("menu preset disegnato nel pannello principale",
+          len(menu) == 1 and menu[0][2] == "Preset destinazione:"
+          and not pulsanti,
+          (menu, pulsanti))
+    avviso = [r for r in record
+              if r[0] == "label" and r[1].startswith("Preset ")]
+    check("avviso preset mostrato come label spezzata",
+          bool(avviso) and avviso[0][2] == 'ERROR'
+          and all(len(r[1]) <= addon._UI_TEXT_WIDTH for r in avviso)
+          and s.dest_token == "MCH_",
+          avviso)
 except Exception:
     traceback.print_exc()
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
