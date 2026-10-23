@@ -1,0 +1,207 @@
+# Flusso di build e rilascio del progetto A.C.T.D. (Auto Copy Transforms DEF).
+# Si attiva al push di un tag v* (o manualmente per ripubblicare una release
+# esistente) e pubblica su GitHub Release solo lo ZIP dell'estensione e la sua
+# impronta SHA256, senza installare Blender e senza creare tag o archivi RAR.
+name: Build e Release ACTD
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag di una release esistente da pubblicare (es. v1.1.5). Se vuoto, usa il ref del push."
+        required: false
+        type: string
+
+# Permesso minimo necessario per creare la release e caricare gli asset.
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repository (storia completa)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configura Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sintassi del monolite (py_compile)
+        run: python -m py_compile actd_build/auto_copy_transforms_def.py
+
+      - name: Ricostruisci il monolite dai moduli (deve essere IN_SYNC)
+        # build_monolith.py build termina 0 solo se il monolite rigenerato e'
+        # byte-identico a quello commitato (IN_SYNC); exit 1 significa che i
+        # moduli sono piu' recenti del monolite e il workflow fallisce qui.
+        run: python packaging/build_monolith.py build
+
+      - name: Determina il tag di rilascio
+        id: tag
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          # Priorita' all'input 'tag' del workflow_dispatch (release esistente);
+          # altrimenti il tag appena pushato (GITHUB_REF = refs/tags/v...).
+          if [ -n "$TAG_INPUT" ]; then
+            TAG="$TAG_INPUT"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Tag di rilascio: $TAG"
+
+      - name: Coerenza versione (tag == version.json == bl_info == manifest)
+        id: coerenza
+        env:
+          TAG_RILASCIO: ${{ steps.tag.outputs.tag }}
+        run: |
+          # Tutte le fonti di versione devono coincidere con il tag (senza "v"):
+          # packaging/version.json (lista), bl_info del monolite (tupla) e
+          # packaging/blender_manifest.toml (stringa). Fallisce con messaggio chiaro.
+          if [[ "$TAG_RILASCIO" != v* ]]; then
+            echo "ERRORE: il riferimento '$TAG_RILASCIO' non e' un tag nel formato v<versione> (es. v1.1.5)." >&2
+            exit 1
+          fi
+          VERSIONE="${TAG_RILASCIO#v}"
+          export VERSIONE
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import tomllib
+
+          attesa = os.environ["VERSIONE"]
+          errori = []
+
+          # 1) Versione unica fonte di verita' in packaging/version.json
+          with open("packaging/version.json", encoding="utf-8") as f:
+              versione_json = ".".join(str(p) for p in json.load(f)["version"])
+
+          # 2) Versione dichiarata nel bl_info del monolite (regex sulla sorgente)
+          with open("actd_build/auto_copy_transforms_def.py", encoding="utf-8") as f:
+              sorgente = f.read()
+          trovato = re.search(r'"version"\s*:\s*\((\d+),\s*(\d+),\s*(\d+)\)', sorgente)
+          if trovato is None:
+              print("ERRORE: chiave 'version' non trovata nel bl_info del monolite", file=sys.stderr)
+              sys.exit(1)
+          versione_bl_info = ".".join(trovato.groups())
+
+          # 3) Versione dichiarata nel manifest dell'estensione Blender
+          with open("packaging/blender_manifest.toml", "rb") as f:
+              versione_manifest = str(tomllib.load(f)["version"])
+
+          print(f"tag (senza v):  {attesa}")
+          print(f"version.json:   {versione_json}")
+          print(f"bl_info:        {versione_bl_info}")
+          print(f"manifest TOML:  {versione_manifest}")
+          if versione_json != attesa:
+              errori.append(f"version.json={versione_json} != tag={attesa}")
+          if versione_bl_info != attesa:
+              errori.append(f"bl_info={versione_bl_info} != tag={attesa}")
+          if versione_manifest != attesa:
+              errori.append(f"blender_manifest.toml={versione_manifest} != tag={attesa}")
+          if errori:
+              print("ERRORE: versioni non coerenti con il tag: " + "; ".join(errori), file=sys.stderr)
+              sys.exit(1)
+          print(f"Coerenza versione: OK ({attesa})")
+          PY
+          echo "versione=$VERSIONE" >> "$GITHUB_OUTPUT"
+
+      - name: Guard — albero pulito dopo la build
+        # La build e' deterministica: se qualcosa e' cambiato, il monolite
+        # commitato era disallineato (caso gia' bloccato dal passo build).
+        run: |
+          stato=$(git status --porcelain)
+          if [ -n "$stato" ]; then
+            echo "ERRORE: la build ha lasciato modifiche non committate:" >&2
+            echo "$stato" >&2
+            exit 1
+          fi
+          echo "Guard: git status --porcelain vuoto (nessun file modificato dalla build)"
+
+      - name: Crea lo ZIP dell'estensione (solo zipfile, nessuna dipendenza)
+        env:
+          VERSIONE: ${{ steps.coerenza.outputs.versione }}
+        run: |
+          # Pacchetto dist/actd-<versione>.zip con alla radice: manifest,
+          # monolite (rinominato auto_copy_transforms_def.py), LICENSE, README.md.
+          # Poi riapre lo ZIP e verifica i 4 file e la versione del manifest interno.
+          python - <<'PY'
+          import os
+          import tomllib
+          import zipfile
+
+          versione = os.environ["VERSIONE"]
+          nome_zip = f"actd-{versione}.zip"
+          percorso_zip = os.path.join("dist", nome_zip)
+
+          # Sorgenti e nomi alla radice dell'archivio.
+          sorgenti = [
+              ("packaging/blender_manifest.toml", "blender_manifest.toml"),
+              ("actd_build/auto_copy_transforms_def.py", "auto_copy_transforms_def.py"),
+              ("LICENSE", "LICENSE"),
+              ("README.md", "README.md"),
+          ]
+
+          os.makedirs("dist", exist_ok=True)
+          with zipfile.ZipFile(percorso_zip, "w", compression=zipfile.ZIP_DEFLATED) as archivio:
+              for sorgente, destinazione in sorgenti:
+                  archivio.write(sorgente, destinazione)
+
+          # Verifica post-scrittura: riapre lo ZIP e controlla contenuto/versione.
+          attesi = {destinazione for _, destinazione in sorgenti}
+          with zipfile.ZipFile(percorso_zip, "r") as archivio:
+              presenti = set(archivio.namelist())
+              mancanti = sorted(attesi - presenti)
+              if mancanti:
+                  raise SystemExit(f"ERRORE: file mancanti nello ZIP {nome_zip}: {mancanti}")
+              manifest_interno = tomllib.loads(archivio.read("blender_manifest.toml").decode("utf-8"))
+              if str(manifest_interno["version"]) != versione:
+                  raise SystemExit(
+                      f"ERRORE: la versione {manifest_interno['version']} nel manifest dentro lo ZIP "
+                      f"e' diversa da quella attesa {versione}"
+                  )
+          print(f"ZIP verificato: {percorso_zip} (file alla radice: {sorted(attesi)})")
+          PY
+
+      - name: Genera l'impronta SHA256 (formato sha256sum)
+        env:
+          VERSIONE: ${{ steps.coerenza.outputs.versione }}
+        run: |
+          # Scrive dist/actd-<versione>.zip.sha256: hash, due spazi, nome file.
+          python - <<'PY'
+          import hashlib
+          import os
+
+          versione = os.environ["VERSIONE"]
+          percorso_zip = os.path.join("dist", f"actd-{versione}.zip")
+          percorso_sha = percorso_zip + ".sha256"
+
+          with open(percorso_zip, "rb") as f:
+              impronta = hashlib.sha256(f.read()).hexdigest()
+          with open(percorso_sha, "w", encoding="utf-8", newline="\n") as f:
+              f.write(f"{impronta}  {os.path.basename(percorso_zip)}\n")
+          print(f"SHA256: {impronta}  {os.path.basename(percorso_zip)}")
+          PY
+
+      - name: Pubblica la GitHub Release (ZIP + SHA256)
+        # softprops/action-gh-release pubblica la release sul tag indicato:
+        # il tag esiste gia' (push del tag o input 'tag'), quindi NON viene
+        # creato alcun tag. Niente RAR: WinRAR non e' disponibile sul runner.
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          generate_release_notes: true
+          draft: false
+          files: |
+            dist/actd-${{ steps.coerenza.outputs.versione }}.zip
+            dist/actd-${{ steps.coerenza.outputs.versione }}.zip.sha256

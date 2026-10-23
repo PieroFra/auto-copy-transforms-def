@@ -1,0 +1,60 @@
+# Modello GitHub Issues: segnalazione di compatibilita' dell'addon A.C.T.D.
+# Utile a mappare su quali configurazioni l'addon funziona o non funziona.
+name: Segnalazione compatibilita'
+description: Comunica su quale configurazione (Blender/OS/GPU) l'addon funziona o non funziona.
+title: "[Compatibilita] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Segnala l'esito del tuo test di compatibilita' con la configurazione in uso.
+  - type: dropdown
+    id: blender-version
+    attributes:
+      label: Versione di Blender
+      description: Versione di Blender usata per il test.
+      options:
+        - "4.2"
+        - "4.3"
+        - "4.4"
+        - "5.0"
+        - "5.1"
+        - "5.2 LTS"
+        - "Altra (specifica nei dettagli)"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Sistema operativo
+      description: Sistema operativo e versione (es. Windows 11, macOS 15, Ubuntu 24.04).
+      placeholder: Windows 11
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU
+      description: Scheda video e driver (es. NVIDIA RTX 3060, driver 555.99; AMD ...; Apple Silicon).
+      placeholder: NVIDIA GeForce RTX 3060
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Esito
+      description: L'addon funziona su questa configurazione?
+      options:
+        - "Funziona"
+        - "Non funziona"
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Dettagli
+      description: Note aggiuntive: operazioni testate, errori, versione addon, tipo di installazione.
+      placeholder: Versione addon 1.1.5 installata come ZIP extension; testato ...
+      render: markdown
+    validations:
+      required: true

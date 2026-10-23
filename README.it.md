@@ -3,6 +3,7 @@
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.x-orange)](https://www.blender.org/)
 [![Licenza](https://img.shields.io/badge/Licenza-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Versione](https://img.shields.io/badge/versione-1.1.5-green.svg)]()
+[![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def?label=release)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 
 **Constraint Copy Transforms automatici per rig Blender.**  
 Automatizza la creazione di constraint Copy Transforms tra armature in pochi
@@ -52,6 +53,22 @@ L'add-on è un **unico file Python** e non ha dipendenze esterne.
 
 ---
 
+## Quale file devo scaricare?
+
+Tutto è pubblicato nella [pagina delle release](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest):
+
+| File | Cos'è | Quando usarlo |
+|---|---|---|
+| `auto_copy_transforms_def-1.1.5.zip` | Pacchetto Blender Extension | **Consigliato**: installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**) |
+| `Auto_Copy_Transforms_DEF_1.1.5.rar` | Pacchetto completo | Vuoi tutto in un solo archivio: lo ZIP dell'estensione, l'add-on classico single-file (`legacy/auto_copy_transforms_def.py`), la documentazione (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) e la licenza (`LICENSE.txt`) |
+| `SHA256.txt` | Controllo integrità | Verifica il download prima di installare: confronta la SHA256 di ZIP/RAR con gli hash elencati nel file |
+| `legacy/auto_copy_transforms_def.py` (dentro il RAR) | File Python standalone | Solo uso legacy/manuale: installalo come add-on classico (**Edit → Preferences → Add-ons → Install from Disk...**) |
+
+- **Versione Blender consigliata: 5.2 LTS** — l'unica testata ufficialmente (vedi la matrice di compatibilità sotto).
+- **Posizione del registro:** il registro JSON dei constraint generati è salvato come ID-property (`actd_generated`) sull'oggetto armatura, dentro il file `.blend` — non è un file esterno. Viaggia con il `.blend` e non richiede gestione separata.
+
+---
+
 ## Installazione
 
 ### Blender 4.2+ / 5.x — Estensione (consigliata)
@@ -73,6 +90,19 @@ nello ZIP dell'estensione.
 ### Dove si trova
 
 Apri la 3D View, premi `N` e seleziona la scheda **Auto Copy Transforms**.
+
+### Aggiornamento da una versione precedente
+
+1. Scarica il nuovo ZIP dall'ultima release.
+2. Installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**): Blender sostituisce la versione precedente e conserva le impostazioni.
+3. Chi usa l'add-on classico: installa il nuovo `legacy/auto_copy_transforms_def.py` dal RAR sovrascrivendo il vecchio file (Blender chiede conferma della sovrascrittura) e riavvia Blender se richiesto.
+4. Nulla da rifare sui rig esistenti: il registro resta sull'oggetto armatura (ID-property `actd_generated`) dentro ogni `.blend`, quindi i constraint generati restano tracciati dopo l'aggiornamento.
+
+### Disinstallazione
+
+1. Prima disattiva l'add-on (estensione: menu della voce in **Get Extensions** → disattiva; add-on classico: voce in **Add-ons** → togli la spunta).
+2. Rimuovilo dallo stesso pannello (estensione: menu della voce → **Uninstall**; add-on classico: menu della voce → **Remove**).
+3. I rig non vengono toccati: i constraint restano sulle ossa e il registro resta come ID-property `actd_generated` sull'oggetto armatura dentro il `.blend` (residuo innocuo; rimuovibile con **Manutenzione → Pulisci registro** in caso di reinstallazione). I backup di Sostituisci (`actd_replace_backup_*.json`) restano nella cartella del `.blend`.
 
 ---
 
@@ -147,6 +177,15 @@ sull'armatura, perché i constraint Blender non supportano le ID properties.
 ---
 
 ## Compatibilità
+
+| Versione Blender | Stato |
+|---|---|
+| 4.2 LTS | Dichiarata, non verificata |
+| 4.3 | Dichiarata, non verificata |
+| 4.4 | Dichiarata, non verificata |
+| 5.0 | Dichiarata, non verificata |
+| 5.1 | Dichiarata, non verificata |
+| 5.2 LTS | **Testata ufficialmente** |
 
 - **Testato ufficialmente: solo Blender 5.2 LTS.**
 - **Compatibilità dichiarata: Blender 4.2+** per entrambi i percorsi di

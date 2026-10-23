@@ -1,0 +1,34 @@
+# Modello GitHub Issues: richiesta di una nuova funzionalita' per l'addon A.C.T.D.
+# Form semplice: problema, soluzione proposta e alternative valutate.
+name: Richiesta funzionalita'
+description: Proponi una nuova funzione o un miglioramento per l'addon.
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Descrivi l'esigenza e la soluzione che immagini per l'addon A.C.T.D.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema da risolvere
+      description: Qual e' l'esigenza, la difficolta' o il limite attuale?
+      placeholder: Lavorare con ... richiede troppi passaggi manuali.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Soluzione proposta
+      description: Come dovrebbe comportarsi l'addon secondo te?
+      placeholder: Sarebbe utile un pulsante che ...
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative considerate
+      description: Altre soluzioni che hai valutato o che usi adesso.
+      render: markdown

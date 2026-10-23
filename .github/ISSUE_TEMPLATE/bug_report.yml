@@ -1,0 +1,90 @@
+# Modello GitHub Issues: segnalazione di un bug dell'addon A.C.T.D.
+# Form (issue form) con i campi necessari a riprodurre il problema.
+name: Segnalazione bug
+description: Segnala un comportamento errato, un blocco o un messaggio di errore dell'addon.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Grazie per la segnalazione. Compila i campi con dati reali: aiutano a riprodurre e risolvere il problema.
+  - type: dropdown
+    id: blender-version
+    attributes:
+      label: Versione di Blender
+      description: Versione di Blender in cui si verifica il problema.
+      options:
+        - "4.2"
+        - "4.3"
+        - "4.4"
+        - "5.0"
+        - "5.1"
+        - "5.2 LTS"
+        - "Altra (specifica nei dettagli)"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Sistema operativo
+      description: Sistema operativo e versione (es. Windows 11, macOS 15, Ubuntu 24.04).
+      placeholder: Windows 11
+    validations:
+      required: true
+  - type: input
+    id: addon-version
+    attributes:
+      label: Versione addon
+      description: Versione dell'addon A.C.T.D. installata (es. 1.1.5).
+      placeholder: 1.1.5
+    validations:
+      required: true
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: Tipo di installazione
+      description: Modalita' con cui l'addon e' stato installato.
+      options:
+        - "ZIP extension (Blender 4.2+)"
+        - "Legacy single-file (.py in scripts/addons)"
+        - "Altro / non lo so"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passi per riprodurre
+      description: Elenco numerato delle operazioni che portano al problema.
+      placeholder: |
+        1. Apri Blender e carica il file ...
+        2. Seleziona le ossa ...
+        3. ...
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento atteso
+      description: Cosa ti aspettavi accadesse.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Comportamento osservato
+      description: Cosa e' accaduto invece (errore, blocco, risultato sbagliato).
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log diagnostico
+      description: Output della console di sistema di Blender o log rilevanti.
+      placeholder: Incolla qui l'output della console (eventuali traceback).
+  - type: textarea
+    id: minimal-blend
+    attributes:
+      label: File .blend minimale
+      description: Se possibile, allega (o linka) un .blend minimale che riproduce il problema.
+      placeholder: Allegato al messaggio oppure link di condivisione.

@@ -1,0 +1,126 @@
+# Flusso CI del progetto A.C.T.D. (Auto Copy Transforms DEF).
+# Si attiva a ogni push e pull request verso main ed esegue su ubuntu-latest
+# i controlli statici di coerenza dell'artefatto monolite, senza installare Blender.
+name: CI ACTD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repository
+        uses: actions/checkout@v4
+
+      - name: Configura Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sintassi del monolite (py_compile)
+        run: python -m py_compile actd_build/auto_copy_transforms_def.py
+
+      - name: Round-trip byte-identico moduli/monolite
+        # build_monolith.py NON supporta --check: l'unico argomento documentato
+        # oltre allo split (senza argomenti) e' "build". La variante "build"
+        # assembla actd_build/actd_mods nel monolite e termina con errore
+        # (exit 1) se il risultato non e' byte-identico al monolite commitato;
+        # in caso di successo la riscrittura produce byte identici, quindi
+        # nessuna modifica effettiva. (Lo split non e' utilizzabile: rifiuta
+        # di partire se actd_mods esiste gia', come nel repository.)
+        run: python packaging/build_monolith.py build
+
+      - name: Coerenza versione (bl_info vs blender_manifest.toml)
+        # Estrae la chiave "version" dal bl_info del monolite (via AST, senza
+        # importare l'addon) e dal manifest TOML (tomllib, stdlib di Python 3.11)
+        # e fallisce se le due versioni divergono.
+        run: |
+          # Confronto versione bl_info del monolite e manifest dell'estensione
+          python - <<'PY'
+          import ast
+          import sys
+          import tomllib
+
+          # 1) Versione dichiarata nel bl_info del monolite
+          with open("actd_build/auto_copy_transforms_def.py", encoding="utf-8") as f:
+              sorgente = f.read()
+          versione_bl_info = None
+          for nodo in ast.walk(ast.parse(sorgente)):
+              if not isinstance(nodo, ast.Assign):
+                  continue
+              if not any(isinstance(t, ast.Name) and t.id == "bl_info" for t in nodo.targets):
+                  continue
+              if isinstance(nodo.value, ast.Dict):
+                  for chiave, valore in zip(nodo.value.keys, nodo.value.values):
+                      if isinstance(chiave, ast.Constant) and chiave.value == "version":
+                          versione_bl_info = ast.literal_eval(valore)
+          if versione_bl_info is None:
+              print("ERRORE: chiave 'version' assente nel bl_info del monolite", file=sys.stderr)
+              sys.exit(1)
+
+          # 2) Versione dichiarata nel manifest dell'estensione Blender
+          with open("packaging/blender_manifest.toml", "rb") as f:
+              manifest = tomllib.load(f)
+          versione_manifest = manifest["version"]
+
+          # 3) Confronto normalizzato (bl_info usa una tupla, il manifest una stringa)
+          def normalizza(versione):
+              if isinstance(versione, str):
+                  return tuple(int(parte) for parte in versione.split("."))
+              return tuple(int(parte) for parte in versione)
+
+          print("bl_info (monolite):   ", versione_bl_info)
+          print("blender_manifest.toml:", versione_manifest)
+          if normalizza(versione_bl_info) != normalizza(versione_manifest):
+              print("ERRORE: la versione di bl_info e quella del manifest divergono", file=sys.stderr)
+              sys.exit(1)
+          print("Coerenza versione: OK")
+          PY
+
+      - name: Coerenza versione tripla (version.json vs bl_info vs manifest)
+        # packaging/version.json e' l'unica fonte di verita' per la versione:
+        # il passo la confronta con il bl_info del monolite (via regex) e con
+        # il manifest TOML (tomllib) ed esce con errore se le tre divergono.
+        run: |
+          # Confronto versione: version.json / bl_info del monolite / manifest
+          python - <<'PY'
+          import json
+          import re
+          import sys
+          import tomllib
+
+          # 1) Versione unica fonte di verita' in packaging/version.json
+          with open("packaging/version.json", encoding="utf-8") as f:
+              versione_json = json.load(f)["version"]
+          if not isinstance(versione_json, list) or not all(isinstance(p, int) for p in versione_json):
+              print("ERRORE: 'version' in packaging/version.json deve essere una lista di interi", file=sys.stderr)
+              sys.exit(1)
+
+          # 2) Versione dichiarata nel bl_info del monolite (regex sulla sorgente)
+          with open("actd_build/auto_copy_transforms_def.py", encoding="utf-8") as f:
+              sorgente = f.read()
+          trovato = re.search(r'"version"\s*:\s*\((\d+),\s*(\d+),\s*(\d+)\)', sorgente)
+          if trovato is None:
+              print("ERRORE: chiave 'version' non trovata nel bl_info del monolite", file=sys.stderr)
+              sys.exit(1)
+          versione_bl_info = [int(gruppo) for gruppo in trovato.groups()]
+
+          # 3) Versione dichiarata nel manifest dell'estensione Blender
+          with open("packaging/blender_manifest.toml", "rb") as f:
+              manifest = tomllib.load(f)
+          versione_manifest = [int(parte) for parte in manifest["version"].split(".")]
+
+          # 4) Confronto delle tre liste
+          print("version.json:       ", versione_json)
+          print("bl_info (monolite): ", versione_bl_info)
+          print("blender_manifest:   ", versione_manifest)
+          if versione_json != versione_bl_info or versione_json != versione_manifest:
+              print(f"Version mismatch: version.json={versione_json} bl_info={versione_bl_info} manifest={versione_manifest}", file=sys.stderr)
+              sys.exit(1)
+          print(f"Version check OK: {'.'.join(str(p) for p in versione_json)}")
+          PY

@@ -8,6 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Repository:** <https://github.com/PieroFra/auto-copy-transforms-def>
 - **License:** [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)
 
+## [Unreleased]
+
+### Breaking changes
+
+- **REPLACE mode ("Sostituisci")** removes every Copy Transforms constraint on
+  the destination bone, including constraints created manually and not by the
+  add-on. This destructive behavior is now protected two ways: removing manual
+  constraints requires an explicit confirmation in the "Confirm constraint
+  replacement" popup (the "Confirm manual removal" option is disabled by
+  default — without it, manual constraints are never removed), and an automatic
+  JSON backup is always written before any removal
+  (`actd_replace_backup_<armature>_<timestamp>.json`, saved next to the `.blend`
+  or in Blender's temp folder if the file is unsaved, using the same schema as
+  the JSON export). If the backup cannot be written, the replacement is
+  cancelled.
+
+### Compatibility
+
+- Declared compatibility: Blender 4.2+ (4.2 LTS, 4.3, 4.4, 5.0, 5.1) on both
+  installation paths (legacy add-on and extension manifest).
+- Officially tested: Blender 5.2 LTS only (full regression suite).
+
+### Known issues
+
+- Blender 4.2–5.1 are declared compatible but have not been verified with the
+  full regression suite; the UI has been verified manually on Blender 5.2 only.
+- The generated-constraint registry is an ID property on the armature object:
+  deleting or renaming constraints manually outside the Maintenance panel can
+  leave orphan entries (removable via "Clean registry").
+
 ## [1.1.5] - 2026-10-22
 
 ### Changed

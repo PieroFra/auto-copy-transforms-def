@@ -11,6 +11,8 @@ Regole di split:
 - ogni riga finisce in un solo modulo, in ordine di file;
 - ogni modulo inizia con una riga di intestazione "# MODULO ..." (italiano),
   scartata in fase di build;
+- il monolite generato inizia sempre con HEADER_GENERATO (commenti "non
+  modificare"), aggiunto dalla build e assente nei moduli;
 - nessun import aggiunto ai moduli.
 
 Ordine di concatenamento (moduli logici consolidati):
@@ -29,6 +31,15 @@ MONOLITH = os.path.join(ROOT, "actd_build", "auto_copy_transforms_def.py")
 MODS_DIR = os.path.join(ROOT, "actd_build", "actd_mods")
 HEADER_MARK = "# MODULO "
 HEADER_END = " (intestazione di build, non fa parte del monolite)"
+
+# Intestazione generata automaticamente: e' sempre la prima parte del monolite
+# e non risiede in nessun modulo (cosi' non la si puo' editare per errore).
+HEADER_GENERATO = (
+    r"# NON MODIFICARE DIRETTAMENTE." "\n"
+    r"# Generato automaticamente da packaging\build_monolith.py: edita i moduli "
+    r"in actd\actd_mods\ e ricostruisci." "\n"
+    "\n"
+)
 
 # Ordine di concatenamento dei moduli logici consolidati.
 ORDINE_MODULI = [
@@ -59,6 +70,13 @@ def scrivi_percorso(percorso, testo):
 def hash_testo(testo):
     """Restituisce l'impronta SHA256 del testo codificato in utf-8."""
     return hashlib.sha256(testo.encode("utf-8")).hexdigest()
+
+
+def rimuovi_header(testo):
+    """Toglie l'intestazione generata, se presente in testa al testo."""
+    if testo.startswith(HEADER_GENERATO):
+        return testo[len(HEADER_GENERATO):]
+    return testo
 
 
 def nomi_di_assegnazione(nodo):
@@ -171,8 +189,11 @@ def split():
         print("ERRORE: %s esiste gia, split non eseguito." % MODS_DIR)
         return 1
     testo = leggi_percorso(MONOLITH)
-    impronta_originale = hash_testo(testo)
-    moduli = nomi_univoci(costruisci_moduli(testo))
+    # L'intestazione generata non fa parte di nessun modulo: si scarta in split
+    # e si ricompone in assembla(), cosi' il round-trip resta byte-identico.
+    atteso = HEADER_GENERATO + rimuovi_header(testo)
+    impronta_originale = hash_testo(atteso)
+    moduli = nomi_univoci(costruisci_moduli(rimuovi_header(testo)))
     os.makedirs(MODS_DIR, exist_ok=True)
     for nome, chiave, descrizione, blocco in moduli:
         intestazione = HEADER_MARK + nome + ".py — " + descrizione + HEADER_END + "\n"
@@ -205,8 +226,12 @@ def elenca_moduli():
 
 
 def assembla():
-    """Assembla i moduli nell'ordine di split, scartando le intestazioni."""
-    parti = []
+    """Assembla i moduli nell'ordine di split, scartando le intestazioni.
+
+    Il risultato inizia sempre con HEADER_GENERATO, che non proviene dai moduli:
+    la build e' quindi deterministica e ripetibile.
+    """
+    parti = [HEADER_GENERATO]
     for percorso in elenca_moduli():
         testo = leggi_percorso(percorso)
         if testo.startswith(HEADER_MARK):

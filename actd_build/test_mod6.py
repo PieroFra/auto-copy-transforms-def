@@ -955,6 +955,470 @@ except Exception:
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
 
 # ---------------------------------------------------------------------------
+print("\n[15] _strip_token rimuove il token dal nome", flush=True)
+try:
+    # Prefisso: "DEF_" sparisce e resta il solo nome base.
+    base = addon._strip_token("DEF_Spine", "DEF_", 'PREFIX')
+    check("_strip_token rimuove il prefisso DEF_",
+          base == "Spine", base)
+    # Suffisso: comportamento speculare, invariato.
+    base = addon._strip_token("Spine_ctrl", "_ctrl", 'SUFFIX')
+    check("_strip_token rimuove il suffisso _ctrl",
+          base == "Spine", base)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+def add_manual_copy(arm, owner="MCH-a", source="DEF-a"):
+    """Aggiunge un COPY_TRANSFORMS manuale (fuori dal registro dei generati)."""
+    pb = arm.pose.bones[owner]
+    con = pb.constraints.new('COPY_TRANSFORMS')
+    con.name = "MANUALE_COPY"
+    con.target = arm
+    con.subtarget = source
+    return con
+
+
+def count_copy(arm, bone_name):
+    """Conta i COPY_TRANSFORMS presenti su un osso (0 se l'osso non esiste)."""
+    pb = arm.pose.bones.get(bone_name)
+    if pb is None:
+        return 0
+    return sum(1 for con in pb.constraints if con.type == 'COPY_TRANSFORMS')
+
+
+class _FakeApp:
+    """Sostituto minimale di ``bpy.app`` per simulare lo stato non headless."""
+
+    def __init__(self, real, background):
+        self._real = real
+        self.background = background
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
+class _FakeBpy:
+    """Proxy di ``bpy`` con il solo ``app`` sostituito (guardie REPLACE)."""
+
+    def __init__(self, real, background):
+        self._real = real
+        self.app = _FakeApp(real.app, background)
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
+# ---------------------------------------------------------------------------
+print("\n[16] REPLACE con soli generati: nessun popup, comportamento storico",
+      flush=True)
+try:
+    reset_scene()
+    arm = make_rig("Rig16")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()          # KEEP: crea i due generati
+    s.existing_mode = 'REPLACE'
+    # In headless ASK vale ALL e non c'e' popup: con zero manuali si va
+    # dritti a execute, quindi l'invoke completa senza finestra.
+    res = bpy.ops.actd.apply_transforms('INVOKE_DEFAULT')
+    check("REPLACE con soli generati completa senza popup",
+          res == {'FINISHED'}, res)
+    check("sostituiti i due generati come prima",
+          "Constraint sostituiti (rimossi): 2" in s.last_report,
+          s.last_report.replace("\n", " / "))
+    stato = []
+    for pb in arm.pose.bones:
+        for con in pb.constraints:
+            if con.type == 'COPY_TRANSFORMS':
+                stato.append(addon._is_generated(arm, pb, con))
+    check("due generati ricreati, nessun manuale",
+          len(stato) == 2 and all(stato), stato)
+    check("registro con due voci", len(addon._read_registry(arm)) == 2,
+          addon._read_registry(arm))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[17] Conteggi REPLACE via _count_replace_targets", flush=True)
+try:
+    reset_scene()
+    arm = make_rig("Rig17")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    add_manual_copy(arm, "MCH-a", "DEF-a")
+    add_manual(arm)                          # COPY_ROTATION: tipo diverso
+    results = addon.compute_mapping(arm, s)
+    generati, manuali = addon._count_replace_targets(
+        arm, results, None, 'COPY_TRANSFORMS'
+    )
+    check("conteggio generati/manuali (2,1)",
+          (generati, manuali) == (2, 1), (generati, manuali))
+    generati_sel, manuali_sel = addon._count_replace_targets(
+        arm, results, {"MCH-a"}, 'COPY_TRANSFORMS'
+    )
+    check("conteggio filtrato per osso (1,1)",
+          (generati_sel, manuali_sel) == (1, 1),
+          (generati_sel, manuali_sel))
+    zero = addon._count_replace_targets(
+        arm, results, {"MCH-manual"}, 'COPY_TRANSFORMS'
+    )
+    check("osso senza mappatura non conteggiato (0,0)", zero == (0, 0), zero)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[18] replace_scelta GENERATED_ONLY preserva i manuali", flush=True)
+try:
+    reset_scene()
+    arm = make_rig("Rig18")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    manuale = add_manual_copy(arm, "MCH-a", "DEF-a")
+    nome_manuale = manuale.name
+    s.existing_mode = 'REPLACE'
+    res = bpy.ops.actd.apply_transforms(replace_scelta='GENERATED_ONLY')
+    check("GENERATED_ONLY FINISHED", res == {'FINISHED'}, res)
+    pba = arm.pose.bones["MCH-a"]
+    check("il manuale resta sull'osso destinazione",
+          len(pba.constraints) == 1
+          and pba.constraints.get(nome_manuale) is not None
+          and not addon._is_generated(arm, pba, pba.constraints[0]),
+          [(c.name, c.type) for c in pba.constraints])
+    pbb = arm.pose.bones["MCH-b"]
+    check("il generato su MCH-b viene ricreato",
+          len(pbb.constraints) == 1
+          and addon._is_generated(arm, pbb, pbb.constraints[0]),
+          [(c.name, c.type) for c in pbb.constraints])
+    duplicati = [pb.name for pb in arm.pose.bones if count_copy(arm, pb.name) > 1]
+    check("nessun constraint duplicato", duplicati == [], duplicati)
+    check("report: 2 rimossi e 1 saltato",
+          "Constraint sostituiti (rimossi): 2" in s.last_report
+          and "Constraint saltati: 1" in s.last_report,
+          s.last_report.replace("\n", " / "))
+    check("avviso di manuale conservato",
+          "constraint manuale conservato" in s.last_report,
+          s.last_report.replace("\n", " / "))
+    reg = addon._read_registry(arm)
+    check("registro senza generati per il manuale",
+          not reg.get("MCH-a") and len(reg.get("MCH-b", {})) == 1, reg)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[19] replace_scelta ALL senza conferma: rifiuto fuori background",
+      flush=True)
+try:
+    reset_scene()
+    arm = make_rig("Rig19")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    add_manual_copy(arm, "MCH-a", "DEF-a")
+    s.existing_mode = 'REPLACE'
+    s.replace_conferma_manuali = False
+    # Il rifiuto vale solo fuori background: il ramo execute passa il
+    # background reale, quindi in headless il caso si prova sulla funzione
+    # pura, che dipende solo da checkbox e background.
+    ok_false = addon._replace_conferma_ok(s, 'ALL', False)
+    check("ALL senza conferma rifiutato fuori background",
+          ok_false is False, ok_false)
+    s.replace_conferma_manuali = True
+    ok_true = addon._replace_conferma_ok(s, 'ALL', True)
+    check("ALL con conferma ammesso con checkbox attiva",
+          ok_true is True, ok_true)
+    # La stessa scelta in background resta permessa: qui il background e'
+    # quello reale del test headless, quindi si controlla la chiamata vera.
+    s.replace_conferma_manuali = False
+    res = bpy.ops.actd.apply_transforms(replace_scelta='ALL')
+    check("in background la stessa chiamata resta permessa",
+          res == {'FINISHED'}, res)
+    totale = sum(len(pb.constraints) for pb in arm.pose.bones)
+    check("bypass headless: manuale rimosso e due generati ricreati",
+          totale == 2 and len(addon._read_registry(arm)) == 2,
+          (totale, addon._read_registry(arm)))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[20] replace_scelta ALL con conferma: rimuove anche i manuali",
+      flush=True)
+try:
+    reset_scene()
+    arm = make_rig("Rig20")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    manuale = add_manual_copy(arm, "MCH-a", "DEF-a")
+    nome_manuale = manuale.name
+    s.existing_mode = 'REPLACE'
+    s.replace_conferma_manuali = True
+    bpy_reale = addon.bpy
+    try:
+        addon.bpy = _FakeBpy(bpy_reale, False)
+        res = bpy.ops.actd.apply_transforms(replace_scelta='ALL')
+    finally:
+        addon.bpy = bpy_reale
+    check("ALL con conferma eseguito", res == {'FINISHED'}, res)
+    check("report: 3 constraint rimossi",
+          "Constraint sostituiti (rimossi): 3" in s.last_report,
+          s.last_report.replace("\n", " / "))
+    pba = arm.pose.bones["MCH-a"]
+    check("il manuale è stato rimosso",
+          pba.constraints.get(nome_manuale) is None,
+          [c.name for c in pba.constraints])
+    totale = sum(len(pb.constraints) for pb in arm.pose.bones)
+    check("restano i soli due generati", totale == 2, totale)
+    check("registro riallineato a due voci",
+          len(addon._read_registry(arm)) == 2, addon._read_registry(arm))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[21] replace_conferma_manuali: default e tipo", flush=True)
+try:
+    s = base_settings()
+    s.replace_conferma_manuali = False
+    prop = s.bl_rna.properties.get("replace_conferma_manuali")
+    check("proprietà replace_conferma_manuali è booleana",
+          prop is not None and prop.type == 'BOOLEAN',
+          getattr(prop, "type", None))
+    check("default False", prop is not None and prop.default is False,
+          getattr(prop, "default", None))
+    enum = bpy.ops.actd.apply_transforms.get_rna_type().properties.get(
+        "replace_scelta"
+    )
+    voci = [item.identifier for item in enum.enum_items] if enum else []
+    check("replace_scelta con quattro scelte e default ASK",
+          voci == ['ASK', 'CANCEL', 'GENERATED_ONLY', 'ALL']
+          and enum.default == 'ASK',
+          (voci, getattr(enum, "default", None)))
+    check("replace_scelta non salvata nel file (SKIP_SAVE)",
+          enum is not None and enum.is_skip_save is True,
+          getattr(enum, "is_skip_save", None))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+def backup_path(report):
+    """Ultimo percorso di backup citato nel report (stringa vuota se assente)."""
+    found = re.findall(r"Backup creato: (.+)", report)
+    return found[-1].strip() if found else ""
+
+
+def load_backup(path):
+    """Contenuto del backup JSON; dizionario vuoto se manca o non e' valido."""
+    if not path or not os.path.isfile(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return json.load(handle)
+    except ValueError:
+        return {}
+
+
+print("\n[22] REPLACE con rimozione: backup JSON per GENERATED_ONLY e ALL",
+      flush=True)
+creati_22 = []
+try:
+    for suffisso, scelta, conferma in (
+        ("gen", 'GENERATED_ONLY', False),
+        ("all", 'ALL', True),
+    ):
+        reset_scene()
+        arm = make_rig("Rig22" + suffisso)
+        s = base_settings()
+        bpy.ops.actd.apply_transforms()
+        add_manual_copy(arm, "MCH-a", "DEF-a")
+        s.existing_mode = 'REPLACE'
+        s.replace_conferma_manuali = conferma
+        res = bpy.ops.actd.apply_transforms(replace_scelta=scelta)
+        path = backup_path(s.preview_report)
+        creati_22.append(path)
+        check("sostituzione con backup creata (" + scelta + ")",
+              res == {'FINISHED'} and os.path.isfile(path), (res, path))
+        check("nome backup con armatura e data (" + scelta + ")",
+              re.match(
+                  r"^actd_replace_backup_%s_\d{8}-\d{6}\.json$"
+                  % re.escape(arm.name),
+                  os.path.basename(path) or "",
+              ) is not None,
+              os.path.basename(path))
+        payload = load_backup(path)
+        righe = payload.get("righe", [])
+        check("backup leggibile con json.load (" + scelta + ")",
+              isinstance(righe, list) and bool(righe)
+              and isinstance(payload.get("generato_il"), str),
+              (payload.get("generato_il"), righe))
+        # Lo schema e' quello di actd.export_json: il nome del constraint e'
+        # nel campo "constraint", accanto al flag "generato" e al timestamp.
+        check("righe backup con i campi dello schema (" + scelta + ")",
+              bool(righe) and all(
+                  set(addon._EXPORT_FIELDS) <= set(r.keys())
+                  and {"armatura", "osso", "constraint", "generato",
+                       "timestamp"} <= set(r.keys())
+                  and r["armatura"] == arm.name
+                  and isinstance(r["osso"], str) and bool(r["osso"])
+                  and isinstance(r["constraint"], str) and bool(r["constraint"])
+                  and isinstance(r["generato"], bool)
+                  for r in righe
+              ),
+              righe[:2])
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+finally:
+    for _path in creati_22:
+        if _path and os.path.isfile(_path):
+            os.remove(_path)
+
+# ---------------------------------------------------------------------------
+print("\n[23] Backup GENERATED_ONLY: solo i generati rimossi", flush=True)
+path_23 = ""
+try:
+    reset_scene()
+    arm = make_rig("Rig23")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    manuale = add_manual_copy(arm, "MCH-a", "DEF-a")
+    nome_manuale = manuale.name
+    s.existing_mode = 'REPLACE'
+    res = bpy.ops.actd.apply_transforms(replace_scelta='GENERATED_ONLY')
+    path_23 = backup_path(s.preview_report)
+    righe = load_backup(path_23).get("righe", [])
+    check("GENERATED_ONLY con backup creato",
+          res == {'FINISHED'} and os.path.isfile(path_23), (res, path_23))
+    check("backup con i due soli generati", len(righe) == 2, righe)
+    check("tutte le righe backup sono generati",
+          bool(righe) and all(r.get("generato") is True for r in righe),
+          [r.get("generato") for r in righe])
+    check("backup sulle ossa dei generati rimossi",
+          sorted(r.get("osso", "") for r in righe) == ["MCH-a", "MCH-b"],
+          [r.get("osso") for r in righe])
+    check("il manuale non entra nel backup",
+          bool(righe)
+          and all(r.get("constraint") != nome_manuale for r in righe),
+          [r.get("constraint") for r in righe])
+    check("il manuale resta sull'armatura",
+          arm.pose.bones["MCH-a"].constraints.get(nome_manuale) is not None,
+          [c.name for c in arm.pose.bones["MCH-a"].constraints])
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+finally:
+    if path_23 and os.path.isfile(path_23):
+        os.remove(path_23)
+
+# ---------------------------------------------------------------------------
+print("\n[24] Backup ALL con conferma: generati e manuali", flush=True)
+path_24 = ""
+try:
+    reset_scene()
+    arm = make_rig("Rig24")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    manuale = add_manual_copy(arm, "MCH-a", "DEF-a")
+    nome_manuale = manuale.name
+    s.existing_mode = 'REPLACE'
+    s.replace_conferma_manuali = True
+    bpy_reale = addon.bpy
+    try:
+        addon.bpy = _FakeBpy(bpy_reale, False)
+        res = bpy.ops.actd.apply_transforms(replace_scelta='ALL')
+    finally:
+        addon.bpy = bpy_reale
+    path_24 = backup_path(s.preview_report)
+    righe = load_backup(path_24).get("righe", [])
+    check("ALL con conferma e backup creato",
+          res == {'FINISHED'} and os.path.isfile(path_24), (res, path_24))
+    check("backup con tre righe", len(righe) == 3, righe)
+    check("il manuale rimosso e' nel backup",
+          nome_manuale in [r.get("constraint") for r in righe],
+          [r.get("constraint") for r in righe])
+    generati = [r for r in righe if r.get("generato") is True]
+    manuali = [r for r in righe if r.get("generato") is False]
+    check("backup con due generati e un manuale",
+          (len(generati), len(manuali)) == (2, 1),
+          (len(generati), len(manuali)))
+    check("riga del manuale sull'osso giusto",
+          bool(manuali) and manuali[0].get("osso") == "MCH-a", manuali)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+finally:
+    if path_24 and os.path.isfile(path_24):
+        os.remove(path_24)
+
+# ---------------------------------------------------------------------------
+print("\n[25] Scrittura backup fallita: sostituzione annullata", flush=True)
+try:
+    reset_scene()
+    arm = make_rig("Rig25")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    add_manual_copy(arm, "MCH-a", "DEF-a")
+    prima = sum(len(pb.constraints) for pb in arm.pose.bones)
+    s.existing_mode = 'REPLACE'
+    s.replace_conferma_manuali = True
+
+    def _backup_rotto(arm_obj, rows):
+        """Simula una cartella di backup non scrivibile."""
+        raise OSError("scrittura non permessa (test)")
+
+    reale = addon._write_replace_backup
+    try:
+        addon._write_replace_backup = _backup_rotto
+        res = bpy.ops.actd.apply_transforms(replace_scelta='ALL')
+    finally:
+        addon._write_replace_backup = reale
+    dopo = sum(len(pb.constraints) for pb in arm.pose.bones)
+    check("backup fallito: operatore CANCELLED", res == {'CANCELLED'}, res)
+    check("backup fallito: nessun constraint rimosso", dopo == prima,
+          (prima, dopo))
+    check("backup fallito: registro invariato",
+          len(addon._read_registry(arm)) == 2, addon._read_registry(arm))
+    check("report con la riga 'Backup non riuscito'",
+          "Backup non riuscito: sostituzione annullata" in s.preview_report,
+          s.preview_report.replace("\n", " / "))
+    check("last_report riporta la stessa riga",
+          s.last_report == s.preview_report,
+          s.last_report.replace("\n", " / "))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
+print("\n[26] Report finale con la riga 'Backup creato:'", flush=True)
+path_26 = ""
+try:
+    reset_scene()
+    arm = make_rig("Rig26")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    s.existing_mode = 'REPLACE'
+    res = bpy.ops.actd.apply_transforms(replace_scelta='GENERATED_ONLY')
+    path_26 = backup_path(s.preview_report)
+    check("sostituzione riuscita con backup",
+          res == {'FINISHED'} and os.path.isfile(path_26), (res, path_26))
+    check("riga Backup creato: nel report finale",
+          bool(path_26) and ("Backup creato: " + path_26) in s.preview_report,
+          s.preview_report.replace("\n", " / "))
+    check("la riga del backup chiude il report",
+          bool(path_26)
+          and s.preview_report.splitlines()[-1] == "Backup creato: " + path_26,
+          s.preview_report.splitlines()[-1:])
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+finally:
+    if path_26 and os.path.isfile(path_26):
+        os.remove(path_26)
+
+# ---------------------------------------------------------------------------
 print("\n===== RIEPILOGO TEST MODULO 6 =====", flush=True)
 print("Passati: %d" % len(OK), flush=True)
 print("Falliti: %d" % len(FAIL), flush=True)

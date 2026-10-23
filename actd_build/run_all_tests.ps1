@@ -1,6 +1,7 @@
 param(
     [string]$Blender = 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe',
-    [string]$Suites
+    [string]$Suites,
+    [int]$MaxParallel = 8
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,17 +17,16 @@ $allSuites = @(
     @{ Name = 'test_mod_types.py'; Expected = 49 },
     @{ Name = 'test_mod_autoprefix.py'; Expected = 35 },
     @{ Name = 'test_mod_learn.py'; Expected = 40 },
-    @{ Name = 'test_mod6.py'; Expected = 113 },
+    @{ Name = 'test_mod6.py'; Expected = 169 },
     @{ Name = 'test_i18n.py'; Expected = 65 }
 )
-# Totale atteso delle 11 suite: 538 controlli.
+# Totale atteso delle 11 suite: 594 controlli.
 $expectedTotalAll = 0
 foreach ($suite in $allSuites) { $expectedTotalAll += $suite.Expected }
-# Controllo del totale atteso del full-run (run senza filtro -Suites).
-if ($expectedTotalAll -ne 538) {
-    throw "Totale atteso del full-run non valido: $expectedTotalAll (attesi 538)"
+if ($expectedTotalAll -ne 594) {
+    throw "Totale atteso del full-run non valido: $expectedTotalAll (attesi 594)"
 }
-$validateAll = -not $PSBoundParameters.ContainsKey('Suites')
+$validateAll = -not $PSBoundParameters.ContainsKey('Suites') -or [string]::IsNullOrWhiteSpace($Suites)
 $selectedSuites = @()
 $suiteAliases = @{}
 foreach ($suite in $allSuites) {
@@ -50,65 +50,112 @@ if ($validateAll) {
         }
     }
 }
-$results = @()
-$stopAfterSuite = $false
 
 if (-not (Test-Path -LiteralPath $Blender -PathType Leaf)) {
     throw "Eseguibile Blender non trovato: $Blender"
 }
+if ($MaxParallel -lt 1) { $MaxParallel = 1 }
 
 Push-Location $root
 try {
-    foreach ($suite in $selectedSuites) {
-        if ($stopAfterSuite) { break }
+    # Preparazione slot: ogni suite ha i propri file temporanei isolati, così
+    # fino a $MaxParallel istanze di Blender possono girare insieme senza
+    # contendersi test_out.txt.
+    $workItems = @()
+    for ($idx = 0; $idx -lt $selectedSuites.Count; $idx++) {
+        $s = $selectedSuites[$idx]
+        $suitePath = Join-Path $PSScriptRoot $s.Name
+        $uid = [guid]::NewGuid().ToString('N')
+        $workItems += [pscustomobject]@{
+            Index      = $idx
+            Suite      = $s.Name
+            Expected   = $s.Expected
+            SuitePath  = $suitePath
+            Exists     = (Test-Path -LiteralPath $suitePath -PathType Leaf)
+            StdoutPath = Join-Path ([IO.Path]::GetTempPath()) ("actd_{0}_{1}.stdout" -f $s.Name, $uid)
+            StderrPath = Join-Path ([IO.Path]::GetTempPath()) ("actd_{0}_{1}.stderr" -f $s.Name, $uid)
+            Process    = $null
+            ExitCode   = -1
+            Output     = ''
+        }
+    }
 
-        $suitePath = Join-Path $PSScriptRoot $suite.Name
-        if (-not (Test-Path -LiteralPath $suitePath -PathType Leaf)) {
+    # Pool di processi paralleli (fino a $MaxParallel contemporanei).
+    $queue = New-Object System.Collections.Queue
+    foreach ($item in $workItems) {
+        if ($item.Exists) { $queue.Enqueue($item) }
+    }
+    $running = New-Object System.Collections.ArrayList
+
+    while ($queue.Count -gt 0 -or $running.Count -gt 0) {
+        while ($queue.Count -gt 0 -and $running.Count -lt $MaxParallel) {
+            $item = $queue.Dequeue()
+            $pythonArgument = '"{0}"' -f $item.SuitePath
+            $item.Process = Start-Process -FilePath $Blender -ArgumentList @(
+                '--background', '--factory-startup', '--python', $pythonArgument
+            ) -PassThru -WindowStyle Hidden -RedirectStandardOutput $item.StdoutPath -RedirectStandardError $item.StderrPath
+            [void]$running.Add($item)
+        }
+        Start-Sleep -Milliseconds 80
+        for ($i = $running.Count - 1; $i -ge 0; $i--) {
+            $cur = $running[$i]
+            if ($cur.Process.HasExited) {
+                $cur.Process.WaitForExit()
+                $cur.ExitCode = $cur.Process.ExitCode
+                $stdout = ''
+                $stderr = ''
+                for ($retry = 0; $retry -lt 10; $retry++) {
+                    try {
+                        if (Test-Path -LiteralPath $cur.StdoutPath) { $stdout = [IO.File]::ReadAllText($cur.StdoutPath) }
+                        if (Test-Path -LiteralPath $cur.StderrPath) { $stderr = [IO.File]::ReadAllText($cur.StderrPath) }
+                        break
+                    } catch {
+                        Start-Sleep -Milliseconds 50
+                    }
+                }
+                $cur.Output = $stdout + [Environment]::NewLine + $stderr
+                Remove-Item -LiteralPath $cur.StdoutPath, $cur.StderrPath -Force -ErrorAction SilentlyContinue
+                $running.RemoveAt($i)
+            }
+        }
+    }
+
+    # Valutazione in ordine canonico e scrittura di test_out.txt (log completo
+    # concatenato, con eventuali suite fallite messe in coda per ispezione rapida).
+    $results = @()
+    $stopAfterSuite = $false
+    $combinedLog = New-Object System.Text.StringBuilder
+    $failedLogs = New-Object System.Text.StringBuilder
+
+    foreach ($item in ($workItems | Sort-Object Index)) {
+        if (-not $item.Exists) {
             $results += [pscustomobject]@{
-                Suite = $suite.Name; Attesi = $suite.Expected
+                Suite = $item.Suite; Attesi = $item.Expected
                 Passati = 'n/d'; Falliti = 'n/d'; Esito = 'FILE ASSENTE'
             }
             continue
         }
+        $output = $item.Output
+        [void]$combinedLog.AppendLine("===== SUITE: $($item.Suite) =====")
+        [void]$combinedLog.AppendLine($output)
 
-        Set-Content -LiteralPath $log -Value '' -Encoding UTF8
-        $stdoutPath = Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString() + '.stdout')
-        $stderrPath = Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString() + '.stderr')
-        try {
-            $pythonArgument = '"{0}"' -f $suitePath
-            $process = Start-Process -FilePath $Blender -ArgumentList @(
-                '--background', '--factory-startup', '--python', $pythonArgument
-            ) -Wait -PassThru -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
-            $processExit = $process.ExitCode
-            $stdout = if (Test-Path -LiteralPath $stdoutPath) { [IO.File]::ReadAllText($stdoutPath) } else { '' }
-            $stderr = if (Test-Path -LiteralPath $stderrPath) { [IO.File]::ReadAllText($stderrPath) } else { '' }
-            [IO.File]::WriteAllText($log, $stdout + [Environment]::NewLine + $stderr, [Text.Encoding]::UTF8)
-        } finally {
-            Remove-Item -LiteralPath $stdoutPath, $stderrPath -Force -ErrorAction SilentlyContinue
-        }
-        if (-not (Test-Path -LiteralPath $log -PathType Leaf)) {
-            $results += [pscustomobject]@{
-                Suite = $suite.Name; Attesi = $suite.Expected
-                Passati = 'n/d'; Falliti = 'n/d'; Esito = 'LOG ASSENTE'
-            }
-            continue
-        }
-
-        $output = Get-Content -LiteralPath $log -Raw
         if ([string]::IsNullOrWhiteSpace($output)) {
             $results += [pscustomobject]@{
-                Suite = $suite.Name; Attesi = $suite.Expected
+                Suite = $item.Suite; Attesi = $item.Expected
                 Passati = 'n/d'; Falliti = 'n/d'; Esito = 'LOG VUOTO'
             }
+            [void]$failedLogs.AppendLine("===== FAIL SUITE: $($item.Suite) (LOG VUOTO) =====")
             continue
         }
 
         if ($output -match '(?m)\b(SyntaxError|ImportError)\b') {
             $results += [pscustomobject]@{
-                Suite = $suite.Name; Attesi = $suite.Expected
+                Suite = $item.Suite; Attesi = $item.Expected
                 Passati = 'n/d'; Falliti = 'n/d'; Esito = "ERRORE $($Matches[1])"
             }
             $stopAfterSuite = $true
+            [void]$failedLogs.AppendLine("===== FAIL SUITE: $($item.Suite) =====")
+            [void]$failedLogs.AppendLine($output)
             continue
         }
 
@@ -122,28 +169,38 @@ try {
         if ($modularPassed.Count -gt 0 -and $modularFailed.Count -gt 0) {
             $passed = [int]$modularPassed[$modularPassed.Count - 1].Groups[1].Value
             $failed = [int]$modularFailed[$modularFailed.Count - 1].Groups[1].Value
-            $validSummary = $output -match '(?m)^RISULTATO:\s*SUPERATO\s*$'
+            $validSummary = $output -match '(?m)^RISULTATO:\s*SUPERATO\s*\r?$'
         } elseif ($legacySummary.Count -gt 0) {
             $summary = $legacySummary[$legacySummary.Count - 1]
             $passed = [int]$summary.Groups[1].Value
             $total = [int]$summary.Groups[2].Value
             $failed = $total - $passed
-            $validSummary = $output -match '(?m)^TUTTI I TEST SUPERATI\s*$'
+            $validSummary = $output -match '(?m)^TUTTI I TEST SUPERATI\s*\r?$'
         }
 
-        $expectedTotal = if ($null -ne $passed -and $null -ne $failed) {
-            $passed + $failed
-        } else { -1 }
-        $success = $processExit -eq 0 -and $validSummary -and
-            $passed -eq $suite.Expected -and $failed -eq 0 -and
-            $expectedTotal -eq $suite.Expected
+        $expectedTotal = if ($null -ne $passed -and $null -ne $failed) { $passed + $failed } else { -1 }
+        $exitOk = ($item.ExitCode -eq 0) -or ($null -eq $item.ExitCode)
+        $success = $exitOk -and $validSummary -and
+            $passed -eq $item.Expected -and $failed -eq 0 -and
+            $expectedTotal -eq $item.Expected
+        if (-not $success) {
+            [void]$failedLogs.AppendLine("===== FAIL SUITE: $($item.Suite) =====")
+            [void]$failedLogs.AppendLine($output)
+        }
         $results += [pscustomobject]@{
-            Suite = $suite.Name; Attesi = $suite.Expected
+            Suite = $item.Suite; Attesi = $item.Expected
             Passati = $(if ($null -eq $passed) { 'n/d' } else { $passed })
             Falliti = $(if ($null -eq $failed) { 'n/d' } else { $failed })
             Esito = $(if ($success) { 'SUPERATO' } else { 'DIVERGENZA' })
         }
     }
+
+    $finalLog = if ($failedLogs.Length -gt 0) {
+        $combinedLog.ToString() + [Environment]::NewLine + $failedLogs.ToString()
+    } else {
+        $combinedLog.ToString()
+    }
+    [IO.File]::WriteAllText($log, $finalLog, (New-Object System.Text.UTF8Encoding($false)))
 } finally {
     Pop-Location
 }

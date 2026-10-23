@@ -3,6 +3,7 @@
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.x-orange)](https://www.blender.org/)
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.1.5-green.svg)]()
+[![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def?label=release)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
 Automate the creation of Copy Transforms constraints between armatures in a
@@ -52,6 +53,22 @@ The add-on is a **single Python file** and has no external dependencies.
 
 ---
 
+## Which file should I download?
+
+Everything is published on the [release page](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest):
+
+| File | What it is | Use it when |
+|---|---|---|
+| `auto_copy_transforms_def-1.1.5.zip` | Blender Extension package | **Recommended**: install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**) |
+| `Auto_Copy_Transforms_DEF_1.1.5.rar` | Complete package | You want everything in one archive: the extension ZIP, the legacy single-file add-on (`legacy/auto_copy_transforms_def.py`), the documentation (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) and the license (`LICENSE.txt`) |
+| `SHA256.txt` | Integrity check | Verify the download before installing: compare the SHA256 of the ZIP/RAR with the hashes listed in the file |
+| `legacy/auto_copy_transforms_def.py` (inside the RAR) | Standalone Python file | Legacy/manual use only: install it as a classic add-on (**Edit → Preferences → Add-ons → Install from Disk...**) |
+
+- **Recommended Blender version: 5.2 LTS** — the only version officially tested (see the compatibility matrix below).
+- **Registry location:** the JSON registry of the generated constraints is saved as an ID property (`actd_generated`) on the armature object, inside your `.blend` file — not as an external file. It travels with the `.blend` and needs no separate management.
+
+---
+
 ## Installation
 
 ### Blender 4.2+ / 5.x — Extension (recommended)
@@ -73,6 +90,19 @@ included in the extension ZIP.
 ### Where to find it
 
 Open the 3D View, press `N`, and select the **Auto Copy Transforms** tab.
+
+### Updating from a previous version
+
+1. Download the new ZIP from the latest release.
+2. Install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**): Blender replaces the previous version and keeps your settings.
+3. Legacy add-on users: install the new `legacy/auto_copy_transforms_def.py` from the RAR over the old file (Blender asks to overwrite it) and restart Blender if prompted.
+4. Nothing to redo on existing rigs: the registry stays on the armature object (`actd_generated` ID property) inside each `.blend`, so generated constraints remain tracked after the update.
+
+### Uninstalling
+
+1. Disable the add-on first (extension: menu of the entry in **Get Extensions** → disable; legacy add-on: entry in **Add-ons** → uncheck).
+2. Remove it from the same panel (extension: entry menu → **Uninstall**; legacy add-on: entry menu → **Remove**).
+3. Your rigs are untouched: constraints stay on the bones and the registry remains as the `actd_generated` ID property on the armature object inside the `.blend` (harmless leftover; removable with **Maintenance → Clean registry** if you reinstall). Replace backups (`actd_replace_backup_*.json`) stay in the folder of the `.blend`.
 
 ---
 
@@ -147,6 +177,15 @@ armature object, because Blender constraints do not support ID properties.
 ---
 
 ## Compatibility
+
+| Blender version | Status |
+|---|---|
+| 4.2 LTS | Declared, not verified |
+| 4.3 | Declared, not verified |
+| 4.4 | Declared, not verified |
+| 5.0 | Declared, not verified |
+| 5.1 | Declared, not verified |
+| 5.2 LTS | **Officially tested** |
 
 - **Tested officially: Blender 5.2 LTS only.**
 - **Declared compatibility: Blender 4.2+** for both installation paths (legacy

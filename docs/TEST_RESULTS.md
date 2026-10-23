@@ -10,10 +10,18 @@ Command used for every suite:
   --background --factory-startup --python actd_build\<test>.py
 ```
 
-Runner canonico (tutte le 11 suite in sequenza, conteggi attesi verificati):
+Runner canonico (tutte le 11 suite **in parallelo, 8 istanze di Blender**,
+conteggi attesi verificati):
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1
+```
+
+Verifica completa con verdetto deterministico (build step + py_compile + test
++ auto-audit sulla telemetria):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\gate.ps1
 ```
 
 | Suite | Checks | Result |
@@ -27,10 +35,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1
 | `test_mod_types.py` | 49/49 | SUPERATO |
 | `test_mod_autoprefix.py` | 35/35 | SUPERATO |
 | `test_mod_learn.py` | 40/40 | SUPERATO |
-| `test_mod6.py` | 113/113 | SUPERATO |
+| `test_mod6.py` | 115/115 | SUPERATO |
 | `test_i18n.py` | 65/65 | SUPERATO |
 
-**Total: 538/538 passed, 0 failures.**
+**Total: 540/540 passed, 0 failures.**
 
 Nell'esecuzione corrente `test_mod1.py`–`test_mod4.py` totalizzano **125/125**.
 

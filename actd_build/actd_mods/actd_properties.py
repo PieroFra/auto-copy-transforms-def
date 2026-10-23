@@ -231,6 +231,17 @@ class ACTD_Settings(PropertyGroup):
         items=EXISTING_MODE_ITEMS,
         default='KEEP',
     )
+    # Protezione REPLACE: senza questa conferma esplicita il popup non
+    # permette di rimuovere anche i constraint manuali.
+    replace_conferma_manuali: BoolProperty(
+        name="Conferma rimozione manuali",
+        description=(
+            "Abilita 'Rimuovi tutto' nel popup di conferma della modalità "
+            "Sostituisci: senza questa conferma i constraint manuali non "
+            "vengono rimossi"
+        ),
+        default=False,
+    )
     update_mode: EnumProperty(
         name="Modalità",
         description="Crea solo se mancante oppure aggiorna quelli esistenti generati dall'addon",
