@@ -9,10 +9,27 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\run_scout.ps1 -Line 3200
 param(
   [string]$File = 'actd_build\auto_copy_transforms_def.py',
+  # Nome breve del modulo (es. registry, tokens, ui): evita che il modello
+  # locale debba scrivere percorsi, che sbaglia.
+  [string]$Mod = '',
   [string]$Filter = '',
   [int]$Line = 0,
-  [int]$Max = 60
+  [int]$Max = 60,
+  # Se valorizzato, la mappa viene scritta in questo file e su stdout resta
+  # solo una riga di riepilogo: evita che il Tester locale la ripeta a parole.
+  [string]$Out = ''
 )
+
+if ($Mod) {
+  $base = Join-Path $PSScriptRoot '..\..\actd_build\actd_mods'
+  $cand = Join-Path $base ("actd_{0}.py" -f $Mod)
+  if (-not (Test-Path $cand)) { $cand = Join-Path $base ("{0}.py" -f $Mod) }
+  if (Test-Path $cand) { $File = (Resolve-Path $cand).Path }
+  else {
+    Write-Output ("SCOUT_ERROR modulo sconosciuto: {0} (disponibili: {1})" -f $Mod, (((Get-ChildItem $base -Filter '*.py').BaseName) -join ', '))
+    exit 2
+  }
+}
 
 $ErrorActionPreference = 'Stop'
 $env:PYTHONIOENCODING = 'utf-8'
@@ -26,5 +43,13 @@ if ($Filter) { $callArgs += @('--filter', $Filter) }
 if ($Line -gt 0) { $callArgs += @('--line', "$Line") }
 if ($Max -gt 0) { $callArgs += @('--max', "$Max") }
 
-& $py @callArgs
+$result = & $py @callArgs
+if ($Out) {
+  # Scrittura senza BOM: il file viene letto da Python/Blender e dall'Architetto.
+  [IO.File]::WriteAllText($Out, (($result | Out-String).TrimEnd() + "`n"), (New-Object System.Text.UTF8Encoding($false)))
+  $n = (@($result) | Select-String 'SIMBOLO').Count
+  Write-Output "SCOUT_OUT $Out simboli=$n"
+} else {
+  $result
+}
 exit $LASTEXITCODE

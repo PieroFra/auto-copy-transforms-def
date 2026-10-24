@@ -26,6 +26,17 @@ test_output*.txt
 /actd_export_*.json
 *.log
 
+# Indice AST generato e telemetria delle verifiche (derivati locali)
+/actd_build/INDEX.md
+/.opencode/metrics.jsonl
+/.opencode/verdict.txt
+/.opencode/gate.lock
+# Scratch locale per le prove degli agenti
+/.opencode/scratch/
+
+# Esperimenti locali (non pubblicati)
+/_esperimenti/
+
 # Internal project notes (do not publish)
 AGENTS.md
 SPEC.md

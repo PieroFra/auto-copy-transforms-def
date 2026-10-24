@@ -1243,7 +1243,7 @@ try:
               res == {'FINISHED'} and os.path.isfile(path), (res, path))
         check("nome backup con armatura e data (" + scelta + ")",
               re.match(
-                  r"^actd_replace_backup_%s_\d{8}-\d{6}\.json$"
+                  r"^actd_replace_backup_%s_\d{8}-\d{6}-\d{6}\.json$"
                   % re.escape(arm.name),
                   os.path.basename(path) or "",
               ) is not None,

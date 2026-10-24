@@ -38,6 +38,7 @@ $proc = Start-Process -FilePath $blender `
   -ArgumentList @('--factory-startup', '--no-window-focus', '--python', ('"' + (Join-Path $scripts 'blender_bridge.py') + '"')) `
   -PassThru -WindowStyle Hidden
 
+$probeExit = 0
 try {
   $ready = $false
   for ($i = 0; $i -lt 60; $i++) {
@@ -46,8 +47,25 @@ try {
   }
   if (-not $ready) { throw "Ponte Blender non in ascolto sulla porta $Port" }
   & $py (Join-Path $scripts 'bridge_call.py') (Join-Path $scripts 'actd_ui_probe.py')
+  $probeExit = $LASTEXITCODE
 }
 finally {
   # si chiude solo il Blender avviato da questo script
   Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 }
+
+# --- check geometrico deterministico (0 token di visione) --------------------
+# Il Visualizzatore deve potersi fermare PRIMA di guardare i PNG: se il
+# report ha righe TIGHT o i PNG sono neri/corrotti, il verdetto e' gia' FAIL
+# e i token di vision sono sprecati. Il codice decide, non il modello.
+$outDir = Join-Path ([IO.Path]::GetTempPath()) 'opencode\actd_gui'
+$mathCheck = Join-Path $PSScriptRoot 'ui_math_check.py'
+if (Test-Path $mathCheck) {
+  & $py $mathCheck $outDir
+  $mathExit = $LASTEXITCODE
+  if ($mathExit -ne 0) {
+    Write-Output 'UI_PROBE_FAIL | stage=math_check'
+    exit 1
+  }
+}
+exit $probeExit

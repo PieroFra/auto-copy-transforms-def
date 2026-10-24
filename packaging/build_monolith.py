@@ -22,6 +22,7 @@ L'ordine e' esplicito in ORDINE_MODULI e non dipende dal nome dei file.
 
 import ast
 import hashlib
+import json
 import os
 import re
 import sys
@@ -53,6 +54,73 @@ ORDINE_MODULI = [
     "actd_ui.py",
     "actd_main.py",
 ]
+
+# Fonti della versione: packaging/version.json e' l'unica fonte di verita'.
+VERSION_JSON = os.path.join(ROOT, "packaging", "version.json")
+VERSION_MANIFEST = os.path.join(ROOT, "packaging", "blender_manifest.toml")
+MODULO_HEADER = os.path.join(MODS_DIR, "actd_header.py")
+
+
+def formatta_versione(versione):
+    """Formatta una tupla di interi come stringa X.Y.Z."""
+    return "%d.%d.%d" % tuple(versione)
+
+
+def leggi_versione_json():
+    """Legge la versione da packaging/version.json (lista di interi)."""
+    try:
+        with open(VERSION_JSON, "r", encoding="utf-8") as f:
+            dati = json.load(f)
+        return tuple(int(parte) for parte in dati["version"])
+    except (OSError, ValueError, KeyError, TypeError) as errore:
+        sys.exit("Errore versione: impossibile leggere %s (%s)." % (VERSION_JSON, errore))
+
+
+def leggi_versione_header():
+    """Estrae la tupla "version" da bl_info in actd_header.py."""
+    testo = leggi_percorso(MODULO_HEADER)
+    corrispondenza = re.search(
+        r'"version"\s*:\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)', testo
+    )
+    if corrispondenza is None:
+        sys.exit('Errore versione: campo "version" assente in actd_header.py.')
+    return tuple(int(gruppo) for gruppo in corrispondenza.groups())
+
+
+def leggi_versione_manifest():
+    """Estrae il campo version da packaging/blender_manifest.toml."""
+    testo = leggi_percorso(VERSION_MANIFEST)
+    corrispondenza = re.search(
+        r'^version\s*=\s*"(\d+)\.(\d+)\.(\d+)"', testo, re.MULTILINE
+    )
+    if corrispondenza is None:
+        sys.exit("Errore versione: campo version assente in blender_manifest.toml.")
+    return tuple(int(gruppo) for gruppo in corrispondenza.groups())
+
+
+def verifica_versione():
+    """Confronta header, manifest e version.json prima della build.
+
+    packaging/version.json e' l'unica fonte di verita': in caso di divergenza
+    la build termina indicando le due versioni trovate.
+    """
+    versione_json = leggi_versione_json()
+    versione_header = leggi_versione_header()
+    versione_manifest = leggi_versione_manifest()
+    if versione_header != versione_json:
+        sys.exit(
+            "Errore versione: actd_header ha %s, version.json ha %s. "
+            "Aggiorna actd_header o version.json."
+            % (formatta_versione(versione_header), formatta_versione(versione_json))
+        )
+    if versione_manifest != versione_json:
+        sys.exit(
+            "Errore versione: blender_manifest.toml ha %s, version.json ha %s. "
+            "Aggiorna il manifest o version.json."
+            % (formatta_versione(versione_manifest), formatta_versione(versione_json))
+        )
+    print("Versione coerente: %s" % formatta_versione(versione_json))
+    return versione_json
 
 
 def leggi_percorso(percorso):
@@ -242,7 +310,8 @@ def assembla():
 
 
 def build():
-    """Assembla i moduli e riscrive il monolite verificando l'hash."""
+    """Verifica la versione, assembla i moduli e riscrive il monolite."""
+    verifica_versione()
     percorsi = elenca_moduli()
     if not percorsi:
         print("ERRORE: nessun modulo in %s." % MODS_DIR)

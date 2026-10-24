@@ -11,7 +11,7 @@ non deve fare OCR, perché i pixel sono già stati misurati.
 ## Il probe in una riga
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\checc\Desktop\BLENDER ADDON\.opencode\scripts\run_ui_probe.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\checc\Desktop\BLENDER ADDONS\ACTD\.opencode\scripts\run_ui_probe.ps1"
 ```
 
 Un solo comando: avvia Blender in GUI con il ponte TCP, carica l'addon, prepara la scena neutra,
