@@ -28,11 +28,9 @@ test_output*.txt
 
 # Indice AST generato e telemetria delle verifiche (derivati locali)
 /actd_build/INDEX.md
-/.opencode/metrics.jsonl
-/.opencode/verdict.txt
-/.opencode/gate.lock
-# Scratch locale per le prove degli agenti
-/.opencode/scratch/
+
+# Cartella locale OpenCode (agenti, script, skills, config): ignorata interamente, resta intatta su disco
+/.opencode/
 
 # Esperimenti locali (non pubblicati)
 /_esperimenti/
@@ -47,9 +45,6 @@ actd_build/backup_*
 
 # File locale voluminoso di sessione OpenCode e agenti/comandi personali
 /regole-del-progetto-file-modificabile-e-5-lavori-in-agents-md.json
-# Keep .opencode/skills/ tracked.
-/.opencode/agents/
-/.opencode/commands/
 
 # Root-level Blender UI/probe scratch scripts (local only)
 /cap1.py
