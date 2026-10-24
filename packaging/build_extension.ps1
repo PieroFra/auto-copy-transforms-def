@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path $PSScriptRoot -Parent
-$stage = Join-Path $env:TEMP ('actd_ext_build_' + [guid]::NewGuid().ToString('N'))
+$stage = Join-Path ([System.IO.Path]::GetTempPath()) ('actd_ext_build_' + [guid]::NewGuid().ToString('N'))
 $dist = Join-Path $root 'dist'
 $zip = Join-Path $dist 'auto_copy_transforms_def-1.1.5.zip'
 
