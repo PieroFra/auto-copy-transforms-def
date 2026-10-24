@@ -1,5 +1,8 @@
 # Kit promozionale multi-canale — Auto Copy Transforms DEF v1.1.5
 
+**Tutti i post/thread sotto rimandano SEMPRE allo stesso link feedback unico:
+<https://github.com/PieroFra/auto-copy-transforms-def/issues>**
+
 Materiali pronti all'uso per la promozione dell'add-on **Auto Copy Transforms
 DEF** v1.1.5 (GPL-3.0-or-later; Blender 4.2+ dichiarato, testato ufficialmente
 su Blender 5.2 LTS). Tutto il contenuto di questo file è **locale**: non
@@ -9,6 +12,7 @@ al canale prima della pubblicazione (vedi sezione 6).
 ## Riferimenti (link verificati alla stesura)
 
 - Repository: <https://github.com/PieroFra/auto-copy-transforms-def>
+- Feedback (unico canale ufficiale): <https://github.com/PieroFra/auto-copy-transforms-def/issues>
 - Release v1.1.5: <https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.5>
 - Asset estensione: `auto_copy_transforms_def-1.1.5.zip` (nella release v1.1.5)
 - GIF demo: `docs/demo-ui.gif` — <https://raw.githubusercontent.com/PieroFra/auto-copy-transforms-def/main/docs/demo-ui.gif>
@@ -101,6 +105,9 @@ riutilizzare verbatim su altri canali):**
 > Repository (GPL-3.0-or-later):
 > <https://github.com/PieroFra/auto-copy-transforms-def>
 >
+> Feedback, bug report e feature request — unico canale ufficiale:
+> <https://github.com/PieroFra/auto-copy-transforms-def/issues>
+>
 > I would love feedback from other riggers, especially on real production rigs:
 > does the mapping cover your naming conventions? Are the diagnostics useful?
 > The full regression suite runs on Blender 5.2 LTS, so if you test it on
@@ -140,6 +147,9 @@ Testo diverso dalla bozza Blender Artists.
 > Repository (open source, GPL-3.0-or-later):
 > <https://github.com/PieroFra/auto-copy-transforms-def>
 >
+> Feedback e segnalazioni — unico canale ufficiale:
+> <https://github.com/PieroFra/auto-copy-transforms-def/issues>
+>
 > How do you others handle bulk constraint generation between armatures —
 > scripts, drivers, other add-ons? Feedback and issues welcome, especially from
 > anyone running it on Blender 4.2-5.1 (my full test suite only runs on 5.2 LTS).
@@ -160,6 +170,7 @@ Scheda prodotto ordinata, pronta per directory/listing:
 - **Link download:** <https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.5>
   (asset: `auto_copy_transforms_def-1.1.5.zip`)
 - **Link repo:** <https://github.com/PieroFra/auto-copy-transforms-def>
+- **Feedback/segnalazioni (unico canale):** <https://github.com/PieroFra/auto-copy-transforms-def/issues>
 
 Nota onesta: **verificare al momento della sottomissione** se i siti citati
 (BlenderNation Bazaar e directory simili) accettano ancora submission — policy,
