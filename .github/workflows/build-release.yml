@@ -98,7 +98,7 @@ jobs:
             $atteso = $parti[0].Trim().ToLowerInvariant()
             $nome = $parti[1].Trim()
             $calcolato = (Get-FileHash -LiteralPath (Join-Path $dist $nome) -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($calcolato -ne $atteso) { throw "Hash non corrispondente per $nome: $calcolato (atteso $atteso)" }
+            if ($calcolato -ne $atteso) { throw "Hash non corrispondente per ${nome}: $calcolato (atteso $atteso)" }
           }
           Write-Host "Artefatti OK: ZIP e SHA256.txt presenti, hash verificati."
 
