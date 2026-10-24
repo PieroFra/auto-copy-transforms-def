@@ -55,15 +55,30 @@ jobs:
       - name: Coerenza versione (version.json, actd_header.py, manifest)
         run: python -c "import sys; sys.path.insert(0, 'packaging'); import build_monolith; build_monolith.verifica_versione()"
 
+      # d2) Provision Blender 5.2 (tarball ufficiale Linux x64) in $HOME/blender:
+      #     gli script di packaging accettano il percorso dell'eseguibile tramite
+      #     il parametro -Blender, quindi nessun percorso Windows e' necessario.
+      - name: Scarica ed estrae Blender 5.2.0 (Linux x64)
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://download.blender.org/release/Blender5.2/blender-5.2.0-linux-x64.tar.xz"
+          TARBALL="$HOME/blender-5.2.0-linux-x64.tar.xz"
+          curl -fL --retry 3 -o "$TARBALL" "$URL"
+          mkdir -p "$HOME/blender"
+          tar -xJf "$TARBALL" -C "$HOME/blender"
+          rm -f "$TARBALL"
+          BLENDER_BIN="$HOME/blender/blender-5.2.0-linux-x64/blender"
+          "$BLENDER_BIN" --version
+
       # e) Build release: esegue packaging/build_release.ps1 via pwsh, che funziona
       #    anche su Linux. Produce ZIP e SHA256.txt in dist/; il RAR e' opzionale
       #    (-SkipRar) e resta una prerogativa della build locale su Windows, dove
-      #    rar.exe/WinRAR sono disponibili. Nota: lo script richiede Blender nel
-      #    runner (o passato come parametro -Blender) e genera i nomi degli
-      #    artefatti dalla sua versione interna.
+      #    rar.exe/WinRAR sono disponibili. Blender 5.2 e' provisionato dal passo
+      #    precedente e passato esplicitamente con -Blender.
       - name: Build release (ZIP + SHA256 in dist; RAR saltato in CI)
         shell: bash
-        run: pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/build_release.ps1 -SkipRar
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/build_release.ps1 -SkipRar -Blender "$HOME/blender/blender-5.2.0-linux-x64/blender"
 
       # f) Verifica artefatti: dist/ deve contenere lo ZIP e il file SHA256 (in CI
       #    il RAR non viene generato per via di -SkipRar); ogni hash ricalcolato

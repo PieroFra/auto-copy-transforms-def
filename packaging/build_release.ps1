@@ -83,7 +83,7 @@ if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) {
 }
 
 $rar = Join-Path $dist 'Auto_Copy_Transforms_DEF_1.1.5.rar'
-$stage = Join-Path $env:TEMP ('actd_release_' + [guid]::NewGuid().ToString('N'))
+$stage = Join-Path ([System.IO.Path]::GetTempPath()) ('actd_release_' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stage 'legacy') -Force | Out-Null
 
