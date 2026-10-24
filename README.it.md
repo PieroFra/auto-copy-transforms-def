@@ -1,9 +1,10 @@
 # Auto Copy Transforms DEF
 
-[![Blender](https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.x-orange)](https://www.blender.org/)
+[![CI](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml/badge.svg)](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 [![Licenza](https://img.shields.io/badge/Licenza-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Versione](https://img.shields.io/badge/versione-1.1.5-green.svg)]()
-[![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def?label=release)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
+[![Blender](https://img.shields.io/badge/Blender-4.2%2B-blue)](https://www.blender.org/)
+[![Versione](https://img.shields.io/badge/versione-1.1.5-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.5)
 
 **Constraint Copy Transforms automatici per rig Blender.**  
 Automatizza la creazione di constraint Copy Transforms tra armature in pochi
@@ -34,6 +35,23 @@ risultato ispezionabile e reversibile.
 
 ---
 
+## Quale file scaricare?
+
+Tutto è pubblicato nella [pagina delle release](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest):
+
+| File | Cos'è | Quando usarlo |
+|---|---|---|
+| `auto_copy_transforms_def-1.1.5.zip` | Pacchetto Blender Extension | **Consigliato**: installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**) |
+| `Auto_Copy_Transforms_DEF_1.1.5.rar` | Pacchetto completo | Vuoi tutto in un solo archivio: lo ZIP dell'estensione, l'add-on classico single-file (`legacy/auto_copy_transforms_def.py`), la documentazione (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) e la licenza (`LICENSE.txt`) |
+| `SHA256.txt` | Controllo integrità | Verifica il download prima di installare: confronta la SHA256 di ZIP/RAR con gli hash elencati nel file |
+| `legacy/auto_copy_transforms_def.py` (dentro il RAR) | File Python standalone | Solo uso manuale, solo per chi non usa lo ZIP: copialo nella cartella `scripts/addons` di Blender oppure installalo come add-on classico (**Edit → Preferences → Add-ons → Install from Disk...**) |
+
+- **Versione Blender consigliata: 5.2 LTS** — l'unica testata ufficialmente (vedi la matrice di compatibilità sotto).
+- **Aggiornamento da una versione precedente:** disinstalla la versione precedente prima di installare la nuova. Il registro dei constraint è salvato su ogni armatura, quindi i dati si mantengono dopo l'aggiornamento.
+- **Posizione del registro:** il registro JSON dei constraint generati è salvato come custom property (ID-property `actd_generated`) sull'oggetto armatura, dentro il file `.blend` — non è un file esterno. Viaggia con il `.blend` e non richiede gestione separata (vedi la documentazione dell'add-on nel popup **Info**).
+
+---
+
 ## Funzioni
 
 | Area | Cosa offre |
@@ -50,22 +68,6 @@ risultato ispezionabile e reversibile.
 | Export | Export di mappatura/registro in CSV o JSON |
 
 L'add-on è un **unico file Python** e non ha dipendenze esterne.
-
----
-
-## Quale file devo scaricare?
-
-Tutto è pubblicato nella [pagina delle release](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest):
-
-| File | Cos'è | Quando usarlo |
-|---|---|---|
-| `auto_copy_transforms_def-1.1.5.zip` | Pacchetto Blender Extension | **Consigliato**: installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**) |
-| `Auto_Copy_Transforms_DEF_1.1.5.rar` | Pacchetto completo | Vuoi tutto in un solo archivio: lo ZIP dell'estensione, l'add-on classico single-file (`legacy/auto_copy_transforms_def.py`), la documentazione (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) e la licenza (`LICENSE.txt`) |
-| `SHA256.txt` | Controllo integrità | Verifica il download prima di installare: confronta la SHA256 di ZIP/RAR con gli hash elencati nel file |
-| `legacy/auto_copy_transforms_def.py` (dentro il RAR) | File Python standalone | Solo uso legacy/manuale: installalo come add-on classico (**Edit → Preferences → Add-ons → Install from Disk...**) |
-
-- **Versione Blender consigliata: 5.2 LTS** — l'unica testata ufficialmente (vedi la matrice di compatibilità sotto).
-- **Posizione del registro:** il registro JSON dei constraint generati è salvato come ID-property (`actd_generated`) sull'oggetto armatura, dentro il file `.blend` — non è un file esterno. Viaggia con il `.blend` e non richiede gestione separata.
 
 ---
 
