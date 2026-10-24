@@ -1,60 +1,61 @@
-# Modello GitHub Issues: segnalazione di compatibilita' dell'addon A.C.T.D.
-# Utile a mappare su quali configurazioni l'addon funziona o non funziona.
-name: Segnalazione compatibilita'
-description: Comunica su quale configurazione (Blender/OS/GPU) l'addon funziona o non funziona.
-title: "[Compatibilita] "
+name: Segnalazione compatibilità
+about: Segnala problemi di compatibilità con una versione di Blender o un sistema operativo
+title: '[COMPAT] '
+labels: [compatibility]
+assignees: []
+
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Segnala l'esito del tuo test di compatibilita' con la configurazione in uso.
   - type: dropdown
     id: blender-version
     attributes:
-      label: Versione di Blender
-      description: Versione di Blender usata per il test.
+      label: Versione Blender
+      description: Versione di Blender su cui hai testato l'addon
       options:
-        - "4.2"
-        - "4.3"
-        - "4.4"
-        - "5.0"
-        - "5.1"
-        - "5.2 LTS"
-        - "Altra (specifica nei dettagli)"
+        - 4.2 LTS
+        - 4.3
+        - 4.4
+        - 4.5
+        - 4.6
+        - 4.7
+        - 5.0
+        - 5.1
+        - 5.2
+        - 5.2+ (versioni future / nightly)
+      default: 0
     validations:
       required: true
-  - type: input
+
+  - type: dropdown
     id: os
     attributes:
       label: Sistema operativo
-      description: Sistema operativo e versione (es. Windows 11, macOS 15, Ubuntu 24.04).
-      placeholder: Windows 11
-    validations:
-      required: true
-  - type: input
-    id: gpu
-    attributes:
-      label: GPU
-      description: Scheda video e driver (es. NVIDIA RTX 3060, driver 555.99; AMD ...; Apple Silicon).
-      placeholder: NVIDIA GeForce RTX 3060
-    validations:
-      required: true
-  - type: dropdown
-    id: outcome
-    attributes:
-      label: Esito
-      description: L'addon funziona su questa configurazione?
+      description: Sistema operativo della macchina
       options:
-        - "Funziona"
-        - "Non funziona"
+        - Windows
+        - macOS
+        - Linux
+      default: 0
     validations:
       required: true
-  - type: textarea
-    id: details
+
+  - type: dropdown
+    id: addon-installed
     attributes:
-      label: Dettagli
-      description: Note aggiuntive: operazioni testate, errori, versione addon, tipo di installazione.
-      placeholder: Versione addon 1.1.5 installata come ZIP extension; testato ...
+      label: Addon installato
+      description: L'addon ACTD risulta installato e attivato in Blender?
+      options:
+        - sì
+        - no
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrizione
+      description: Descrivi la configurazione, il comportamento osservato e quello atteso
+      placeholder: Descrivi il problema di compatibilità riscontrato
       render: markdown
     validations:
       required: true

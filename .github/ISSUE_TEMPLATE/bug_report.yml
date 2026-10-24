@@ -1,90 +1,124 @@
-# Modello GitHub Issues: segnalazione di un bug dell'addon A.C.T.D.
-# Form (issue form) con i campi necessari a riprodurre il problema.
-name: Segnalazione bug
-description: Segnala un comportamento errato, un blocco o un messaggio di errore dell'addon.
-title: "[Bug] "
+name: Bug report
+about: Segnala un difetto dell'addon ACTD (auto-copy-transforms-def)
+title: '[BUG] '
+labels: [bug]
+assignees: []
+
 body:
   - type: markdown
     attributes:
       value: |
-        Grazie per la segnalazione. Compila i campi con dati reali: aiutano a riprodurre e risolvere il problema.
+        Grazie per la segnalazione. Compila i campi obbligatori e, se possibile,
+        riduci il problema a un file .blend minimo.
+
   - type: dropdown
     id: blender-version
     attributes:
-      label: Versione di Blender
-      description: Versione di Blender in cui si verifica il problema.
+      label: Versione Blender
+      description: Versione di Blender in uso quando si verifica il problema
       options:
-        - "4.2"
-        - "4.3"
-        - "4.4"
-        - "5.0"
-        - "5.1"
-        - "5.2 LTS"
-        - "Altra (specifica nei dettagli)"
+        - 4.2 LTS
+        - 4.3
+        - 4.4
+        - 4.5
+        - 4.6
+        - 4.7
+        - 5.0
+        - 5.1
+        - 5.2
+        - 5.2+ (versioni future / nightly)
+      default: 0
     validations:
       required: true
-  - type: input
+
+  - type: dropdown
     id: os
     attributes:
       label: Sistema operativo
-      description: Sistema operativo e versione (es. Windows 11, macOS 15, Ubuntu 24.04).
-      placeholder: Windows 11
+      description: Sistema operativo della macchina
+      options:
+        - Windows
+        - macOS
+        - Linux
+      default: 0
     validations:
       required: true
+
   - type: input
     id: addon-version
     attributes:
       label: Versione addon
-      description: Versione dell'addon A.C.T.D. installata (es. 1.1.5).
+      description: Versione dell'addon ACTD installata (es. 1.1.5)
       placeholder: 1.1.5
     validations:
       required: true
+
   - type: dropdown
     id: install-type
     attributes:
       label: Tipo di installazione
-      description: Modalita' con cui l'addon e' stato installato.
+      description: Modalità con cui è stato installato l'addon
       options:
-        - "ZIP extension (Blender 4.2+)"
-        - "Legacy single-file (.py in scripts/addons)"
-        - "Altro / non lo so"
+        - ZIP Extension
+        - legacy ZIP
+        - file Python
+        - altre
+      default: 0
     validations:
       required: true
+
   - type: textarea
-    id: steps
+    id: reproduction
     attributes:
-      label: Passi per riprodurre
-      description: Elenco numerato delle operazioni che portano al problema.
+      label: Passaggi per riprodurre
+      description: Elenco ordinato delle operazioni che causano il problema
       placeholder: |
-        1. Apri Blender e carica il file ...
-        2. Seleziona le ossa ...
-        3. ...
+        1. ...
+        2. ...
       render: markdown
     validations:
       required: true
+
   - type: textarea
     id: expected
     attributes:
       label: Comportamento atteso
-      description: Cosa ti aspettavi accadesse.
+      description: Cosa dovrebbe succedere
+      render: markdown
     validations:
       required: true
+
   - type: textarea
     id: observed
     attributes:
       label: Comportamento osservato
-      description: Cosa e' accaduto invece (errore, blocco, risultato sbagliato).
+      description: Cosa succede in realtà (errori, messaggi, risultati sbagliati)
+      render: markdown
     validations:
       required: true
+
   - type: textarea
     id: logs
     attributes:
-      label: Log diagnostico
-      description: Output della console di sistema di Blender o log rilevanti.
-      placeholder: Incolla qui l'output della console (eventuali traceback).
+      label: Log / console
+      description: Output della console di sistema di Blender (Window > Toggle System Console) o del terminale
+      placeholder: Incolla qui l'output della console
+      render: shell
+    validations:
+      required: false
+
   - type: textarea
     id: minimal-blend
     attributes:
-      label: File .blend minimale
-      description: Se possibile, allega (o linka) un .blend minimale che riproduce il problema.
-      placeholder: Allegato al messaggio oppure link di condivisione.
+      label: File .blend minimo (opzionale)
+      description: Allega un file .blend minimo che riproduce il problema (trascina il file nella finestra dei commenti)
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshot (opzionale)
+      description: Allega immagini della UI, dell'errore o dei log rilevanti
+    validations:
+      required: false
