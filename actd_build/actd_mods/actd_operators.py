@@ -324,12 +324,10 @@ def _classifica_replace(arm_obj, results, selected, con_type):
     classificazione (fonte di verita' unica).
 
     Un constraint e' "generato" solo se il suo nome compare nel registro
-    dell'armatura: il fallback per rinomina di ``_is_generated`` riconoscerebbe
-    come generato anche un manuale con lo stesso subtarget, falsando il
-    conteggio (e scrivendo nel registro durante una semplice classificazione).
+    dell'armatura: il criterio e' quello di ``_registry_constraint_names``,
+    condiviso con ``_is_generated`` e basato sulla sola lettura del registro.
     """
     voci = []
-    registro = _read_registry(arm_obj)
     for res in results:
         if res.status not in ('match', 'resolved'):
             continue
@@ -342,9 +340,9 @@ def _classifica_replace(arm_obj, results, selected, con_type):
         if pose_bone is None:
             continue
 
-        # Solo le voci del registro contano come generate: il registro si legge
-        # una volta e non si modifica durante la classificazione.
-        marcati = registro.get(pose_bone.name) or {}
+        # Solo le voci del registro contano come generate, con lo stesso
+        # criterio di `_is_generated`; la lettura non modifica il registro.
+        marcati = _registry_constraint_names(arm_obj, pose_bone)
         for con in pose_bone.constraints:
             if con.type != con_type:
                 continue
@@ -443,8 +441,10 @@ def _write_replace_backup(arm_obj, rows):
     """
     path = os.path.join(
         _replace_backup_dir(),
+        # Timestamp a microsecondi: due REPLACE nello stesso secondo non
+        # devono sovrascriversi il backup.
         "actd_replace_backup_%s_%s.json" % (
-            arm_obj.name, datetime.now().strftime("%Y%m%d-%H%M%S")
+            arm_obj.name, datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         ),
     )
     _write_export_json(path, rows)
@@ -967,9 +967,14 @@ def _write_export_csv(path, rows):
         writer.writerows(rows)
 
 
+def _versione_addon():
+    """Versione dell'addon letta da ``bl_info`` (fonte unica, nessuna stringa cablata)."""
+    return ".".join(str(parte) for parte in bl_info["version"])
+
+
 def _write_export_json(path, rows):
     payload = {
-        "versione": "1.1.5",
+        "versione": _versione_addon(),
         "generato_il": datetime.now().isoformat(timespec="seconds"),
         "righe": rows,
     }

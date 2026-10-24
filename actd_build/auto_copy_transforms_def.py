@@ -1653,10 +1653,29 @@ def _write_registry(owner, data):
 
 
 def _mark_generated(owner, pose_bone, con, src_obj, src_bone):
-    """Registra un constraint come generato dall'addon."""
+    """Registra un constraint come generato dall'addon.
+
+    Prima di scrivere la voce corrente elimina gli alias di rinomina della
+    stessa origine (stesso target/osso e nome non piu' presente tra i
+    constraint dell'osso): il registro resta coerente dopo un UPDATE che
+    rinomina un constraint generato.
+    """
     reg = _read_registry(owner)
-    reg.setdefault(pose_bone.name, {})[con.name] = {
-        "obj": src_obj.name if src_obj is not None else "",
+    bones = reg.setdefault(pose_bone.name, {})
+    presenti = {c.name for c in pose_bone.constraints}
+    src_name = src_obj.name if src_obj is not None else ""
+    alias = [
+        nome for nome, voce in bones.items()
+        if nome not in presenti
+        and isinstance(voce, dict)
+        and voce.get("bone") == src_bone
+        and voce.get("type") == con.type
+        and (not voce.get("obj") or voce.get("obj") == src_name)
+    ]
+    for nome in alias:
+        bones.pop(nome, None)
+    bones[con.name] = {
+        "obj": src_name,
         "bone": src_bone,
         "type": con.type,
     }
@@ -1675,31 +1694,48 @@ def _forget_generated(owner, pose_bone, con_name):
     _write_registry(owner, reg)
 
 
+def _registry_constraint_names(owner, pose_bone):
+    """Nomi dei constraint registrati per l'osso (sola lettura).
+
+    Criterio di base condiviso con ``_is_generated`` (che aggiunge il solo
+    fallback di rinomina) e con la classificazione REPLACE di
+    ``actd_operators``: si legge soltanto il registro e si confrontano i nomi
+    dei constraint. Nessuna scrittura durante una lettura: l'aggiornamento del
+    registro spetta alle funzioni di marcatura.
+    """
+    if pose_bone is None:
+        return frozenset()
+    bones = _read_registry(owner).get(pose_bone.name)
+    if not isinstance(bones, dict):
+        return frozenset()
+    return frozenset(bones.keys())
+
+
 def _is_generated(owner, pose_bone, con):
     """True se il constraint e' stato creato dall'addon.
 
-    Oltre al nome, accetta anche il caso in cui l'utente abbia rinominato il
-    constraint: se target/subtarget coincidono con una voce registrata per
-    quell'osso, il constraint viene riconosciuto e la voce aggiornata.
+    Criterio principale: nome del constraint presente nel registro (lo stesso
+    della classificazione REPLACE). In piu' si accetta il caso della rinomina
+    manuale: una voce registrata vale come fallback solo se il suo nome non
+    esiste piu' tra i constraint dell'osso (altrimenti sarebbe un omonimo
+    manuale) e se target/subtarget coincidono. La lettura non scrive mai nel
+    registro: l'allineamento spetta a ``_mark_generated``.
     """
-    reg = _read_registry(owner)
-    bones = reg.get(pose_bone.name)
-    if not bones:
+    bones = _read_registry(owner).get(pose_bone.name)
+    if not isinstance(bones, dict) or not bones:
         return False
     if con.name in bones:
         return True
-    for old_name, entry in list(bones.items()):
-        if not isinstance(entry, dict):
+    presenti = {c.name for c in pose_bone.constraints}
+    target_obj = getattr(con, "target", None)
+    target_name = target_obj.name if target_obj is not None else ""
+    for old_name, entry in bones.items():
+        if old_name in presenti or not isinstance(entry, dict):
             continue
-        target_obj = getattr(con, "target", None)
-        target_name = target_obj.name if target_obj is not None else ""
         if entry.get("bone") != getattr(con, "subtarget", ""):
             continue
         if entry.get("obj") and entry.get("obj") != target_name:
             continue
-        bones.pop(old_name, None)
-        bones[con.name] = entry
-        _write_registry(owner, reg)
         return True
     return False
 
@@ -2800,12 +2836,10 @@ def _classifica_replace(arm_obj, results, selected, con_type):
     classificazione (fonte di verita' unica).
 
     Un constraint e' "generato" solo se il suo nome compare nel registro
-    dell'armatura: il fallback per rinomina di ``_is_generated`` riconoscerebbe
-    come generato anche un manuale con lo stesso subtarget, falsando il
-    conteggio (e scrivendo nel registro durante una semplice classificazione).
+    dell'armatura: il criterio e' quello di ``_registry_constraint_names``,
+    condiviso con ``_is_generated`` e basato sulla sola lettura del registro.
     """
     voci = []
-    registro = _read_registry(arm_obj)
     for res in results:
         if res.status not in ('match', 'resolved'):
             continue
@@ -2818,9 +2852,9 @@ def _classifica_replace(arm_obj, results, selected, con_type):
         if pose_bone is None:
             continue
 
-        # Solo le voci del registro contano come generate: il registro si legge
-        # una volta e non si modifica durante la classificazione.
-        marcati = registro.get(pose_bone.name) or {}
+        # Solo le voci del registro contano come generate, con lo stesso
+        # criterio di `_is_generated`; la lettura non modifica il registro.
+        marcati = _registry_constraint_names(arm_obj, pose_bone)
         for con in pose_bone.constraints:
             if con.type != con_type:
                 continue
@@ -2919,8 +2953,10 @@ def _write_replace_backup(arm_obj, rows):
     """
     path = os.path.join(
         _replace_backup_dir(),
+        # Timestamp a microsecondi: due REPLACE nello stesso secondo non
+        # devono sovrascriversi il backup.
         "actd_replace_backup_%s_%s.json" % (
-            arm_obj.name, datetime.now().strftime("%Y%m%d-%H%M%S")
+            arm_obj.name, datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         ),
     )
     _write_export_json(path, rows)
@@ -3443,9 +3479,14 @@ def _write_export_csv(path, rows):
         writer.writerows(rows)
 
 
+def _versione_addon():
+    """Versione dell'addon letta da ``bl_info`` (fonte unica, nessuna stringa cablata)."""
+    return ".".join(str(parte) for parte in bl_info["version"])
+
+
 def _write_export_json(path, rows):
     payload = {
-        "versione": "1.1.5",
+        "versione": _versione_addon(),
         "generato_il": datetime.now().isoformat(timespec="seconds"),
         "righe": rows,
     }
