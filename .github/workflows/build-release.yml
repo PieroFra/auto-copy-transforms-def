@@ -56,23 +56,25 @@ jobs:
         run: python -c "import sys; sys.path.insert(0, 'packaging'); import build_monolith; build_monolith.verifica_versione()"
 
       # e) Build release: esegue packaging/build_release.ps1 via pwsh, che funziona
-      #    anche su Linux. Produce ZIP, RAR e SHA256.txt in dist/. Nota: lo script
-      #    richiede Blender e rar.exe/WinRAR nel runner (o passati come parametri
-      #    -Blender / -Rar) e genera i nomi degli artefatti dalla sua versione interna.
-      - name: Build release (ZIP, RAR, SHA256 in dist)
+      #    anche su Linux. Produce ZIP e SHA256.txt in dist/; il RAR e' opzionale
+      #    (-SkipRar) e resta una prerogativa della build locale su Windows, dove
+      #    rar.exe/WinRAR sono disponibili. Nota: lo script richiede Blender nel
+      #    runner (o passato come parametro -Blender) e genera i nomi degli
+      #    artefatti dalla sua versione interna.
+      - name: Build release (ZIP + SHA256 in dist; RAR saltato in CI)
         shell: bash
-        run: pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/build_release.ps1
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/build_release.ps1 -SkipRar
 
-      # f) Verifica artefatti: dist/ deve contenere lo ZIP e il file SHA256 (oltre
-      #    al RAR); ogni hash ricalcolato deve corrispondere a quello registrato
-      #    nel file (formato "<hash> *<nome>").
+      # f) Verifica artefatti: dist/ deve contenere lo ZIP e il file SHA256 (in CI
+      #    il RAR non viene generato per via di -SkipRar); ogni hash ricalcolato
+      #    deve corrispondere a quello registrato nel file (formato "<hash> *<nome>").
       - name: Verifica artefatti in dist (presenza e coerenza hash)
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $dist = 'dist'
           if (-not (Get-ChildItem -LiteralPath $dist -Filter 'auto_copy_transforms_def-*.zip')) { throw 'Artefatto ZIP non trovato in dist' }
-          if (-not (Get-ChildItem -LiteralPath $dist -Filter 'Auto_Copy_Transforms_DEF_*.rar')) { throw 'Artefatto RAR non trovato in dist' }
+          if (Get-ChildItem -LiteralPath $dist -Filter 'Auto_Copy_Transforms_DEF_*.rar') { throw 'In CI non deve essere generato alcun RAR (-SkipRar)' }
           $shaFile = Join-Path $dist 'SHA256.txt'
           if (-not (Test-Path -LiteralPath $shaFile)) { throw 'File SHA256.txt non trovato in dist' }
           foreach ($riga in Get-Content -LiteralPath $shaFile) {
@@ -83,7 +85,7 @@ jobs:
             $calcolato = (Get-FileHash -LiteralPath (Join-Path $dist $nome) -Algorithm SHA256).Hash.ToLowerInvariant()
             if ($calcolato -ne $atteso) { throw "Hash non corrispondente per $nome: $calcolato (atteso $atteso)" }
           }
-          Write-Host "Artefatti OK: ZIP e RAR presenti, hash SHA256.txt verificati."
+          Write-Host "Artefatti OK: ZIP e SHA256.txt presenti, hash verificati."
 
       # g) Crea il tag Git vX.Y.Z dalla versione in input (eventuale "v" iniziale
       #    normalizzato) e lo pusha: un tag gia' esistente fa fallire il passo.
@@ -98,9 +100,10 @@ jobs:
           git tag "v${VERSIONE}"
           git push origin "v${VERSIONE}"
 
-      # h) Crea GitHub Release con asset ZIP/RAR/SHA256 e note dal file indicato
-      #    (default CHANGELOG.md, con fallback se il file indicato manca). I nomi
-      #    degli asset sono in glob perche' li genera build_release.ps1.
+      # h) Crea GitHub Release con asset ZIP/SHA256 e note dal file indicato
+      #    (default CHANGELOG.md, con fallback se il file indicato manca). Il nome
+      #    dello ZIP e' in glob perche' lo genera build_release.ps1 con la sua
+      #    versione interna; in CI il RAR non esiste (-SkipRar).
       - name: Crea GitHub Release con asset e note
         shell: bash
         env:
@@ -112,8 +115,7 @@ jobs:
           NOTE="$NOTE_FILE"
           if [ -z "$NOTE" ] || [ ! -f "$NOTE" ]; then NOTE="CHANGELOG.md"; fi
           gh release create "v${VERSIONE}" \
-            "dist/auto_copy_transforms_def-${VERSIONE}.zip" \
-            "dist/Auto_Copy_Transforms_DEF_${VERSIONE}.rar" \
-            "dist/SHA256.txt" \
+            dist/auto_copy_transforms_def-*.zip \
+            dist/SHA256.txt \
             --title "A.C.T.D. v${VERSIONE}" \
             --notes-file "$NOTE"
