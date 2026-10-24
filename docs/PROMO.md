@@ -67,19 +67,19 @@ dalla 1.1.5 senza aggiornare insieme manifest, tag e asset.
 
 ## 2. Blender Artists — bozza thread
 
-**Titolo:** Auto Copy Transforms DEF — open-source Blender add-on for DEF/MCH rigging
+**Titolo:** Auto Copy Transforms DEF - open-source Blender add-on for DEF/MCH rigging
 
 **Testo (inglese; tono community/annuncio, orientato a workflow e feedback — non
 riutilizzare verbatim su altri canali):**
 
-> Hi all — I maintain an open-source add-on, Auto Copy Transforms DEF, made for
+> Hi all, I maintain an open-source add-on, Auto Copy Transforms DEF, made for
 > riggers working with DEF_/MCH_/ORG_ rigs who want the repetitive part of
 > constraint setup automated.
 >
-> If you have ever rebuilt a production rig, you know the pain: every deform
-> bone needs a matching Copy Transforms constraint on its MCH_ (or ORG_)
-> counterpart, often across two different armatures, with the right spaces, mix
-> mode and influence. Done by hand it is slow, repetitive and easy to get wrong.
+> When rebuilding a production rig, every deform bone needs a matching Copy
+> Transforms constraint on its MCH_ (or ORG_) counterpart, often across two
+> different armatures, with the right spaces, mix mode and influence. Done by
+> hand it is slow, repetitive and easy to get wrong.
 >
 > What it does in a normal rigging session:
 >
@@ -105,13 +105,13 @@ riutilizzare verbatim su altri canali):**
 > Repository (GPL-3.0-or-later):
 > <https://github.com/PieroFra/auto-copy-transforms-def>
 >
-> Feedback, bug report e feature request — unico canale ufficiale:
+> Feedback, bug reports and feature requests (single official channel):
 > <https://github.com/PieroFra/auto-copy-transforms-def/issues>
 >
 > I would love feedback from other riggers, especially on real production rigs:
 > does the mapping cover your naming conventions? Are the diagnostics useful?
 > The full regression suite runs on Blender 5.2 LTS, so if you test it on
-> Blender 4.2-5.1 I am very interested in your results — compatibility there is
+> Blender 4.2-5.1 I am very interested in your results, as compatibility there is
 > declared but not yet verified. Bug reports, feature requests and UI
 > impressions are all welcome. Thanks!
 
@@ -128,8 +128,8 @@ Testo diverso dalla bozza Blender Artists.
 > I lost way too many hours last week on something that should take two clicks:
 > a rig with a few hundred bones, split between a DEF_ armature and an MCH_
 > armature, needs a Copy Transforms constraint on every destination bone
-> pointing at its source counterpart. Doing that manually — one constraint at a
-> time, then fixing target space, mix mode and influence on each — is where
+> pointing at its source counterpart. Doing that manually (one constraint at a
+> time, then fixing target space, mix mode and influence on each) is where
 > rigging hours quietly disappear, and where typos in subtargets breed.
 >
 > So the tool I use matches bones deterministically by name tokens (DEF_ →
@@ -141,17 +141,17 @@ Testo diverso dalla bozza Blender Artists.
 > manual constraints. Mapping and registry can be exported to CSV or JSON for
 > documentation.
 >
-> [GIF demo — armature source/destination, pannello, preview, apply, cleanup]:
+> [GIF demo - armature source/destination, panel, preview, apply, cleanup]:
 > <https://raw.githubusercontent.com/PieroFra/auto-copy-transforms-def/main/docs/demo-ui.gif>
 >
 > Repository (open source, GPL-3.0-or-later):
 > <https://github.com/PieroFra/auto-copy-transforms-def>
 >
-> Feedback e segnalazioni — unico canale ufficiale:
+> Feedback and reports (single official channel):
 > <https://github.com/PieroFra/auto-copy-transforms-def/issues>
 >
-> How do you others handle bulk constraint generation between armatures —
-> scripts, drivers, other add-ons? Feedback and issues welcome, especially from
+> How do you others handle bulk constraint generation between armatures
+> (scripts, drivers, other add-ons)? Feedback and issues welcome, especially from
 > anyone running it on Blender 4.2-5.1 (my full test suite only runs on 5.2 LTS).
 
 ---
@@ -162,8 +162,8 @@ Scheda prodotto ordinata, pronta per directory/listing:
 
 - **Nome:** Auto Copy Transforms DEF
 - **Descrizione breve:** Automatic Copy Transforms constraints between DEF_
-  source bones and MCH_/ORG_ destination bones — mapping, preview, diagnostics,
-  registry tracking and cleanup.
+  source bones and MCH_/ORG_ destination bones (mapping, preview, diagnostics,
+  registry tracking and cleanup).
 - **Licenza:** GPL-3.0-or-later
 - **Compatibilità:** Blender 4.2+ (extension e add-on classico); testato
   ufficialmente su Blender 5.2 LTS
