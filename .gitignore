@@ -38,6 +38,8 @@ test_output*.txt
 # Internal project notes (do not publish)
 AGENTS.md
 SPEC.md
+/docs/PROMO.md
+/docs/FEEDBACK.md
 read.me
 ACTD_work.rar
 /opencode.json
