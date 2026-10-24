@@ -1,9 +1,10 @@
 # Auto Copy Transforms DEF
 
-[![Blender](https://img.shields.io/badge/Blender-4.2%2B%20%7C%205.x-orange)](https://www.blender.org/)
+[![CI](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml/badge.svg)](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.5-green.svg)]()
-[![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def?label=release)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
+[![Blender](https://img.shields.io/badge/Blender-4.2%2B-blue)](https://www.blender.org/)
+[![Version](https://img.shields.io/badge/version-1.1.5-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.5)
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
 Automate the creation of Copy Transforms constraints between armatures in a
@@ -34,6 +35,23 @@ the result inspectable and reversible.
 
 ---
 
+## Which file should I download?
+
+Everything is published on the [release page](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest):
+
+| File | What it is | Use it when |
+|---|---|---|
+| `auto_copy_transforms_def-1.1.5.zip` | Blender Extension package | **Recommended**: install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**) |
+| `Auto_Copy_Transforms_DEF_1.1.5.rar` | Complete package | You want everything in one archive: the extension ZIP, the legacy single-file add-on (`legacy/auto_copy_transforms_def.py`), the documentation (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) and the license (`LICENSE.txt`) |
+| `SHA256.txt` | Integrity check | Verify the download before installing: compare the SHA256 of the ZIP/RAR with the hashes listed in the file |
+| `legacy/auto_copy_transforms_def.py` (inside the RAR) | Standalone Python file | Manual use only, only if you do not use the ZIP: copy it into Blender's `scripts/addons` folder, or install it as a classic add-on (**Edit → Preferences → Add-ons → Install from Disk...**) |
+
+- **Recommended Blender version: 5.2 LTS** — the only version officially tested (see the compatibility matrix below).
+- **Updating from a previous version:** uninstall the previous version before installing the new one. The constraint registry is saved on every armature, so your data is preserved across updates.
+- **Registry location:** the JSON registry of the generated constraints is saved as a custom property (ID property `actd_generated`) on the armature object, inside your `.blend` file — not as an external file. It travels with the `.blend` and needs no separate management (see the add-on documentation in the **Info** popup).
+
+---
+
 ## Features
 
 | Area | What you get |
@@ -50,22 +68,6 @@ the result inspectable and reversible.
 | Export | Mapping/registry export to CSV or JSON |
 
 The add-on is a **single Python file** and has no external dependencies.
-
----
-
-## Which file should I download?
-
-Everything is published on the [release page](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest):
-
-| File | What it is | Use it when |
-|---|---|---|
-| `auto_copy_transforms_def-1.1.5.zip` | Blender Extension package | **Recommended**: install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**) |
-| `Auto_Copy_Transforms_DEF_1.1.5.rar` | Complete package | You want everything in one archive: the extension ZIP, the legacy single-file add-on (`legacy/auto_copy_transforms_def.py`), the documentation (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) and the license (`LICENSE.txt`) |
-| `SHA256.txt` | Integrity check | Verify the download before installing: compare the SHA256 of the ZIP/RAR with the hashes listed in the file |
-| `legacy/auto_copy_transforms_def.py` (inside the RAR) | Standalone Python file | Legacy/manual use only: install it as a classic add-on (**Edit → Preferences → Add-ons → Install from Disk...**) |
-
-- **Recommended Blender version: 5.2 LTS** — the only version officially tested (see the compatibility matrix below).
-- **Registry location:** the JSON registry of the generated constraints is saved as an ID property (`actd_generated`) on the armature object, inside your `.blend` file — not as an external file. It travels with the `.blend` and needs no separate management.
 
 ---
 
