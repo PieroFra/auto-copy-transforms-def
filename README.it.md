@@ -254,7 +254,19 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File actd_build\run_all_tests.ps1
 ```
 
-Per default lo script usa `C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`;
+Lo stesso audit è eseguibile su Linux, macOS e Windows con il runner portatile
+(solo libreria standard Python, senza PowerShell):
+
+```bash
+python actd_build/run_all_tests.py
+```
+
+Accetta `-Blender <percorso>` (default: variabile d'ambiente `BLENDER_EXE`,
+altrimenti `blender` nel `PATH`) e `-Suites <elenco separato da virgole>`
+(default: tutte le suite); scrive lo stesso `test_out.txt`, applica gli stessi
+conteggi attesi per suite e restituisce exit code 0/1 come il wrapper Windows.
+Il wrapper PowerShell per default usa
+`C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`;
 passa `-Blender <percorso>` per usare un altro eseguibile. Per una sola suite,
 avvia Blender direttamente, ad esempio:
 

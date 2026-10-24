@@ -253,7 +253,18 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File actd_build\run_all_tests.ps1
 ```
 
-The runner uses `C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`
+The same audit runs on Linux, macOS and Windows with the portable runner
+(Python standard library only, no PowerShell):
+
+```bash
+python actd_build/run_all_tests.py
+```
+
+It accepts `-Blender <path>` (default: `BLENDER_EXE` env var, else `blender`
+in `PATH`) and `-Suites <comma-separated list>` (default: all suites); it
+writes the same `test_out.txt`, enforces the same expected per-suite counts
+and exits 0/1 like the Windows wrapper. The PowerShell wrapper uses
+`C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`
 by default; pass `-Blender <path>` to use another executable. For one suite,
 invoke Blender directly, for example:
 
