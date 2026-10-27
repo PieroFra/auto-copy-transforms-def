@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
- Auto Copy Transforms DEF (v1.2.0)
+ Auto Copy Transforms DEF (v1.3.0)
 =============================================================================
 
 Addon per Blender 3.6.x, 4.x e 5.x che automatizza la creazione di constraint
@@ -57,7 +57,7 @@ from bpy.types import Operator, Panel, PropertyGroup, UIList
 bl_info = {
     "name": "Auto Copy Transforms DEF",
     "author": "Pierfrancesco Diodato",
-    "version": (1, 2, 0),
+    "version": (1, 3, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar (N) > Auto Copy Transforms",
     "description": (
@@ -83,8 +83,8 @@ CREATOR_NAME = "Pierfrancesco Diodato"
 LICENSE_NAME = "GPL-3.0-or-later"
 LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
 
-README_TEXT = """Crea constraint di copia tra le ossa sorgente (DEF_) e le ossa
-di destinazione (MCH_, ORG_, ecc.).
+README_TEXT = """Crea constraint di copia (COPY_TRANSFORMS) sulle ossa di destinazione
+(DEF_, ORG_, ecc.) a partire dalle ossa sorgente (MCH_).
 
 USO: seleziona l'armatura in Pose Mode > sidebar N > Auto Copy Transforms >
 imposta i token > Anteprima > Applica constraint.
@@ -99,8 +99,8 @@ Sviluppato con l'assistenza di AI (OpenCode)."""
 LICENSE_NOTICE = """GPL-3.0-or-later - Copyright (C) 2026 Pierfrancesco Diodato.
 Software libero, distribuito SENZA GARANZIA. Vedi il testo completo."""
 
-README_TEXT_EN = """Creates copy constraints between source bones (DEF_) and destination bones
-(MCH_, ORG_, ...).
+README_TEXT_EN = """Creates copy constraints (COPY_TRANSFORMS) on destination bones
+(DEF_, ORG_, ...) from source bones (MCH_).
 
 USAGE: select the armature in Pose Mode > sidebar N > Auto Copy Transforms >
 set the tokens > Preview > Apply constraints.

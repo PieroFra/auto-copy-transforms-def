@@ -1,6 +1,6 @@
 # NON MODIFICARE DIRETTAMENTE.
 # Generato da packaging\build_package.py - non modificare a mano.
-# A.C.T.D. (Auto Copy Transforms DEF) versione 1.2.0
+# A.C.T.D. (Auto Copy Transforms DEF) versione 1.3.0
 # Edita i moduli in actd_build\actd_mods\ e ricostruisci il pacchetto.
 import importlib
 

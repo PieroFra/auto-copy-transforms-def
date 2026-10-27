@@ -38,6 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deleting or renaming constraints manually outside the Maintenance panel can
   leave orphan entries (removable via "Clean registry").
 
+## [1.3.0] - 2026-10-27
+
+### Changed
+
+- Default constraint flipped to `DEF_`; documentation and package texts aligned.
+
 ## [1.1.5] - 2026-10-22
 
 ### Changed

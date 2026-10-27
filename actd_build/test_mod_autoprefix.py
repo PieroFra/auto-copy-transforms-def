@@ -76,9 +76,9 @@ def prepare(source_object=None):
 
 print("===== TEST AUTO-PREFISSO =====", flush=True)
 addon.register()
-check("default token sorgente DEF_", settings().source_token == "DEF_",
+check("default token sorgente MCH_", settings().source_token == "MCH_",
       settings().source_token)
-check("default token destinazione MCH_", settings().dest_token == "MCH_",
+check("default token destinazione DEF_", settings().dest_token == "DEF_",
       settings().dest_token)
 
 # ---------------------------------------------------------------------------

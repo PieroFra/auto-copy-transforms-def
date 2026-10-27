@@ -4,16 +4,16 @@
 [![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B-blue)](https://www.blender.org/)
-[![Version](https://img.shields.io/badge/version-1.2.0-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.2.0)
+[![Version](https://img.shields.io/badge/version-1.3.0-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.3.0)
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
 Automate the creation of Copy Transforms constraints between armatures in a
 few clicks and save hours of repetitive rigging work.
 
-Map source bones (`DEF_`) to destination bones (`MCH_`, `ORG_`, ...) and build
+Map source bones (`MCH_`) to destination bones (`DEF_`, `ORG_`, ...) and build
 the constraint stack in a few clicks.
 
-[Download v1.2.0](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.2.0) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
+[Download v1.3.0](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.3.0) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
 
 ![Info popup](docs/info-popup-en.png)
 
@@ -41,8 +41,8 @@ Everything is published on the [release page](https://github.com/PieroFra/auto-c
 
 | File | What it is | Use it when |
 |---|---|---|
-| `auto_copy_transforms_def-1.2.0.zip` | Blender Extension package | **Recommended**: install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**) |
-| `Auto_Copy_Transforms_DEF_1.2.0.rar` | Complete package | You want everything in one archive: the extension ZIP, the legacy classic add-on package (`legacy/auto_copy_transforms_def/`), the documentation (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) and the license (`LICENSE.txt`) |
+| `auto_copy_transforms_def-1.3.0.zip` | Blender Extension package | **Recommended**: install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**) |
+| `Auto_Copy_Transforms_DEF_1.3.0.rar` | Complete package | You want everything in one archive: the extension ZIP, the legacy classic add-on package (`legacy/auto_copy_transforms_def/`), the documentation (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) and the license (`LICENSE.txt`) |
 | `SHA256.txt` | Integrity check | Verify the download before installing: compare the SHA256 of the ZIP/RAR with the hashes listed in the file |
 | `legacy/auto_copy_transforms_def/` (inside the RAR) | Classic add-on package | Manual use only, only if you do not use the ZIP: copy the folder into Blender's `scripts/addons` directory and restart Blender |
 
@@ -75,7 +75,7 @@ The installable add-on is a Python package generated from modular sources; it ha
 
 ### Blender 4.2+ / 5.x — Extension (recommended)
 
-1. Download `auto_copy_transforms_def-1.2.0.zip`.
+1. Download `auto_copy_transforms_def-1.3.0.zip`.
 2. Open **Edit → Preferences → Get Extensions**.
 3. Click the arrow in the top-right corner and choose **Install from Disk...**
 4. Select the ZIP and enable **Auto Copy Transforms DEF**.
@@ -113,12 +113,12 @@ Open the 3D View, press `N`, and select the **Auto Copy Transforms** tab.
 
 1. Select the destination armature and enter **Pose Mode**.
 2. Open the sidebar: `N → Auto Copy Transforms`.
-3. Set the source token (`DEF_`) and destination token (`MCH_`).
+3. Set the source token (`MCH_`) and destination token (`DEF_`).
 4. Click **Preview** to inspect the mapping.
 5. Click **Apply constraints**.
 6. Use **Remove generated constraints** to undo the operation.
 
-> Defaults: `COPY_TRANSFORMS`, tokens `DEF_` / `MCH_`.
+> Defaults: `COPY_TRANSFORMS`, tokens `MCH_` / `DEF_`.
 
 ---
 
@@ -138,7 +138,7 @@ apply**.
 
 ![Mapping preview](docs/demo-preview.png)
 
-The preview lists every `DEF_` → `MCH_` pair with its status. Nothing is
+The preview lists every `MCH_` → `DEF_` pair with its status. Nothing is
 applied until you click **Apply constraints**.
 
 ### 3. Apply and verify
@@ -296,7 +296,7 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File packaging\build_extension.ps1
 ```
 
-It creates `dist/auto_copy_transforms_def-1.2.0.zip` and runs Blender's
+It creates `dist/auto_copy_transforms_def-1.3.0.zip` and runs Blender's
 extension validator. Pass `-Blender <path>` to use a different Blender
 executable. To assemble the ZIP, RAR and SHA256 sidecars locally, run:
 

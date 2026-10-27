@@ -113,7 +113,7 @@ class ACTD_Settings(PropertyGroup):
     source_token: StringProperty(
         name="Token sorgente (Target)",
         description="Token che identifica le ossa sorgente da cui copiare la trasformazione (es. 'DEF_' o 'MCH_')",
-        default="DEF_",
+        default="MCH_",
         update=_mark_preview_stale,
     )
     source_token_type: EnumProperty(
@@ -127,7 +127,7 @@ class ACTD_Settings(PropertyGroup):
     dest_token: StringProperty(
         name="Token destinazione (Owner)",
         description="Token che identifica le ossa destinazione su cui viene aggiunto il constraint (es. 'MCH_')",
-        default="MCH_",
+        default="DEF_",
         update=_mark_preview_stale,
     )
     dest_token_type: EnumProperty(
@@ -145,7 +145,9 @@ class ACTD_Settings(PropertyGroup):
         name="Preset",
         description="Imposta rapidamente il token di destinazione",
         items=DEST_PRESET_ITEMS,
-        default='MCH_',
+        # Allineato al default owner (DEF_), cosi' il menu non mostra un
+        # preset diverso dal token destinazione iniziale.
+        default='DEF_',
         update=_on_dest_preset_chosen,
     )
     # Avviso mostrato sotto il menu quando il preset scelto coincide con la

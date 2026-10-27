@@ -89,7 +89,7 @@ STATUS_META = {
     'unmatched_dst': ("Senza match", 'CANCEL'),
 }
 
-DEFAULT_CONSTRAINT_NAME = "AUTO_COPY_DEF_to_MCH"
+DEFAULT_CONSTRAINT_NAME = "AUTO_COPY_MCH_to_DEF"
 _INFLUENCE_TOL = 1e-4
 
 

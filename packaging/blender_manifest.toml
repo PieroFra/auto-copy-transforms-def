@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "auto_copy_transforms_def"
-version = "1.2.0"
+version = "1.3.0"
 name = "Auto Copy Transforms DEF"
 tagline = "Automatic Copy Transforms between DEF and MCH bones"
 maintainer = "Pierfrancesco Diodato"
@@ -22,8 +22,8 @@ tags = [
 ]
 
 description = """
-Automatically create copy constraints on destination bones (MCH_, ORG_, ...)
-by mapping the names of source bones (DEF_).
+Automatically create copy constraints (COPY_TRANSFORMS) on destination bones
+(DEF_, ORG_, ...) by mapping the names of source bones (MCH_).
 
 Features: separate source armature, Copy Transforms/Rotation/Location/Scale,
 configurable mix and spaces, bone-collection filters, pre-flight diagnostics,

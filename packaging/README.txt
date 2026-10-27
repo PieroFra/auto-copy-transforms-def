@@ -1,4 +1,4 @@
-AUTO COPY TRANSFORMS DEF v1.2.0
+AUTO COPY TRANSFORMS DEF v1.3.0
 ===============================
 
 Creator: Pierfrancesco Diodato
@@ -7,9 +7,9 @@ License: GPL-3.0-or-later
 
 WHAT IT DOES
 ------------
-Creates copy constraints on destination bones (MCH_, ORG_, ...) by
-automatically mapping the names of source bones (DEF_).
-Defaults: COPY_TRANSFORMS, tokens DEF_ / MCH_.
+Creates copy constraints on destination bones (DEF_, ORG_, ...) by
+automatically mapping the names of source bones (MCH_).
+Defaults: COPY_TRANSFORMS, tokens MCH_ / DEF_.
 
 
 MAIN FEATURES
@@ -29,7 +29,7 @@ INSTALL AS AN EXTENSION (Blender 4.2+ / 5.x)
 1. Open Blender.
 2. Edit > Preferences > Get Extensions.
 3. Top-right arrow > "Install from Disk...".
-4. Select auto_copy_transforms_def-1.2.0.zip.
+4. Select auto_copy_transforms_def-1.3.0.zip.
 5. Enable "Auto Copy Transforms DEF".
 6. In the 3D View press N and open the "Auto Copy Transforms" tab.
 
