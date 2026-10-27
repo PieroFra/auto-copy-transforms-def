@@ -41,19 +41,20 @@ jobs:
         shell: bash
         run: pwsh --version
 
-      # c) Controlli CI: round-trip build del monolite dai moduli e verifica che
-      #    il risultato sia identico a quello committato (diff vuoto => exit 0).
-      - name: Build round-trip del monolite
-        run: python packaging/build_monolith.py build
-      - name: Nessuna differenza sul monolite generato
-        run: git diff --exit-code -- actd_build/auto_copy_transforms_def.py
+      # c) Controlli CI: round-trip build del pacchetto generato dai moduli e
+      #    verifica che il risultato sia identico a quello committato (diff
+      #    vuoto => exit 0).
+      - name: Build round-trip del pacchetto generato
+        run: python packaging/build_package.py build
+      - name: Nessuna differenza su pacchetto e moduli
+        run: git diff --exit-code -- actd_build/auto_copy_transforms_def actd_build/actd_mods
 
-      # d) Verifica versione: verifica_versione() in build_monolith.py confronta
+      # d) Verifica versione: verifica_versione() in build_package.py confronta
       #    packaging/version.json, actd_header.py e blender_manifest.toml. La build
       #    del passo c) fallirebbe gia' in caso di divergenza; questo step la isola
-      #    per una diagnosi chiara senza riscrivere il monolite.
+      #    per una diagnosi chiara senza rigenerare il pacchetto.
       - name: Coerenza versione (version.json, actd_header.py, manifest)
-        run: python -c "import sys; sys.path.insert(0, 'packaging'); import build_monolith; build_monolith.verifica_versione()"
+        run: python -c "import sys; sys.path.insert(0, 'packaging'); import build_package; build_package.verifica_versione()"
 
       # d2) Provision Blender 5.2 (tarball ufficiale Linux x64) in $HOME/blender:
       #     gli script di packaging accettano il percorso dell'eseguibile tramite
