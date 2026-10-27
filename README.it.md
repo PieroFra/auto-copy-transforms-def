@@ -42,9 +42,9 @@ Tutto è pubblicato nella [pagina delle release](https://github.com/PieroFra/aut
 | File | Cos'è | Quando usarlo |
 |---|---|---|
 | `auto_copy_transforms_def-1.2.0.zip` | Pacchetto Blender Extension | **Consigliato**: installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**) |
-| `Auto_Copy_Transforms_DEF_1.2.0.rar` | Pacchetto completo | Vuoi tutto in un solo archivio: lo ZIP dell'estensione, l'add-on classico single-file (`legacy/auto_copy_transforms_def.py`), la documentazione (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) e la licenza (`LICENSE.txt`) |
+| `Auto_Copy_Transforms_DEF_1.2.0.rar` | Pacchetto completo | Vuoi tutto in un solo archivio: lo ZIP dell'estensione, il pacchetto dell'add-on classico (`legacy/auto_copy_transforms_def/`), la documentazione (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) e la licenza (`LICENSE.txt`) |
 | `SHA256.txt` | Controllo integrità | Verifica il download prima di installare: confronta la SHA256 di ZIP/RAR con gli hash elencati nel file |
-| `legacy/auto_copy_transforms_def.py` (dentro il RAR) | File Python standalone | Solo uso manuale, solo per chi non usa lo ZIP: copialo nella cartella `scripts/addons` di Blender oppure installalo come add-on classico (**Edit → Preferences → Add-ons → Install from Disk...**) |
+| `legacy/auto_copy_transforms_def/` (dentro il RAR) | Pacchetto add-on classico | Solo uso manuale, solo per chi non usa lo ZIP: copia la cartella nella directory `scripts/addons` di Blender e riavvia Blender |
 
 - **Versione Blender consigliata: 5.2 LTS** — l'unica testata ufficialmente (vedi la matrice di compatibilità sotto).
 - **Aggiornamento da una versione precedente:** disinstalla la versione precedente prima di installare la nuova. Il registro dei constraint è salvato su ogni armatura, quindi i dati si mantengono dopo l'aggiornamento.
@@ -67,7 +67,7 @@ Tutto è pubblicato nella [pagina delle release](https://github.com/PieroFra/aut
 | Manutenzione | Converti in manuali, pulisci registro, mute/unmute dei generati |
 | Export | Export di mappatura/registro in CSV o JSON |
 
-L'add-on è un **unico file Python** e non ha dipendenze esterne.
+L'add-on installabile è un pacchetto Python generato da sorgenti modulari e non ha dipendenze esterne.
 
 ---
 
@@ -82,12 +82,13 @@ L'add-on è un **unico file Python** e non ha dipendenze esterne.
 
 ### Blender 4.2+ / 5.x — Add-on classico
 
-1. Apri **Edit → Preferences → Add-ons**.
-2. Usa **Install from Disk...** e seleziona `auto_copy_transforms_def.py`.
-3. Attiva **Rigging: Auto Copy Transforms DEF**.
+1. Estrai dal RAR abbinato la cartella `legacy/auto_copy_transforms_def/`.
+2. Copiala nella directory `scripts/addons` di Blender.
+3. Riavvia Blender e attiva **Rigging: Auto Copy Transforms DEF** in
+   **Edit → Preferences → Add-ons**.
 
-Il file standalone è nel RAR abbinato, nella cartella `legacy/`; non è incluso
-nello ZIP dell'estensione.
+Il pacchetto dell'add-on classico è nel RAR abbinato, nella cartella
+`legacy/`; non è incluso nello ZIP dell'estensione.
 
 ### Dove si trova
 
@@ -97,7 +98,7 @@ Apri la 3D View, premi `N` e seleziona la scheda **Auto Copy Transforms**.
 
 1. Scarica il nuovo ZIP dall'ultima release.
 2. Installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**): Blender sostituisce la versione precedente e conserva le impostazioni.
-3. Chi usa l'add-on classico: installa il nuovo `legacy/auto_copy_transforms_def.py` dal RAR sovrascrivendo il vecchio file (Blender chiede conferma della sovrascrittura) e riavvia Blender se richiesto.
+3. Chi usa l'add-on classico: sostituisce la vecchia cartella `legacy/auto_copy_transforms_def` con quella estratta dal nuovo RAR e riavvia Blender se richiesto.
 4. Nulla da rifare sui rig esistenti: il registro resta sull'oggetto armatura (ID-property `actd_generated`) dentro ogni `.blend`, quindi i constraint generati restano tracciati dopo l'aggiornamento.
 
 ### Disinstallazione
@@ -220,17 +221,13 @@ verificata a mano perché i test headless non possono cliccare l'interfaccia.
 
 ## Sviluppo
 
-Il progetto tiene l'add-on in un unico file:
+L'add-on installabile è un pacchetto Python generato da sorgenti modulari.
+La fonte di verità sono i moduli in `actd_build/actd_mods/`; lo step di build
+assembla il pacchetto installabile. L'architettura di sviluppo completa (file
+modificati, file generati, rigenerazione, test, versionamento) è documentata
+in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (in inglese).
 
-```text
-actd_build/auto_copy_transforms_def.py
-```
-
-Questo è il file principale (add-on classico) e l'unica fonte di verità. I
-pacchetti di installazione ne contengono una copia: lo ZIP dell'estensione lo
-include come modulo dell'estensione, il RAR abbinato lo include in `legacy/`.
-
-Le suite di regressione stanno accanto:
+Le suite di regressione stanno in `actd_build/`:
 
 ```text
 test_mod1.py            armatura sorgente
@@ -244,9 +241,10 @@ test_mod_learn.py       impara il pattern da un constraint
 test_mod6.py            manutenzione ed export
 test_i18n.py            traduzioni UI italiano/inglese
 test_func1.py           verifica funzionale della copia
+test_mod7.py            backup di sostituzione e classificazione del registro
 ```
 
-Esegui l'audit canonico sequenziale (tutte le 11 suite, con verifica di ogni
+Esegui l'audit canonico (tutte le 12 suite, con verifica di ogni
 `test_out.txt` e controllo dei conteggi attesi per suite):
 
 ```powershell
@@ -275,13 +273,14 @@ avvia Blender direttamente, ad esempio:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Esito dell'audit: **538/538 controlli superati, 0 falliti** su Blender 5.2. Il runner
+Esito dell'audit: **644/644 controlli superati, 0 falliti** su Blender 5.2. Il runner
 si aspetta: `test_mod1.py` 40, `test_mod2.py` 18, `test_mod3.py` 24,
 `test_mod4.py` 43, `test_func1.py` 5, `test_actd.py` 106,
 `test_mod_types.py` 49, `test_mod_autoprefix.py` 35,
-`test_mod_learn.py` 40, `test_mod6.py` 113 e `test_i18n.py` 65 controlli. Le suite
-riportano `SUPERATO`; la storica `test_actd.py` stampa
-`TUTTI I TEST SUPERATI`. Le prime quattro suite totalizzano 125/125.
+`test_mod_learn.py` 40, `test_mod6.py` 169, `test_i18n.py` 65 e
+`test_mod7.py` 50 controlli. Le suite riportano `SUPERATO`; la storica
+`test_actd.py` stampa `TUTTI I TEST SUPERATI`. Le prime quattro suite
+totalizzano 125/125.
 
 ![Risultati test](docs/test-results.png)
 

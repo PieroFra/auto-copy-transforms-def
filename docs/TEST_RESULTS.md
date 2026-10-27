@@ -1,7 +1,7 @@
 # Test results
 
 Environment: **Blender 5.2 LTS**, headless mode. Results recorded by the latest
-regression run after the visual-review fixes (all 11 suites rerun).
+regression run after the visual-review fixes (all 12 suites rerun).
 
 Command used for every suite:
 
@@ -10,7 +10,7 @@ Command used for every suite:
   --background --factory-startup --python actd_build\<test>.py
 ```
 
-Runner canonico (tutte le 11 suite **in parallelo, 8 istanze di Blender**,
+Runner canonico (tutte le 12 suite **in parallelo, 8 istanze di Blender**,
 conteggi attesi verificati):
 
 ```powershell
@@ -35,10 +35,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\gate.ps1
 | `test_mod_types.py` | 49/49 | SUPERATO |
 | `test_mod_autoprefix.py` | 35/35 | SUPERATO |
 | `test_mod_learn.py` | 40/40 | SUPERATO |
-| `test_mod6.py` | 115/115 | SUPERATO |
+| `test_mod6.py` | 169/169 | SUPERATO |
 | `test_i18n.py` | 65/65 | SUPERATO |
+| `test_mod7.py` | 50/50 | SUPERATO |
 
-**Total: 540/540 passed, 0 failures.**
+**Total: 644/644 passed, 0 failures.**
 
 Nell'esecuzione corrente `test_mod1.py`–`test_mod4.py` totalizzano **125/125**.
 

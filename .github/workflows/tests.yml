@@ -21,6 +21,8 @@ jobs:
           python-version: '3.11'
       - name: Controllo sintassi py_compile
         run: python -m py_compile actd_build/auto_copy_transforms_def/*.py
+      - name: Controllo riferimenti obsoleti (monolite)
+        run: python packaging/check_stale_refs.py
 
   # 2) Round-trip build: rigenera il pacchetto generato dai moduli e verifica
   #    che il risultato sia identico a quello committato (diff vuoto => exit 0).

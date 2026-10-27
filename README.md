@@ -42,9 +42,9 @@ Everything is published on the [release page](https://github.com/PieroFra/auto-c
 | File | What it is | Use it when |
 |---|---|---|
 | `auto_copy_transforms_def-1.2.0.zip` | Blender Extension package | **Recommended**: install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**) |
-| `Auto_Copy_Transforms_DEF_1.2.0.rar` | Complete package | You want everything in one archive: the extension ZIP, the legacy single-file add-on (`legacy/auto_copy_transforms_def.py`), the documentation (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) and the license (`LICENSE.txt`) |
+| `Auto_Copy_Transforms_DEF_1.2.0.rar` | Complete package | You want everything in one archive: the extension ZIP, the legacy classic add-on package (`legacy/auto_copy_transforms_def/`), the documentation (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) and the license (`LICENSE.txt`) |
 | `SHA256.txt` | Integrity check | Verify the download before installing: compare the SHA256 of the ZIP/RAR with the hashes listed in the file |
-| `legacy/auto_copy_transforms_def.py` (inside the RAR) | Standalone Python file | Manual use only, only if you do not use the ZIP: copy it into Blender's `scripts/addons` folder, or install it as a classic add-on (**Edit → Preferences → Add-ons → Install from Disk...**) |
+| `legacy/auto_copy_transforms_def/` (inside the RAR) | Classic add-on package | Manual use only, only if you do not use the ZIP: copy the folder into Blender's `scripts/addons` directory and restart Blender |
 
 - **Recommended Blender version: 5.2 LTS** — the only version officially tested (see the compatibility matrix below).
 - **Updating from a previous version:** uninstall the previous version before installing the new one. The constraint registry is saved on every armature, so your data is preserved across updates.
@@ -67,7 +67,7 @@ Everything is published on the [release page](https://github.com/PieroFra/auto-c
 | Maintenance | Convert generated constraints to manual, clean the registry, mute/unmute generated constraints |
 | Export | Mapping/registry export to CSV or JSON |
 
-The add-on is a **single Python file** and has no external dependencies.
+The installable add-on is a Python package generated from modular sources; it has no external dependencies.
 
 ---
 
@@ -82,12 +82,13 @@ The add-on is a **single Python file** and has no external dependencies.
 
 ### Blender 4.2+ / 5.x — Legacy add-on
 
-1. Open **Edit → Preferences → Add-ons**.
-2. Use **Install from Disk...** and select `auto_copy_transforms_def.py`.
-3. Enable **Rigging: Auto Copy Transforms DEF**.
+1. Extract the `legacy/auto_copy_transforms_def/` folder from the companion RAR.
+2. Copy it into Blender's `scripts/addons` directory.
+3. Restart Blender and enable **Rigging: Auto Copy Transforms DEF** in
+   **Edit → Preferences → Add-ons**.
 
-The standalone file ships in the companion RAR under `legacy/`; it is not
-included in the extension ZIP.
+The classic add-on package ships in the companion RAR under `legacy/`; it is
+not included in the extension ZIP.
 
 ### Where to find it
 
@@ -97,7 +98,7 @@ Open the 3D View, press `N`, and select the **Auto Copy Transforms** tab.
 
 1. Download the new ZIP from the latest release.
 2. Install it as an extension (**Edit → Preferences → Get Extensions → Install from Disk...**): Blender replaces the previous version and keeps your settings.
-3. Legacy add-on users: install the new `legacy/auto_copy_transforms_def.py` from the RAR over the old file (Blender asks to overwrite it) and restart Blender if prompted.
+3. Legacy add-on users: replace the old `legacy/auto_copy_transforms_def` folder with the one extracted from the new RAR and restart Blender if prompted.
 4. Nothing to redo on existing rigs: the registry stays on the armature object (`actd_generated` ID property) inside each `.blend`, so generated constraints remain tracked after the update.
 
 ### Uninstalling
@@ -219,17 +220,13 @@ manually because headless tests cannot click the interface.
 
 ## Development
 
-The project keeps the add-on in a single file:
+The installable add-on is a Python package generated from modular sources.
+The source of truth is the set of modules in `actd_build/actd_mods/`; the
+build step assembles the installable package. The full development
+architecture (modified files, generated files, rebuild, tests, versioning)
+is documented in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
-```text
-actd_build/auto_copy_transforms_def.py
-```
-
-This is the main (legacy) add-on file and the single source of truth. The
-install packages contain a copy of it: the extension ZIP ships it as the
-extension module, while the companion RAR ships it under `legacy/`.
-
-Regression suites live next to it:
+Regression suites live in `actd_build/`:
 
 ```text
 test_mod1.py            source armature
@@ -243,9 +240,10 @@ test_mod_learn.py       learn pattern from a constraint
 test_mod6.py            maintenance and exports
 test_i18n.py            Italian/English UI translations
 test_func1.py           functional copy check
+test_mod7.py            replace backups and registry classification
 ```
 
-Run the canonical sequential audit (all 11 suites, with each `test_out.txt`
+Run the canonical audit (all 12 suites, with each `test_out.txt`
 checked and the expected per-suite counts enforced):
 
 ```powershell
@@ -273,13 +271,14 @@ invoke Blender directly, for example:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Audit status: **538/538 checks passed, 0 failures** on Blender 5.2. The runner
+Audit status: **644/644 checks passed, 0 failures** on Blender 5.2. The runner
 expects: `test_mod1.py` 40, `test_mod2.py` 18, `test_mod3.py` 24,
 `test_mod4.py` 43, `test_func1.py` 5, `test_actd.py` 106,
 `test_mod_types.py` 49, `test_mod_autoprefix.py` 35,
-`test_mod_learn.py` 40, `test_mod6.py` 113 and `test_i18n.py` 65. The suites
-report `SUPERATO` (the historical `test_actd.py` reports
-`TUTTI I TEST SUPERATI`). The first four suites total 125/125.
+`test_mod_learn.py` 40, `test_mod6.py` 169, `test_i18n.py` 65 and
+`test_mod7.py` 50. The suites report `SUPERATO` (the historical
+`test_actd.py` reports `TUTTI I TEST SUPERATI`). The first four suites total
+125/125.
 
 ![Test results](docs/test-results.png)
 
