@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 [![Licenza](https://img.shields.io/badge/Licenza-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B-blue)](https://www.blender.org/)
-[![Versione](https://img.shields.io/badge/versione-1.1.5-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.5)
+[![Versione](https://img.shields.io/badge/versione-1.2.0-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.2.0)
 
 **Constraint Copy Transforms automatici per rig Blender.**  
 Automatizza la creazione di constraint Copy Transforms tra armature in pochi
@@ -13,7 +13,7 @@ click e ti fa risparmiare ore di lavoro di rigging ripetitivo.
 Mappa le ossa sorgente (`DEF_`) sulle ossa di destinazione (`MCH_`, `ORG_`, ...)
 e costruisce lo stack di constraint in pochi click.
 
-[Download v1.1.5](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.1.5) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
+[Download v1.2.0](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.2.0) · [Issues](https://github.com/PieroFra/auto-copy-transforms-def/issues)
 
 ![Popup Informazioni](docs/info-popup.png)
 
@@ -41,8 +41,8 @@ Tutto è pubblicato nella [pagina delle release](https://github.com/PieroFra/aut
 
 | File | Cos'è | Quando usarlo |
 |---|---|---|
-| `auto_copy_transforms_def-1.1.5.zip` | Pacchetto Blender Extension | **Consigliato**: installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**) |
-| `Auto_Copy_Transforms_DEF_1.1.5.rar` | Pacchetto completo | Vuoi tutto in un solo archivio: lo ZIP dell'estensione, l'add-on classico single-file (`legacy/auto_copy_transforms_def.py`), la documentazione (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) e la licenza (`LICENSE.txt`) |
+| `auto_copy_transforms_def-1.2.0.zip` | Pacchetto Blender Extension | **Consigliato**: installalo come estensione (**Edit → Preferences → Get Extensions → Install from Disk...**) |
+| `Auto_Copy_Transforms_DEF_1.2.0.rar` | Pacchetto completo | Vuoi tutto in un solo archivio: lo ZIP dell'estensione, l'add-on classico single-file (`legacy/auto_copy_transforms_def.py`), la documentazione (`README.txt`, `README.it.txt`, `LEGGIMI.txt`) e la licenza (`LICENSE.txt`) |
 | `SHA256.txt` | Controllo integrità | Verifica il download prima di installare: confronta la SHA256 di ZIP/RAR con gli hash elencati nel file |
 | `legacy/auto_copy_transforms_def.py` (dentro il RAR) | File Python standalone | Solo uso manuale, solo per chi non usa lo ZIP: copialo nella cartella `scripts/addons` di Blender oppure installalo come add-on classico (**Edit → Preferences → Add-ons → Install from Disk...**) |
 
@@ -75,7 +75,7 @@ L'add-on è un **unico file Python** e non ha dipendenze esterne.
 
 ### Blender 4.2+ / 5.x — Estensione (consigliata)
 
-1. Scarica `auto_copy_transforms_def-1.1.5.zip`.
+1. Scarica `auto_copy_transforms_def-1.2.0.zip`.
 2. Apri **Edit → Preferences → Get Extensions**.
 3. Clicca la freccia in alto a destra e scegli **Install from Disk...**
 4. Seleziona lo ZIP e attiva **Auto Copy Transforms DEF**.
@@ -298,7 +298,7 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File packaging\build_extension.ps1
 ```
 
-Crea `dist/auto_copy_transforms_def-1.1.5.zip` ed esegue il validatore delle
+Crea `dist/auto_copy_transforms_def-1.2.0.zip` ed esegue il validatore delle
 estensioni Blender. Usa `-Blender <percorso>` per indicare un altro eseguibile.
 Per assemblare localmente ZIP, RAR e file SHA256:
 

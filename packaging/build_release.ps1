@@ -8,15 +8,23 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $builder = Join-Path $PSScriptRoot 'build_extension.ps1'
 $dist = Join-Path $root 'dist'
-$source = Join-Path $root 'actd_build\auto_copy_transforms_def.py'
+# Pacchetto generato (output di packaging\build_package.py build): il "legacy"
+# da mettere nello stage non e' piu' un singolo file, ma questa cartella.
+$pkg = Join-Path $root 'actd_build\auto_copy_transforms_def'
 $license = Join-Path $root 'LICENSE'
 $readme = Join-Path $PSScriptRoot 'README.txt'
 $readmeIt = Join-Path $PSScriptRoot 'README.it.txt'
+# Versione: unica fonte di verita' packaging\version.json (nessun numero qui).
+$versionData = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'version.json') -Raw | ConvertFrom-Json
+$ver = ($versionData.version -join '.')
 
-foreach ($requiredFile in @($builder, $source, $license, $readme, $readmeIt)) {
+foreach ($requiredFile in @($builder, $license, $readme, $readmeIt)) {
     if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
         throw "File richiesto non trovato: $requiredFile"
     }
+}
+if (-not (Test-Path -LiteralPath $pkg -PathType Container)) {
+    throw "Pacchetto generato non trovato: $pkg (eseguire: python packaging/build_package.py build)"
 }
 
 function Resolve-RarExecutable {
@@ -77,31 +85,33 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Il builder ZIP Ã¨ terminato con un errore.'
 }
 
-$zip = Join-Path $dist 'auto_copy_transforms_def-1.1.5.zip'
+$zip = Join-Path $dist ('auto_copy_transforms_def-' + $ver + '.zip')
 if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) {
     throw "ZIP atteso non trovato: $zip"
 }
 
-$rar = Join-Path $dist 'Auto_Copy_Transforms_DEF_1.1.5.rar'
+$rar = Join-Path $dist ('Auto_Copy_Transforms_DEF_' + $ver + '.rar')
 $stage = Join-Path ([System.IO.Path]::GetTempPath()) ('actd_release_' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stage 'legacy') -Force | Out-Null
 
 try {
     Copy-Item -LiteralPath $zip -Destination $stage
-    Copy-Item -LiteralPath $source -Destination (Join-Path $stage 'legacy\auto_copy_transforms_def.py')
+    # Il legacy e' la cartella del pacchetto generato (con __init__.py):
+    # installabile come addon legacy in Blender.
+    Copy-Item -Path $pkg -Destination (Join-Path $stage 'legacy') -Recurse
     Copy-Item -LiteralPath $readme -Destination (Join-Path $stage 'README.txt')
     Copy-Item -LiteralPath $readmeIt -Destination (Join-Path $stage 'README.it.txt')
     Copy-Item -LiteralPath $license -Destination (Join-Path $stage 'LICENSE.txt')
-    @'
-A.C.T.D. versione 1.1.5
+    @"
+A.C.T.D. versione $ver
 
 Installazione: installa l'add-on dal file ZIP incluso. In alternativa, nel RAR
-installa legacy/auto_copy_transforms_def.py.
+installa la cartella legacy\auto_copy_transforms_def.
 
 Documentazione: README.txt (inglese) e README.it.txt (italiano).
 Licenza: GNU General Public License (GPL), consultare LICENSE.txt.
-'@ | Set-Content -LiteralPath (Join-Path $stage 'LEGGIMI.txt') -Encoding UTF8
+"@ | Set-Content -LiteralPath (Join-Path $stage 'LEGGIMI.txt') -Encoding UTF8
 
     $artefatti = @($zip)
     if ($rarExe) {
@@ -109,8 +119,8 @@ Licenza: GNU General Public License (GPL), consultare LICENSE.txt.
         Push-Location -LiteralPath $stage
         try {
             & $rarExe a -idq -o+ $rar `
-                'auto_copy_transforms_def-1.1.5.zip' `
-                'legacy\auto_copy_transforms_def.py' `
+                ('auto_copy_transforms_def-{0}.zip' -f $ver) `
+                'legacy\auto_copy_transforms_def' `
                 'README.txt' 'README.it.txt' 'LICENSE.txt' 'LEGGIMI.txt'
             if ($LASTEXITCODE -ne 0) {
                 throw "Creazione RAR fallita (exit code $LASTEXITCODE): $rar"

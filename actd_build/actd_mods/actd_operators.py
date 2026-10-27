@@ -26,7 +26,7 @@ class ACTD_OT_set_source_object(Operator):
         settings = _settings(context)
         if self.clear:
             settings.source_object = None
-            self.report({'INFO'}, "Armatura sorgente azzerata (stessa armatura).")
+            self.report({'INFO'}, _translate_report_text("Armatura sorgente azzerata (stessa armatura)."))
             return {'FINISHED'}
 
         obj = context.active_object
@@ -36,12 +36,12 @@ class ACTD_OT_set_source_object(Operator):
                     obj = candidate
                     break
         if obj is None or obj.type != 'ARMATURE':
-            self.report({'ERROR'}, "Seleziona un'armatura da usare come sorgente.")
+            self.report({'ERROR'}, _translate_report_text("Seleziona un'armatura da usare come sorgente."))
             return {'CANCELLED'}
 
         settings.source_object = obj
         settings.preview_is_stale = True
-        self.report({'INFO'}, f"Armatura sorgente: {obj.name}")
+        self.report({'INFO'}, _translate_report_text(f"Armatura sorgente: {obj.name}"))
         return {'FINISHED'}
 
 
@@ -95,7 +95,7 @@ class ACTD_OT_guess_prefixes(Operator):
         arm_obj = context.object
         settings = _settings(context)
         if arm_obj is None or arm_obj.type != 'ARMATURE':
-            self.report({'ERROR'}, "Seleziona un'armatura attiva.")
+            self.report({'ERROR'}, _translate_report_text("Seleziona un'armatura attiva."))
             return {'CANCELLED'}
 
         src_obj = _source_obj(arm_obj, settings)
@@ -114,9 +114,9 @@ class ACTD_OT_guess_prefixes(Operator):
         )
 
         if reliable:
-            self.report({'INFO'}, f"Prefissi: {src_token} / {dst_token}")
+            self.report({'INFO'}, _translate_report_text(f"Prefissi: {src_token} / {dst_token}"))
         else:
-            self.report({'WARNING'}, detail)
+            self.report({'WARNING'}, _translate_report_text(detail))
         return {'FINISHED'}
 
 
@@ -147,7 +147,7 @@ class ACTD_OT_learn_pattern(Operator):
         arm_obj = context.object
         settings = _settings(context)
         if arm_obj is None or arm_obj.type != 'ARMATURE':
-            self.report({'ERROR'}, "Seleziona un'armatura attiva in Pose Mode.")
+            self.report({'ERROR'}, _translate_report_text("Seleziona un'armatura attiva in Pose Mode."))
             return {'CANCELLED'}
 
         candidati = []
@@ -167,7 +167,7 @@ class ACTD_OT_learn_pattern(Operator):
 
         if not candidati:
             self.report(
-                {'ERROR'}, "Nessun constraint di copia sull'osso selezionato."
+                {'ERROR'}, _translate_report_text("Nessun constraint di copia sull'osso selezionato.")
             )
             return {'CANCELLED'}
 
@@ -205,10 +205,10 @@ class ACTD_OT_learn_pattern(Operator):
 
         if regola:
             self.report(
-                {'INFO'}, f"Pattern appreso: {regola[0]} / {regola[1]}"
+                {'INFO'}, _translate_report_text(f"Pattern appreso: {regola[0]} / {regola[1]}")
             )
         else:
-            self.report({'WARNING'}, "Token non deducibili: campi invariati.")
+            self.report({'WARNING'}, _translate_report_text("Token non deducibili: campi invariati."))
         return {'FINISHED'}
 
 
@@ -230,7 +230,7 @@ class ACTD_OT_preview(Operator):
 
         pattern_err = _validate_pattern(settings)
         if pattern_err:
-            self.report({'ERROR'}, pattern_err)
+            self.report({'ERROR'}, _translate_report_text(pattern_err))
             return {'CANCELLED'}
 
         results = compute_mapping(arm_obj, settings)
@@ -252,7 +252,10 @@ class ACTD_OT_preview(Operator):
 
         self.report(
             {'INFO'},
-            f"Anteprima: {valid} coppie valide, {ambiguous} ambigue, {unm_src + unm_dst} senza match.",
+            _translate_report_text(
+                f"Anteprima: {valid} coppie valide, {ambiguous} ambigue, "
+                f"{unm_src + unm_dst} senza match."
+            ),
         )
         return {'FINISHED'}
 
@@ -310,7 +313,7 @@ class ACTD_OT_diagnose(Operator):
 
         self.report(
             {'INFO'} if not errors else {'WARNING'},
-            f"Verifica: {errors} errori, {warnings} avvisi, {infos} suggerimenti.",
+            _translate_report_text(f"Verifica: {errors} errori, {warnings} avvisi, {infos} suggerimenti."),
         )
         return {'FINISHED'}
 
@@ -526,19 +529,19 @@ class ACTD_OT_apply(Operator):
         settings = _settings(context)
 
         if arm_obj is None or arm_obj.type != 'ARMATURE':
-            self.report({'ERROR'}, "Seleziona un'armatura attiva in Pose Mode.")
+            self.report({'ERROR'}, _translate_report_text("Seleziona un'armatura attiva in Pose Mode."))
             return {'CANCELLED'}
 
         pattern_err = _validate_pattern(settings)
         if pattern_err:
-            self.report({'ERROR'}, pattern_err)
+            self.report({'ERROR'}, _translate_report_text(pattern_err))
             return {'CANCELLED'}
 
         # Modulo 1: il target del constraint e' l'armatura sorgente (se impostata)
         target_obj = _source_obj(arm_obj, settings)
         src_err = validate_source_object(arm_obj, target_obj)
         if src_err:
-            self.report({'ERROR'}, src_err)
+            self.report({'ERROR'}, _translate_report_text(src_err))
             return {'CANCELLED'}
 
         results = compute_mapping(arm_obj, settings)
@@ -551,7 +554,7 @@ class ACTD_OT_apply(Operator):
         if settings.apply_mode == 'SELECTED':
             selected = {pb.name for pb in arm_obj.pose.bones if _is_pose_bone_selected(pb)}
             if not selected:
-                self.report({'WARNING'}, "Nessuna osso selezionato in Pose Mode.")
+                self.report({'WARNING'}, _translate_report_text("Nessuna osso selezionato in Pose Mode."))
                 _set_preview_report(
                     settings,
                     "Applicazione annullata: nessun osso selezionato.",
@@ -582,21 +585,21 @@ class ACTD_OT_apply(Operator):
                 if replace_choice == 'ASK':
                     self.report(
                         {'WARNING'},
-                        "Sostituzione annullata: serve la conferma nel popup "
-                        "per rimuovere i constraint manuali.",
+                        _translate_report_text("Sostituzione annullata: serve la conferma nel popup "
+                        "per rimuovere i constraint manuali."),
                     )
                     return {'CANCELLED'}
                 if not _replace_conferma_ok(settings, replace_choice, headless):
                     if replace_choice == 'CANCEL':
                         self.report(
                             {'INFO'},
-                            "Sostituzione annullata: nessun constraint rimosso.",
+                            _translate_report_text("Sostituzione annullata: nessun constraint rimosso."),
                         )
                     else:
                         self.report(
                             {'WARNING'},
-                            "Rimozione dei constraint manuali non confermata: "
-                            "nessun constraint rimosso.",
+                            _translate_report_text("Rimozione dei constraint manuali non confermata: "
+                            "nessun constraint rimosso."),
                         )
                     return {'CANCELLED'}
 
@@ -616,7 +619,7 @@ class ACTD_OT_apply(Operator):
                 # da script, mentre qui serve un annullamento pulito.
                 self.report(
                     {'WARNING'},
-                    "Backup non riuscito: sostituzione annullata",
+                    _translate_report_text("Backup non riuscito: sostituzione annullata"),
                 )
                 _set_preview_report(
                     settings, "Backup non riuscito: sostituzione annullata"
@@ -761,7 +764,10 @@ class ACTD_OT_apply(Operator):
 
         self.report(
             {'INFO'},
-            f"Creati {created}, aggiornati {updated}, saltati {skipped}, ambigui {ambiguous}.",
+            _translate_report_text(
+                f"Creati {created}, aggiornati {updated}, saltati {skipped}, "
+                f"ambigui {ambiguous}."
+            ),
         )
         return {'FINISHED'}
 
@@ -826,14 +832,14 @@ class ACTD_OT_remove(Operator):
         settings = _settings(context)
 
         if arm_obj is None or arm_obj.type != 'ARMATURE':
-            self.report({'ERROR'}, "Seleziona un'armatura attiva in Pose Mode.")
+            self.report({'ERROR'}, _translate_report_text("Seleziona un'armatura attiva in Pose Mode."))
             return {'CANCELLED'}
 
         selected = None
         if settings.apply_mode == 'SELECTED':
             selected = {pb.name for pb in arm_obj.pose.bones if _is_pose_bone_selected(pb)}
             if not selected:
-                self.report({'WARNING'}, "Nessun osso selezionato: rimozione annullata.")
+                self.report({'WARNING'}, _translate_report_text("Nessun osso selezionato: rimozione annullata."))
                 _set_preview_report(
                     settings,
                     "Rimozione annullata: nessun osso selezionato.",
@@ -857,7 +863,7 @@ class ACTD_OT_remove(Operator):
         _prune_registry(arm_obj)
 
         _set_preview_report(settings, f"Constraint rimossi: {removed}")
-        self.report({'INFO'}, f"Rimossi {removed} constraint.")
+        self.report({'INFO'}, _translate_report_text(f"Rimossi {removed} constraint."))
         return {'FINISHED'}
 
 
@@ -880,14 +886,14 @@ class ACTD_OT_clean_registry(Operator):
         arm_obj = context.object
         settings = _settings(context)
         if arm_obj is None or arm_obj.type != 'ARMATURE':
-            self.report({'ERROR'}, "Seleziona un'armatura attiva.")
+            self.report({'ERROR'}, _translate_report_text("Seleziona un'armatura attiva."))
             return {'CANCELLED'}
 
         removed = _prune_registry(arm_obj)
         _set_maintenance_report(
             settings, f"Voci orfane rimosse dal registro: {removed}"
         )
-        self.report({'INFO'}, f"Registro pulito: {removed} voci orfane rimosse.")
+        self.report({'INFO'}, _translate_report_text(f"Registro pulito: {removed} voci orfane rimosse."))
         return {'FINISHED'}
 
 
@@ -1002,7 +1008,7 @@ class ACTD_OT_convert_to_manual(Operator):
         arm_obj = context.object
         settings = _settings(context)
         if arm_obj is None or arm_obj.type != 'ARMATURE':
-            self.report({'ERROR'}, "Seleziona un'armatura attiva in Pose Mode.")
+            self.report({'ERROR'}, _translate_report_text("Seleziona un'armatura attiva in Pose Mode."))
             return {'CANCELLED'}
 
         converted = 0
@@ -1016,7 +1022,7 @@ class ACTD_OT_convert_to_manual(Operator):
         _set_maintenance_report(
             settings, f"Constraint convertiti in manuali: {converted}"
         )
-        self.report({'INFO'}, f"Convertiti {converted} constraint in manuali.")
+        self.report({'INFO'}, _translate_report_text(f"Convertiti {converted} constraint in manuali."))
         return {'FINISHED'}
 
 
@@ -1054,7 +1060,7 @@ class ACTD_OT_mute_all(Operator):
         _set_maintenance_report(
             settings, f"Constraint generati {azione}: {changed}"
         )
-        self.report({'INFO'}, f"Constraint generati {azione}: {changed}.")
+        self.report({'INFO'}, _translate_report_text(f"Constraint generati {azione}: {changed}."))
         return {'FINISHED'}
 
 
@@ -1079,14 +1085,14 @@ class ACTD_OT_export_csv(Operator):
         try:
             _write_export_csv(path, rows)
         except OSError as exc:
-            self.report({'ERROR'}, f"Impossibile scrivere il CSV: {exc}")
+            self.report({'ERROR'}, _translate_report_text(f"Impossibile scrivere il CSV: {exc}"))
             return {'CANCELLED'}
 
         _set_maintenance_report(
             settings,
             f"Report salvato in: {path}\nRighe esportate: {len(rows)}",
         )
-        self.report({'INFO'}, f"CSV salvato: {path}")
+        self.report({'INFO'}, _translate_report_text(f"CSV salvato: {path}"))
         return {'FINISHED'}
 
 
@@ -1111,14 +1117,14 @@ class ACTD_OT_export_json(Operator):
         try:
             _write_export_json(path, rows)
         except OSError as exc:
-            self.report({'ERROR'}, f"Impossibile scrivere il JSON: {exc}")
+            self.report({'ERROR'}, _translate_report_text(f"Impossibile scrivere il JSON: {exc}"))
             return {'CANCELLED'}
 
         _set_maintenance_report(
             settings,
             f"Report salvato in: {path}\nRighe esportate: {len(rows)}",
         )
-        self.report({'INFO'}, f"JSON salvato: {path}")
+        self.report({'INFO'}, _translate_report_text(f"JSON salvato: {path}"))
         return {'FINISHED'}
 
 
@@ -1149,12 +1155,8 @@ class ACTD_OT_show_info(Operator):
         # dice nulla all'utente.
         op = row.operator(
             "wm.url_open",
-            text=bpy.app.translations.pgettext("Profilo Discord"),
+            text=bpy.app.translations.pgettext("Licenza GPL completa"),
             icon='URL',
-        )
-        op.url = DISCORD_URL
-        op = row.operator(
-            "wm.url_open", text="Licenza GPL completa", icon='URL'
         )
         op.url = LICENSE_URL
 
@@ -1182,7 +1184,9 @@ class ACTD_OT_show_info(Operator):
             doc_url = _local_doc_url(filename)
             if doc_url:
                 op = row.operator(
-                    "wm.url_open", text="Apri " + label, icon=icon
+                    "wm.url_open",
+                    text=bpy.app.translations.pgettext("Apri ") + label,
+                    icon=icon,
                 )
                 op.url = doc_url
 

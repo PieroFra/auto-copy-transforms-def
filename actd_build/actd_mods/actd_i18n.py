@@ -2,12 +2,17 @@
 
 
 def _is_english_ui():
-    """True quando la lingua dell'interfaccia Blender e' inglese."""
+    """True quando la lingua dell'interfaccia Blender non e' italiano (inglese di default)."""
     try:
         locale = bpy.app.translations.locale or ""
     except Exception:
         locale = ""
-    return locale.lower().startswith("en")
+    if not locale:
+        try:
+            locale = bpy.context.preferences.view.language or ""
+        except Exception:
+            locale = ""
+    return not locale.lower().startswith("it")
 
 
 # Il report testuale viene generato in italiano (utile per i test e per i log).
@@ -40,6 +45,148 @@ _REPORT_PATTERNS = (
     (re.compile(r"^Report salvato in: (.+)$"), r"Report saved to: \1"),
     (re.compile(r"^Constraint rimossi: (\d+)$"), r"Constraints removed: \1"),
     (re.compile(r"^Nessun problema rilevato\.$"), r"No issues found."),
+    # Messaggi dinamici degli operatori: sorgente, prefissi, token, anteprima,
+    # verifica, applicazione, manutenzione, export e note di mappatura.
+    (re.compile(r"^Sorgente: (.+)$"), r"Source: \1"),
+    (re.compile(r"^Armatura sorgente azzerata \(stessa armatura\)\.$"),
+     r"Source armature cleared (same armature)."),
+    (re.compile(r"^Seleziona un'armatura da usare come sorgente\.$"),
+     r"Select an armature to use as source."),
+    (re.compile(r"^Armatura sorgente: (.+)$"), r"Source armature: \1"),
+    (re.compile(r"^Seleziona un'armatura attiva\.$"),
+     r"Select an active armature."),
+    (re.compile(r"^Seleziona un'armatura attiva in Pose Mode\.$"),
+     r"Select an active armature in Pose Mode."),
+    (re.compile(r"^Prefissi: sorgente '(.*)', destinazione '(.*)'\.$"),
+     r"Prefixes: source '\1', destination '\2'."),
+    (re.compile(r"^Prefissi: (.*) / (.*)$"), r"Prefixes: \1 / \2"),
+    (re.compile(r"^Prefissi ricavati dalla stessa armatura\.$"),
+     r"Prefixes detected from the same armature."),
+    (re.compile(r"^Un solo prefisso ripetuto: destinazione lasciata a MCH_\.$"),
+     r"Only one repeated prefix found: destination kept at MCH_."),
+    (re.compile(r"^Nessun prefisso ripetuto almeno 2 volte\.$"),
+     r"No prefix repeated at least twice."),
+    (re.compile(r"^Prefissi non affidabili in una delle due armature\.$"),
+     r"Unreliable prefixes in one of the armatures."),
+    (re.compile(r"^Prefisso destinazione uguale alla sorgente: usato il secondo\.$"),
+     r"Destination prefix matches source: second candidate used."),
+    (re.compile(r"^Prefisso destinazione uguale alla sorgente: usato MCH_\.$"),
+     r"Destination prefix matches source: MCH_ used."),
+    (re.compile(r"^Prefissi ricavati dalle due armature\.$"),
+     r"Prefixes detected from the two armatures."),
+    (re.compile(r"^Nessun constraint di copia sull'osso selezionato\.$"),
+     r"No copy constraint on the selected bone."),
+    (re.compile(r"^Imparato da '(.+)' / '(.+)':$"),
+     r"Learned from '\1' / '\2':"),
+    (re.compile(
+        r"^Token: sorgente '(.*)', destinazione '(.*)' "
+        r"\(([A-Z]+)/([A-Z]+)\)\.$"),
+     r"Tokens: source '\1', destination '\2' (\3/\4)."),
+    (re.compile(r"^I token contengono metacaratteri: usati letteralmente\.$"),
+     r"Tokens contain regex metacharacters: used literally."),
+    (re.compile(r"^Token non deducibili con maggioranza: campi invariati\.$"),
+     r"Tokens could not be inferred by majority: fields unchanged."),
+    (re.compile(r"^Pattern appreso: (.*) / (.*)$"),
+     r"Learned pattern: \1 / \2"),
+    (re.compile(r"^Token non deducibili: campi invariati\.$"),
+     r"Tokens could not be inferred: fields unchanged."),
+    (re.compile(r"^Tipo '(.+)' non supportato: impostazioni invariate\.$"),
+     r"Unsupported type '\1': settings unchanged."),
+    (re.compile(r"^Influenza non leggibile\.$"), r"Unreadable influence."),
+    (re.compile(r"^Valore '(.+)' non valido per (.+)\.$"),
+     r"Invalid value '\1' for \2."),
+    (re.compile(r"^Target non armatura: sorgente invariata\.$"),
+     r"Non-armature target: source unchanged."),
+    (re.compile(
+        r"^Anteprima: (\d+) coppie valide, (\d+) ambigue, "
+        r"(\d+) senza match\.$"),
+     r"Preview: \1 valid pairs, \2 ambiguous, \3 unmatched."),
+    (re.compile(
+        r"^Verifica: (\d+) errori, (\d+) avvisi, (\d+) suggerimenti\.$"),
+     r"Check: \1 errors, \2 warnings, \3 suggestions."),
+    (re.compile(r"^Nessuna osso selezionato in Pose Mode\.$"),
+     r"No bone selected in Pose Mode."),
+    (re.compile(r"^Applicazione annullata: nessun osso selezionato\.$"),
+     r"Apply cancelled: no bone selected."),
+    (re.compile(
+        r"^Sostituzione annullata: serve la conferma nel popup per rimuovere "
+        r"i constraint manuali\.$"),
+     r"Replacement cancelled: popup confirmation is required to remove "
+     r"manual constraints."),
+    (re.compile(r"^Sostituzione annullata: nessun constraint rimosso\.$"),
+     r"Replacement cancelled: no constraints removed."),
+    (re.compile(
+        r"^Rimozione dei constraint manuali non confermata: nessun "
+        r"constraint rimosso\.$"),
+     r"Manual constraint removal not confirmed: no constraints removed."),
+    (re.compile(r"^Osso '(.+)' non trovato in Pose Mode\.$"),
+     r"Bone '\1' not found in Pose Mode."),
+    (re.compile(
+        r"^Osso '(.+)': constraint manuale conservato, creazione saltata\.$"),
+     r"Bone '\1': manual constraint kept, creation skipped."),
+    (re.compile(
+        r"^Osso '(.+)': sostituiti (\d+) constraint generati di tipo "
+        r"diverso\.$"),
+     r"Bone '\1': replaced \2 generated constraints of a different type."),
+    (re.compile(
+        r"^Osso '(.+)': rimossi (\d+) constraint generati duplicati\.$"),
+     r"Bone '\1': removed \2 duplicate generated constraints."),
+    (re.compile(
+        r"^Osso '(.+)': esiste già un constraint manuale equivalente\.$"),
+     r"Bone '\1': an equivalent manual constraint already exists."),
+    (re.compile(
+        r"^Creati (\d+), aggiornati (\d+), saltati (\d+), "
+        r"ambigui (\d+)\.$"),
+     r"Created \1, updated \2, skipped \3, ambiguous \4."),
+    (re.compile(r"^Nessun osso selezionato: rimozione annullata\.$"),
+     r"No bone selected: removal cancelled."),
+    (re.compile(r"^Rimozione annullata: nessun osso selezionato\.$"),
+     r"Removal cancelled: no bone selected."),
+    (re.compile(r"^Rimossi (\d+) constraint\.$"), r"Removed \1 constraints."),
+    (re.compile(r"^Voci orfane rimosse dal registro: (\d+)$"),
+     r"Orphan entries removed from registry: \1"),
+    (re.compile(r"^Registro pulito: (\d+) voci orfane rimosse\.$"),
+     r"Registry cleaned: \1 orphan entries removed."),
+    (re.compile(r"^Constraint convertiti in manuali: (\d+)$"),
+     r"Constraints converted to manual: \1"),
+    (re.compile(r"^Convertiti (\d+) constraint in manuali\.$"),
+     r"Converted \1 constraints to manual."),
+    (re.compile(r"^Constraint generati mutati: (\d+)\.?$"),
+     r"Generated constraints muted: \1"),
+    (re.compile(r"^Constraint generati riattivati: (\d+)\.?$"),
+     r"Generated constraints unmuted: \1"),
+    (re.compile(r"^Impossibile scrivere il CSV: (.+)$"),
+     r"Could not write CSV: \1"),
+    (re.compile(r"^CSV salvato: (.+)$"), r"CSV saved: \1"),
+    (re.compile(r"^Impossibile scrivere il JSON: (.+)$"),
+     r"Could not write JSON: \1"),
+    (re.compile(r"^JSON salvato: (.+)$"), r"JSON saved: \1"),
+    (re.compile(
+        r"^Il tipo (.+) non supporta 'Mix': l'opzione viene ignorata\.$"),
+     r"Type \1 does not support 'Mix': option ignored."),
+    (re.compile(
+        r"^Il valore di mix '(.+)' non e' valido per (.+): "
+        r"usato REPLACE\.$"),
+     r"Mix value '\1' is not valid for \2: using REPLACE."),
+    (re.compile(r"^Mix '(.+)' non disponibile per (.+): usato '(.+)'\.$"),
+     r"Mix '\1' is not available for \2: using '\3'."),
+    (re.compile(r"^Impossibile impostare il mix '(.+)' su (.+)\.$"),
+     r"Could not set mix '\1' on \2."),
+    (re.compile(r"^Impossibile impostare 'Usa offset'\.$"),
+     r"Could not set 'Use offset'."),
+    (re.compile(
+        r"^Su (.+) 'Usa offset' dipende da Mix: usa 'Mix' = Offset\.$"),
+     r"On \1 'Use offset' depends on Mix: use 'Mix' = Offset."),
+    (re.compile(r"^'Usa offset' non esiste su (.+): ignorato\.$"),
+     r"'Use offset' does not exist on \1: ignored."),
+    (re.compile(r"^Impossibile impostare 'Rimuovi shear'\.$"),
+     r"Could not set 'Remove shear'."),
+    (re.compile(r"^'Rimuovi shear' non esiste su (.+): ignorato\.$"),
+     r"'Remove shear' does not exist on \1: ignored."),
+    (re.compile(r"^Nome base vuoto$"), r"Empty base name"),
+    (re.compile(r"^Candidati: (.+)$"), r"Candidates: \1"),
+    (re.compile(r"^Destinazione '(.+)' contesa da: (.+)$"),
+     r"Target '\1' contended by: \2"),
 )
 
 
@@ -186,6 +333,10 @@ _LEVEL_TAG_RX = re.compile(r"^\[([A-Za-z]+)\]\s*(.*)$")
 
 def _translate_message(text):
     """Traduce una singola riga di report/diagnostica, se riconosciuta."""
+    # Le righe di avviso/errore dei report sono indentate: il prefisso resta in
+    # testa e il messaggio che segue viene tradotto come una riga a sé.
+    if text.startswith("  - "):
+        return "  - " + _translate_message(text[4:])
     for patterns in (_REPORT_PATTERNS, _DIAGNOSTIC_PATTERNS):
         for pattern, replacement in patterns:
             new_text = pattern.sub(replacement, text)
@@ -339,10 +490,6 @@ _EN_TRANSLATIONS = {
         "'Remove shear' does not exist for this type"
     ),
     "Creatore: ": "Creator: ",
-    "Discord: ": "Discord: ",
-    # Etichetta umana del link Discord nel popup informazioni: al posto
-    # dell'ID numerico mostriamo il nome del profilo.
-    "Profilo Discord": "Discord profile",
     "Licenza: ": "License: ",
     "Licenza GPL completa": "Full GPL license",
     "Apri ": "Open ",
@@ -391,6 +538,292 @@ _EN_TRANSLATIONS = {
     "vengono rimossi": (
         "Enables 'Remove all' in the Replace confirmation popup: without "
         "this confirmation manual constraints are not removed"
+    ),
+    # Etichette e pulsanti del popup informazioni restano composti in Python
+    # ("Apri " + nome): la chiave deve essere il testo completo, non il pezzo.
+    "Sostituisci": "Replace",
+    "Pattern": "Pattern",
+    "Mix": "Mix",
+    "Preset": "Preset",
+    "Avviso preset": "Preset notice",
+    "Apri README EN": "Open README EN",
+    "Apri README IT": "Open README IT",
+    "Apri LICENSE": "Open LICENSE",
+    # Messaggi statici di _validate_pattern: le forme dinamiche sono in
+    # _DIAGNOSTIC_PATTERNS, queste sono le chiavi usate direttamente dalla UI.
+    "La regex deve includere il gruppo (?P<name>...).": (
+        "The regex must include the (?P<name>...) group."
+    ),
+    "Il template deve contenere esattamente un {name}.": (
+        "The template must contain exactly one {name}."
+    ),
+    "Il template può contenere al massimo un {side}.": (
+        "The template can contain at most one {side}."
+    ),
+    # Descrizioni delle proprietà esposte nella UI (actd_properties.py).
+    "Armatura da cui copiare le trasformazioni. Lasciare vuoto per usare la "
+    "stessa armatura su cui vengono creati i constraint": (
+        "Armature to copy the transforms from. Leave it empty to use the same "
+        "armature the constraints are created on"
+    ),
+    "Come combinare il risultato del Copy Transforms con i constraint "
+    "precedenti sullo stesso osso. Con un solo constraint il risultato non "
+    "cambia; conta quando ci sono catene IK/FK o più constraint": (
+        "How to combine the Copy Transforms result with the previous "
+        "constraints on the same bone. With a single constraint the result "
+        "does not change; it matters with IK/FK chains or several constraints"
+    ),
+    "Somma il valore copiato alla trasformazione originale invece di "
+    "sostituirla (Copy Location e Copy Scale)": (
+        "Adds the copied value to the original transform instead of replacing "
+        "it (Copy Location and Copy Scale)"
+    ),
+    "Corregge lo shear introdotto dal target quando le sue ossa hanno scale "
+    "non uniformi (evita distorsioni visibili)": (
+        "Fixes the shear introduced by the target when its bones have "
+        "non-uniform scale (avoids visible distortion)"
+    ),
+    "Dove inserire il constraint nella lista dell'osso. Un Copy Transforms "
+    "messo dopo un IK viene sovrascritto: meglio metterlo prima, oppure in "
+    "cima quando si vuole che vinca": (
+        "Where to place the constraint in the bone list. A Copy Transforms "
+        "placed after an IK gets overwritten: better before it, or on top "
+        "when it has to win"
+    ),
+    "Quale trasformazione copiare. Copy Transforms copia posizione, "
+    "rotazione e scala; Copy Rotation solo la rotazione, che e' il caso "
+    "piu' comune per ossa di deformazione": (
+        "Which transform to copy. Copy Transforms copies location, rotation "
+        "and scale; Copy Rotation only the rotation, which is the most common "
+        "case for deform bones"
+    ),
+    "Apre il pannello di verifica del rig": "Opens the rig check panel",
+    "Stato dell'ultimo mute globale dei constraint generati": (
+        "State of the last global mute of the generated constraints"
+    ),
+    "Token che identifica le ossa sorgente da cui copiare la trasformazione "
+    "(es. 'DEF_' o 'MCH_')": (
+        "Token that identifies the source bones the transform is copied from "
+        "(e.g. 'DEF_' or 'MCH_')"
+    ),
+    "Se il token sorgente è un prefisso o un suffisso": (
+        "Whether the source token is a prefix or a suffix"
+    ),
+    "Token che identifica le ossa destinazione su cui viene aggiunto il "
+    "constraint (es. 'MCH_')": (
+        "Token that identifies the destination bones the constraint is added "
+        "to (e.g. 'MCH_')"
+    ),
+    "Se il token destinazione è un prefisso o un suffisso": (
+        "Whether the destination token is a prefix or a suffix"
+    ),
+    "Imposta rapidamente il token di destinazione": (
+        "Quickly sets the destination token"
+    ),
+    "Avviso sul preset di destinazione non applicato": (
+        "Notice about a destination preset that was not applied"
+    ),
+    "Template tipo '{token}{name}{side}' oppure regex con gruppo "
+    "'(?P<name>...)'. Lasciare vuoto per usare la mappatura standard": (
+        "Template like '{token}{name}{side}' or a regex with the group "
+        "'(?P<name>...)'. Leave it empty to use the standard mapping"
+    ),
+    "Interpreta il pattern personalizzato come espressione regolare": (
+        "Interprets the custom pattern as a regular expression"
+    ),
+    "A quali ossa applicare i constraint": (
+        "Which bones the constraints are applied to"
+    ),
+    "Limita l'operazione alle ossa che appartengono a una specifica bone "
+    "collection. Utile su rig grandi per non toccare meccaniche e "
+    "controller": (
+        "Limits the operation to the bones that belong to a specific bone "
+        "collection. Useful on big rigs to leave mechanics and controllers "
+        "alone"
+    ),
+    "Nome della bone collection a cui devono appartenere le ossa sorgente "
+    "(vuoto = nessun filtro sulla sorgente)": (
+        "Name of the bone collection the source bones must belong to "
+        "(empty = no filter on the source)"
+    ),
+    "Nome della bone collection a cui devono appartenere le ossa "
+    "destinazione (vuoto = nessun filtro sulla destinazione)": (
+        "Name of the bone collection the destination bones must belong to "
+        "(empty = no filter on the destination)"
+    ),
+    "Considera solo le ossa con 'Deform' attivo, escludendo le ossa di "
+    "controllo e le meccaniche": (
+        "Only considers bones with 'Deform' enabled, excluding control and "
+        "mechanic bones"
+    ),
+    "Influenza del constraint (0-1)": "Constraint influence (0-1)",
+    "Spazio del target per Copy Transforms": (
+        "Target space for Copy Transforms"
+    ),
+    "Spazio dell'owner per Copy Transforms": "Owner space for Copy Transforms",
+    "Mantieni o sostituisci i constraint Copy Transforms già presenti "
+    "sull'osso destinazione": (
+        "Keep or replace the Copy Transforms constraints already on the "
+        "destination bone"
+    ),
+    "Crea solo se mancante oppure aggiorna quelli esistenti generati "
+    "dall'addon": (
+        "Creates only when missing, or updates the existing ones generated by "
+        "the add-on"
+    ),
+    "Non creare un constraint se sull'osso ne esiste già uno manuale "
+    "equivalente": (
+        "Does not create a constraint if an equivalent manual one already "
+        "exists on the bone"
+    ),
+    "Se attivo, le ambiguità vengono risolte automaticamente scegliendo il "
+    "candidato migliore; se disattivo vengono saltate": (
+        "When enabled, ambiguities are resolved automatically by picking the "
+        "best candidate; when disabled they are skipped"
+    ),
+    "Nome assegnato ai constraint creati": (
+        "Name assigned to the created constraints"
+    ),
+    # Descrizioni degli item degli enum (actd_tokens.py).
+    "Il token si trova all'inizio del nome": (
+        "The token is at the start of the name"
+    ),
+    "Il token si trova alla fine del nome": (
+        "The token is at the end of the name"
+    ),
+    "Applica a tutte le ossa corrispondenti": "Applies to all matching bones",
+    "Applica solo alle ossa selezionate in Pose Mode": (
+        "Applies only to the bones selected in Pose Mode"
+    ),
+    "Mantiene i constraint Copy Transforms già presenti": (
+        "Keeps the Copy Transforms constraints already present"
+    ),
+    "Rimuove tutti i Copy Transforms presenti sull'osso destinazione prima "
+    "di creare il nuovo": (
+        "Removes all Copy Transforms on the destination bone before creating "
+        "the new one"
+    ),
+    "Crea il constraint solo se non esiste già": (
+        "Creates the constraint only if it does not exist yet"
+    ),
+    "Aggiorna i constraint già creati dall'addon": (
+        "Updates the constraints already created by the add-on"
+    ),
+    "Spazio globale": "Global space",
+    "Spazio pose": "Pose space",
+    "Spazio locale con parent": "Local space with parent",
+    "Spazio locale": "Local space",
+    "Usa solo il risultato del constraint: nessun mix": (
+        "Uses only the constraint result: no mix"
+    ),
+    "Metti il risultato prima della trasformazione originale": (
+        "Puts the result before the original transform"
+    ),
+    "Applica il risultato dopo la trasformazione originale": (
+        "Applies the result after the original transform"
+    ),
+    "Come Before, con spazi separati": "Like Before, with separate spaces",
+    "Come After, con spazi separati": "Like After, with separate spaces",
+    "Come Before, mantenendo l'influenza sui canali": (
+        "Like Before, keeping the per-channel influence"
+    ),
+    "Come After, mantenendo l'influenza sui canali": (
+        "Like After, keeping the per-channel influence"
+    ),
+    "Somma la trasformazione copiata (solo Copy Rotation)": (
+        "Adds the copied transform (Copy Rotation only)"
+    ),
+    "Applica la trasformazione come offset (solo Copy Rotation)": (
+        "Applies the transform as an offset (Copy Rotation only)"
+    ),
+    "Copia posizione, rotazione e scala": "Copies location, rotation and scale",
+    "Copia solo la rotazione": "Copies the rotation only",
+    "Copia solo la posizione": "Copies the location only",
+    "Copia solo la scala": "Copies the scale only",
+    "Aggiunge il constraint in fondo alla lista (comportamento classico)": (
+        "Adds the constraint at the bottom of the list (classic behaviour)"
+    ),
+    "Mette il constraint in cima: vince sugli altri": (
+        "Puts the constraint on top: it wins over the others"
+    ),
+    "Lo inserisce subito prima del primo constraint IK": (
+        "Inserts it just before the first IK constraint"
+    ),
+    # Descrizioni degli operatori (actd_operators.py).
+    "Usa l'oggetto attivo selezionato come armatura sorgente, oppure azzera "
+    "il campo per tornare alla stessa armatura": (
+        "Uses the selected active object as source armature, or clears the "
+        "field to go back to the same armature"
+    ),
+    "Rimuove l'armatura sorgente selezionata": (
+        "Removes the selected source armature"
+    ),
+    "Calcola un nome constraint suggerito dai token "
+    "sorgente/destinazione": (
+        "Computes a constraint name suggested by the source/destination "
+        "tokens"
+    ),
+    "Compila i token sorgente e destinazione con i prefissi piu' frequenti "
+    "nelle due armature, senza cambiare i default se la stima non e' "
+    "sicura": (
+        "Fills the source and destination tokens with the most frequent "
+        "prefixes in the two armatures, without changing the defaults when "
+        "the guess is not reliable"
+    ),
+    "Ricava token, tipo, spazi, influenza e mix dal constraint attivo "
+    "sull'osso selezionato e li riusa sul resto del rig": (
+        "Detects tokens, type, spaces, influence and mix from the constraint "
+        "active on the selected bone and reuses them on the rest of the rig"
+    ),
+    "Mostra le coppie sorgente -> destinazione rilevate": (
+        "Shows the detected source -> destination pairs"
+    ),
+    "Controlla mappatura, orientamento di rest, driver concorrenti e spazio "
+    "consigliato senza modificare nulla": (
+        "Checks mapping, rest orientation, conflicting drivers and suggested "
+        "space without changing anything"
+    ),
+    "Crea i constraint di copia sulle ossa destinazione, secondo il tipo "
+    "selezionato": (
+        "Creates the copy constraints on the destination bones, according to "
+        "the selected type"
+    ),
+    "Rimuove dal registro interno i riferimenti a ossa o constraint che non "
+    "esistono piu'": (
+        "Removes the references to bones or constraints that no longer exist "
+        "from the internal registry"
+    ),
+    "I constraint generati restano identici ma escono dal registro: non "
+    "verranno piu' rimossi dall'addon": (
+        "The generated constraints stay as they are but leave the registry: "
+        "they will no longer be removed by the add-on"
+    ),
+    "Attiva o disattiva il mute su tutti i constraint generati, senza "
+    "toccare quelli manuali": (
+        "Enables or disables the mute on all generated constraints, without "
+        "touching the manual ones"
+    ),
+    "Salva una riga per ogni constraint generato nel registro": (
+        "Saves one row per generated constraint in the registry"
+    ),
+    "Salva il registro dei constraint generati in JSON": (
+        "Saves the generated constraints registry as JSON"
+    ),
+    "Mostra README, licenza e creatore dell'addon": (
+        "Shows the add-on README, license and creator"
+    ),
+    "Cosa fare con i constraint già presenti in modalità Sostituisci": (
+        "What to do with the constraints already present in Replace mode"
+    ),
+    "Chiedi conferma prima di rimuovere": (
+        "Asks for confirmation before removing"
+    ),
+    "Non rimuovere alcun constraint": "Do not remove any constraint",
+    "Rimuovi solo i constraint creati dall'add-on": (
+        "Remove only the constraints created by the add-on"
+    ),
+    "Rimuovi anche i constraint manuali, se confermato": (
+        "Also remove manual constraints, when confirmed"
     ),
 }
 

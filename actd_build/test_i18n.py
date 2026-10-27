@@ -85,6 +85,44 @@ class _FakePanel:
         self.layout = _FakeLayout(record)
 
 
+class _FakePanelLayout:
+    """Layout permissivo per il draw di un pannello: registra solo le label.
+
+    Ogni altra chiamata (prop, prop_search, box, column, ...) restituisce il
+    layout stesso, così `ACTD_PT_advanced.draw` può girare in headless.
+    """
+
+    def __init__(self, record):
+        self._record = record
+
+    def label(self, text="", icon='NONE', **kwargs):
+        self._record.append(text)
+        return self
+
+    def __getattr__(self, name):
+        def _ignore(*args, **kwargs):
+            return self
+        return _ignore
+
+
+def _draw_advanced_pattern_warning(pattern, use_regex):
+    """Disegna ACTD_PT_advanced con il pattern indicato, ritorna le label."""
+    record = []
+    panel = _FakePanel(record)
+    panel.layout = _FakePanelLayout(record)
+    settings = addon._settings(bpy.context)
+    old_pattern = settings.custom_pattern
+    old_regex = settings.use_regex
+    settings.custom_pattern = pattern
+    settings.use_regex = use_regex
+    try:
+        addon.ACTD_PT_advanced.draw(panel, bpy.context)
+    finally:
+        settings.custom_pattern = old_pattern
+        settings.use_regex = old_regex
+    return record
+
+
 def _draw_info_popup():
     """Esegue il draw del popup informazioni e restituisce il registrato."""
     record = []
@@ -155,10 +193,23 @@ try:
           == "Destination (Owner)",
           bpy.app.translations.pgettext(
               "Destinazione (Owner)", "Property"))
-    check("etichetta umana del profilo Discord tradotta",
-          bpy.app.translations.pgettext("Profilo Discord")
-          == "Discord profile",
-          bpy.app.translations.pgettext("Profilo Discord"))
+    # Messaggi statici di _validate_pattern: devono uscire in inglese.
+    casi_pattern_en = (
+        ("Regex non valida: unclosed", "Invalid regex: unclosed"),
+        ("La regex deve includere il gruppo (?P<name>...).",
+         "The regex must include the (?P<name>...) group."),
+        ("Placeholder non riconosciuto: {foo}",
+         "Unrecognized placeholder: {foo}"),
+        ("Il template deve contenere esattamente un {name}.",
+         "The template must contain exactly one {name}."),
+    )
+    tradotti_pattern_en = [
+        addon._translate_report_text(italiano)
+        for italiano, _atteso in casi_pattern_en
+    ]
+    check("messaggi di _validate_pattern tradotti in inglese",
+          tradotti_pattern_en == [atteso for _it, atteso in casi_pattern_en],
+          tradotti_pattern_en)
     # Nuove etichette del pannello Avanzate: chiave e traduzione dedicata.
     nuove_en = {
         "Se esiste già": "If already present",
@@ -198,20 +249,43 @@ try:
           note_en_lines)
 
     popup_en = _draw_info_popup()
-    discord_en = [
+    check("popup EN: nessun riferimento a Discord",
+          all("discord" not in str(r).lower() for r in popup_en),
+          [r for r in popup_en if "discord" in str(r).lower()])
+    licenza_en = [
         r for r in popup_en
-        if r[0] == "operator" and r[2] == "Discord profile"
+        if r[0] == "operator" and r[2] == "Full GPL license"
     ]
-    check("popup EN: link Discord con etichetta umana",
-          len(discord_en) == 1 and discord_en[0][3] == 'URL', discord_en)
-    check("popup EN: URL Discord cliccabile",
-          len(discord_en) == 1
-          and discord_en[0][4].url == addon.DISCORD_URL,
-          discord_en)
-    check("popup EN: ID numerico non mostrato",
-          all(addon.DISCORD_ID not in (r[1] or "")
-              for r in popup_en if r[0] == "label"),
-          [r[1] for r in popup_en if r[0] == "label"][:6])
+    check("popup EN: pulsante licenza GPL tradotto e collegato a LICENSE_URL",
+          len(licenza_en) == 1
+          and licenza_en[0][3] == 'URL'
+          and licenza_en[0][4].url == addon.LICENSE_URL,
+          licenza_en)
+    # Avviso di _validate_pattern disegnato dal pannello Avanzate in inglese.
+    attese_pattern_en = addon._ui_report_lines(
+        addon._translate_report_text(
+            "Il template deve contenere esattamente un {name}."))
+    attese_pattern_it = [
+        line if line else " "
+        for line in addon._wrap_text(
+            "Il template deve contenere esattamente un {name}.",
+            addon._UI_TEXT_WIDTH,
+        )
+    ]
+    label_avanzate_en = _draw_advanced_pattern_warning("Foo", False)
+    check("pannello Avanzate EN: avviso pattern disegnato in inglese",
+          bool(attese_pattern_en)
+          and all(r in label_avanzate_en for r in attese_pattern_en)
+          and not any(r in label_avanzate_en for r in attese_pattern_it),
+          (attese_pattern_en, label_avanzate_en))
+    residui_it = [
+        testo for testo in label_avanzate_en
+        if any(parola in (testo or "")
+               for parola in ("deve contenere", "non valida",
+                              "non riconosciuto"))
+    ]
+    check("pannello Avanzate EN: nessun residuo italiano nell'avviso pattern",
+          not residui_it, residui_it)
     check("traduzione creatore",
           bpy.app.translations.pgettext("Creatore: ") == "Creator: ")
     check("traduzione nota AI",
@@ -368,24 +442,14 @@ try:
           tradotte_it == {chiave: chiave for chiave in nuove_en},
           tradotte_it)
     popup_it = _draw_info_popup()
-    discord_it = [
-        r for r in popup_it
-        if r[0] == "operator" and r[2] == "Profilo Discord"
-    ]
-    check("popup IT: link Discord con etichetta umana",
-          len(discord_it) == 1 and discord_it[0][3] == 'URL', discord_it)
-    check("popup IT: URL Discord cliccabile",
-          len(discord_it) == 1
-          and discord_it[0][4].url == addon.DISCORD_URL,
-          discord_it)
-    testi_popup = [
-        r[1] for r in popup_it if r[0] == "label"
-    ] + [
-        r[2] for r in popup_it if r[0] == "operator"
-    ]
-    check("popup IT: nessun ID Discord numerico visibile",
-          all(addon.DISCORD_ID not in (t or "") for t in testi_popup),
-          testi_popup[:6])
+    check("popup IT: nessun riferimento a Discord",
+          all("discord" not in str(r).lower() for r in popup_it),
+          [r for r in popup_it if "discord" in str(r).lower()])
+    label_avanzate_it = _draw_advanced_pattern_warning("Foo", False)
+    check("pannello Avanzate IT: avviso pattern invariato in italiano",
+          " ".join(str(t) for t in label_avanzate_it).find(
+              "Il template deve contenere esattamente un {name}.") != -1,
+          label_avanzate_it)
     check("sorgente italiana invariata",
           bpy.app.translations.pgettext("Token di mappatura")
           == "Token di mappatura")

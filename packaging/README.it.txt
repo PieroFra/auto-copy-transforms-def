@@ -1,8 +1,7 @@
-AUTO COPY TRANSFORMS DEF v1.1.5
+AUTO COPY TRANSFORMS DEF v1.2.0
 ===============================
 
 Creatore: Pierfrancesco Diodato
-Discord: https://discord.com/users/1176582483165327382
 Licenza: GPL-3.0-or-later
 
 
@@ -22,7 +21,7 @@ FUNZIONI PRINCIPALI
 - Diagnostica pre-flight del rig.
 - Auto-prefisso e apprendimento del pattern da un constraint esistente.
 - Manutenzione: converti in manuali, pulisci registro, mute, export CSV/JSON.
-- Pulsante "Informazioni / README" nella sidebar con autore, Discord e licenza.
+- Pulsante "Informazioni / README" nella sidebar con autore e licenza.
 
 
 INSTALLAZIONE COME ESTENSIONE (Blender 4.2+ / 5.x)
@@ -30,7 +29,7 @@ INSTALLAZIONE COME ESTENSIONE (Blender 4.2+ / 5.x)
 1. Apri Blender.
 2. Edit > Preferences > Get Extensions.
 3. Freccia in alto a destra > "Install from Disk...".
-4. Seleziona il file auto_copy_transforms_def-1.1.5.zip.
+4. Seleziona il file auto_copy_transforms_def-1.2.0.zip.
 5. Attiva "Auto Copy Transforms DEF".
 6. Nella 3D View premi N e cerca la scheda "Auto Copy Transforms".
 

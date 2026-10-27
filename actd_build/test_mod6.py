@@ -1369,12 +1369,15 @@ try:
         """Simula una cartella di backup non scrivibile."""
         raise OSError("scrittura non permessa (test)")
 
-    reale = addon._write_replace_backup
+    # Nel pacchetto _write_replace_backup vive nel modulo actd_operators: patchiare
+    # il solo namespace del pacchetto non ha effetto sul codice eseguito.
+    ops_mod = sys.modules["auto_copy_transforms_def.actd_operators"]
+    reale = ops_mod._write_replace_backup
     try:
-        addon._write_replace_backup = _backup_rotto
+        ops_mod._write_replace_backup = _backup_rotto
         res = bpy.ops.actd.apply_transforms(replace_scelta='ALL')
     finally:
-        addon._write_replace_backup = reale
+        ops_mod._write_replace_backup = reale
     dopo = sum(len(pb.constraints) for pb in arm.pose.bones)
     check("backup fallito: operatore CANCELLED", res == {'CANCELLED'}, res)
     check("backup fallito: nessun constraint rimosso", dopo == prima,

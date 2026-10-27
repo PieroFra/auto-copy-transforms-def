@@ -2,19 +2,30 @@ param(
     [string]$Blender = 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe'
 )
 
-# Costruisce lo ZIP dell'estensione partendo dal file singolo dell'addon.
+# Costruisce lo ZIP dell'estensione partendo dal pacchetto generato dalla build.
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path $PSScriptRoot -Parent
 $stage = Join-Path ([System.IO.Path]::GetTempPath()) ('actd_ext_build_' + [guid]::NewGuid().ToString('N'))
 $dist = Join-Path $root 'dist'
-$zip = Join-Path $dist 'auto_copy_transforms_def-1.1.5.zip'
+
+# Versione: unica fonte di verita' packaging\version.json (nessun numero qui).
+$versionData = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'version.json') -Raw | ConvertFrom-Json
+$ver = ($versionData.version -join '.')
+$zip = Join-Path $dist ('auto_copy_transforms_def-' + $ver + '.zip')
+
+# Pacchetto generato da packaging\build_package.py build: __init__.py + 9
+# moduli copiati, tutti da mettere nella radice dello stage.
+$pkg = Join-Path $root 'actd_build\auto_copy_transforms_def'
+if (-not (Test-Path -LiteralPath $pkg -PathType Container)) {
+    throw "Pacchetto generato non trovato: $pkg (eseguire: python packaging/build_package.py build)"
+}
 
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 
-Copy-Item -LiteralPath (Join-Path $root 'actd_build\auto_copy_transforms_def.py') `
-    -Destination (Join-Path $stage '__init__.py')
+# Tutta la radice del pacchetto generato va nello stage (10 file .py).
+Copy-Item -Path (Join-Path $pkg '*') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') `
     -Destination (Join-Path $stage 'LICENSE.txt')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'blender_manifest.toml') `

@@ -95,7 +95,10 @@ class ACTD_PT_main(Panel):
         if settings.source_object is None:
             box.label(text="Stessa armatura (default)", icon='INFO')
         elif src_obj is not None:
-            box.label(text=f"Sorgente: {src_obj.name}", icon='LINKED')
+            box.label(
+                text=_translate_report_text(f"Sorgente: {src_obj.name}"),
+                icon='LINKED',
+            )
 
         # ---------------- Opzioni constraint ----------------
         box = layout.box()
@@ -212,7 +215,10 @@ class ACTD_PT_advanced(Panel):
         # Avvisi contestuali: mostrano subito cosa verra' ignorato
         _, mix_note = _resolved_mix_mode(settings, settings.constraint_type)
         if mix_note:
-            adv.label(text=mix_note, icon='ERROR')
+            mix_lines = _ui_report_lines(mix_note) or [" "]
+            adv.label(text=mix_lines[0], icon='ERROR')
+            for line in mix_lines[1:]:
+                adv.label(text=line)
         elif settings.mix_mode != 'REPLACE':
             adv.label(
                 text="Il mix cambia il risultato: verifica in viewport",
@@ -284,7 +290,12 @@ class ACTD_PT_advanced(Panel):
 
         pattern_warning = _validate_pattern(settings)
         if pattern_warning:
-            box.label(text=pattern_warning, icon='ERROR')
+            # Il messaggio nasce in italiano: qui si traduce solo per la UI.
+            pat_lines = _ui_report_lines(
+                _translate_report_text(pattern_warning)) or [" "]
+            box.label(text=pat_lines[0], icon='ERROR')
+            for line in pat_lines[1:]:
+                box.label(text=line)
 
 
 class ACTD_PT_maintenance(Panel):

@@ -15,7 +15,9 @@ import traceback
 import bpy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ADDON_PATH = os.path.join(HERE, "auto_copy_transforms_def.py")
+# Il monolite non esiste piu': l'artefatto e' il pacchetto generato dalla build.
+ADDON_PATH = os.path.join(HERE, "auto_copy_transforms_def")
+ADDON_INIT = os.path.join(ADDON_PATH, "__init__.py")
 
 RESULTS = []
 
@@ -32,7 +34,10 @@ def _txt(value):
 
 
 def load_addon():
-    spec = importlib.util.spec_from_file_location("auto_copy_transforms_def", ADDON_PATH)
+    # Il pacchetto usa import relativi: la location secondaria dichiara la cartella.
+    spec = importlib.util.spec_from_file_location(
+        "auto_copy_transforms_def", ADDON_INIT,
+        submodule_search_locations=[ADDON_PATH])
     mod = importlib.util.module_from_spec(spec)
     sys.modules["auto_copy_transforms_def"] = mod
     spec.loader.exec_module(mod)
@@ -158,9 +163,12 @@ check("operatori registrati",
            "learn_pattern", "preview", "apply_transforms",
            "remove_generated", "convert_to_manual", "mute_all",
            "export_csv", "export_json", "show_info")))
-check("autore e link Discord corretti",
+check("autore, descrizione inglese e nessun riferimento Discord",
       mod.bl_info.get("author") == "Pierfrancesco Diodato"
-      and mod.DISCORD_URL == "https://discord.com/users/1176582483165327382",
+      and mod.bl_info.get("description", "").startswith(
+          "Automatically creates Copy Transforms")
+      and not hasattr(mod, "DISCORD_URL")
+      and not hasattr(mod, "DISCORD_ID"),
       mod.bl_info.get("author"))
 check("README e licenza incorporati",
       bool(mod.README_TEXT.strip()) and bool(mod.LICENSE_NOTICE.strip())
@@ -607,7 +615,8 @@ rifiutato = bool(err_msg) or (
     res is not None and "CANCELLED" in _txt(res).upper()
 )
 check("T15 regex non valida rifiutata",
-      rifiutato and "Regex non valida" in err_msg,
+      rifiutato and ("Regex non valida" in err_msg
+                     or "Invalid regex" in err_msg),
       "res={!r} err={!r}".format(res, err_msg))
 check("T15 regex non valida: nessuna riga in anteprima",
       len(S.preview_items) == 0, str(len(S.preview_items)))

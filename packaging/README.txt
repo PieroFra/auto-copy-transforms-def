@@ -1,8 +1,7 @@
-AUTO COPY TRANSFORMS DEF v1.1.5
+AUTO COPY TRANSFORMS DEF v1.2.0
 ===============================
 
 Creator: Pierfrancesco Diodato
-Discord: https://discord.com/users/1176582483165327382
 License: GPL-3.0-or-later
 
 
@@ -22,7 +21,7 @@ MAIN FEATURES
 - Pre-flight rig diagnostics.
 - Auto-prefix and pattern learning from an existing constraint.
 - Maintenance: convert to manual, clean registry, mute, CSV/JSON export.
-- "Info / README" button in the sidebar with author, Discord and license.
+- "Info / README" button in the sidebar with author and license.
 
 
 INSTALL AS AN EXTENSION (Blender 4.2+ / 5.x)
@@ -30,7 +29,7 @@ INSTALL AS AN EXTENSION (Blender 4.2+ / 5.x)
 1. Open Blender.
 2. Edit > Preferences > Get Extensions.
 3. Top-right arrow > "Install from Disk...".
-4. Select auto_copy_transforms_def-1.1.5.zip.
+4. Select auto_copy_transforms_def-1.2.0.zip.
 5. Enable "Auto Copy Transforms DEF".
 6. In the 3D View press N and open the "Auto Copy Transforms" tab.
 

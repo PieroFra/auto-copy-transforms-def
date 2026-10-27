@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
- Auto Copy Transforms DEF (v1.1.5)
+ Auto Copy Transforms DEF (v1.2.0)
 =============================================================================
 
 Addon per Blender 3.6.x, 4.x e 5.x che automatizza la creazione di constraint
@@ -25,7 +25,6 @@ il constraint) tramite una mappatura intelligente dei nomi.
 
 Copyright (C) 2026 Pierfrancesco Diodato
 SPDX-License-Identifier: GPL-3.0-or-later
-Discord: https://discord.com/users/1176582483165327382
 Sviluppato con l'assistenza di AI (OpenCode) sotto la direzione dell'autore.
 =============================================================================
 """
@@ -59,13 +58,13 @@ from bpy.types import Operator, Panel, PropertyGroup, UIList
 bl_info = {
     "name": "Auto Copy Transforms DEF",
     "author": "Pierfrancesco Diodato",
-    "version": (1, 1, 5),
+    "version": (1, 2, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar (N) > Auto Copy Transforms",
     "description": (
-        "Crea automaticamente constraint Copy Transforms mappando "
-        "intelligentemente i nomi tra ossa sorgente (target) e destinazione (owner). "
-        "Sviluppato con assistenza AI."
+        "Automatically creates Copy Transforms constraints by mapping "
+        "bone names between source (target) and destination (owner) bones. "
+        "Developed with AI assistance."
     ),
     "warning": "",
     "doc_url": "",
@@ -82,8 +81,6 @@ bl_info = {
 # =============================================================================
 
 CREATOR_NAME = "Pierfrancesco Diodato"
-DISCORD_ID = "1176582483165327382"
-DISCORD_URL = "https://discord.com/users/1176582483165327382"
 LICENSE_NAME = "GPL-3.0-or-later"
 LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
 
