@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # 1) Controllo di sintassi del monolite tramite py_compile.
+  # 1) Controllo di sintassi del pacchetto generato tramite py_compile.
   syntax-check:
     runs-on: ubuntu-latest
     steps:
@@ -20,10 +20,10 @@ jobs:
         with:
           python-version: '3.11'
       - name: Controllo sintassi py_compile
-        run: python -m py_compile actd_build/auto_copy_transforms_def.py
+        run: python -m py_compile actd_build/auto_copy_transforms_def/*.py
 
-  # 2) Round-trip build: rigenera il monolite dai moduli e verifica che il
-  #    risultato sia identico a quello committato (diff vuoto => exit 0).
+  # 2) Round-trip build: rigenera il pacchetto generato dai moduli e verifica
+  #    che il risultato sia identico a quello committato (diff vuoto => exit 0).
   build-roundtrip:
     runs-on: ubuntu-latest
     steps:
@@ -33,16 +33,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Build round-trip del monolite
-        run: python packaging/build_monolith.py build
-      - name: Nessuna differenza sul monolite generato
-        run: git diff --exit-code -- actd_build/auto_copy_transforms_def.py
+      - name: Build round-trip del pacchetto generato
+        run: python packaging/build_package.py build
+      - name: Nessuna differenza su pacchetto e moduli
+        run: git diff --exit-code -- actd_build/auto_copy_transforms_def actd_build/actd_mods
 
   # 3) Verifica versione: la coerenza tra packaging/version.json,
   #    actd_header.py e blender_manifest.toml e' gia' garantita da
-  #    verifica_versione() in packaging/build_monolith.py (invoicata anche
+  #    verifica_versione() in packaging/build_package.py (invoicata anche
   #    dalla build del job precedente). Questo job la esercita direttamente
-  #    importando la logica del progetto, senza riscrivere il monolite.
+  #    importando la logica del progetto, senza rigenerare il pacchetto.
   version-check:
     runs-on: ubuntu-latest
     steps:
@@ -52,8 +52,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Coerenza versione (logica di build_monolith.py)
-        run: python -c "import sys; sys.path.insert(0, 'packaging'); import build_monolith; build_monolith.verifica_versione()"
+      - name: Coerenza versione (logica di build_package.py)
+        run: python -c "import sys; sys.path.insert(0, 'packaging'); import build_package; build_package.verifica_versione()"
 
   # 4) Verifica manifest: il manifest Blender deve dichiarare il minimo
   #    4.2.0 e il tipo add-on.
