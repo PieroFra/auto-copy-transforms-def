@@ -6,6 +6,7 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B-blue)](https://www.blender.org/)
 [![Version](https://img.shields.io/badge/version-1.3.0-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.3.0)
+[![Blender Extensions](https://img.shields.io/badge/Blender_Extensions-auto--copy--transforms--def-orange?logo=blender)](https://extensions.blender.org/add-ons/auto-copy-transforms-def/)
 
 **Automatic Copy Transforms constraints for Blender rigs.**  
 Automate the creation of Copy Transforms constraints between armatures in a

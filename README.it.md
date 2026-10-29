@@ -1,10 +1,12 @@
 # Auto Copy Transforms DEF
 
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/PieroFra/badge.svg)](https://hub.xerj.org/contributors/PieroFra)
 [![CI](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml/badge.svg)](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml)
 [![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 [![Licenza](https://img.shields.io/badge/Licenza-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B-blue)](https://www.blender.org/)
 [![Versione](https://img.shields.io/badge/versione-1.3.0-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.3.0)
+[![Blender Extensions](https://img.shields.io/badge/Blender_Extensions-auto--copy--transforms--def-orange?logo=blender)](https://extensions.blender.org/add-ons/auto-copy-transforms-def/)
 
 **Constraint Copy Transforms automatici per rig Blender.**  
 Automatizza la creazione di constraint Copy Transforms tra armature in pochi
