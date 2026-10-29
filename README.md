@@ -1,5 +1,6 @@
 # Auto Copy Transforms DEF
 
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/PieroFra/badge.svg)](https://hub.xerj.org/contributors/PieroFra)
 [![CI](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml/badge.svg)](https://github.com/PieroFra/auto-copy-transforms-def/actions/workflows/tests.yml)
 [![Release](https://img.shields.io/github/v/release/PieroFra/auto-copy-transforms-def)](https://github.com/PieroFra/auto-copy-transforms-def/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
