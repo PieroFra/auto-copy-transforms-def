@@ -1,0 +1,67 @@
+1. Scegli i token
+2. Anteprima  3. Applica
+Aggiorna
+Anteprima non aggiornata
+Applica a
+Armatura sorgente
+Armatura sorgente
+AUTO COPY TRANSFORMS DEF
+Avvio rapido
+Bone collections non disponibili
+Collection destinazione
+Collection destinazione
+Collection sorgente
+Collection sorgente
+Conferma rimozione manuali
+Constraint esistenti
+Constraint generati
+Converti in manuali
+Copy Rotation e' il caso tipico DEF → MCH
+Dest
+Destinazione (Owner)
+Diagnostica non aggiornata
+Esistenti
+Evita duplicati
+Export CSV
+Export JSON
+Filtra per bone collection
+Filtro bone collection
+Il mix cambia il risultato: verifica in viewport
+Impara da constraint
+Indovina prefissi
+Influenza
+Informazioni / README
+Mix
+Mix e posizione nello stack
+Nessun constraint IK: posizione ignorata
+Nessun problema rilevato
+Nessuna bone collection nell'armatura
+Nome constraint
+Nome constraint
+Opzioni constraint
+Pattern
+Pattern di mappatura
+Posizione
+Preset
+Preset destinazione:
+Pulisci registro
+README
+Report:
+Rimuovi shear
+'Rimuovi shear' non esiste per questo tipo
+Risolvi ambiguità
+Se esiste già
+Solo ossa deform
+Sorgente (Target)
+Src
+Stessa armatura (default)
+Tipo
+Tipo e nome constraint
+Tipo token destinazione
+Tipo token sorgente
+Token destinazione (Owner)
+Token di mappatura
+Token sorgente (Target)
+Usa offset
+'Usa offset' non disponibile per questo tipo
+Usa regex

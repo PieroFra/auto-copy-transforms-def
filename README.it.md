@@ -342,3 +342,15 @@ Copyright (C) 2026 **Pierfrancesco Diodato**.
 
 Se usi l'add-on in un rig di produzione, feedback e segnalazioni sono
 benvenuti.
+
+---
+
+## Parte della Rigging Suite
+
+A.C.T.D. è completamente standalone (zero dipendenze), ma si unifica
+automaticamente nel tab **Rigging Suite** se installato insieme a:
+
+- **[BBone to Bones](https://github.com/PieroFra/bbone-to-bones)** - converte i Bendy Bones in catene di bone standard esportabili su Unity, Unreal e Godot, con Revert non distruttivo.
+- **[DEF Controller Auto (`CTRL_DEF`)](https://extensions.blender.org/add-ons/ctrl-def/)** - genera controller FK con custom shape condivise direttamente dalle catene `DEF_`.
+
+Quale passaggio del rigging ti sta ancora rallentando? Apri una issue con il passaggio che vuoi venga automatizzato dopo.
