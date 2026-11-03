@@ -27,11 +27,6 @@ test_output*.txt
 *.log
 
 # Internal project notes (do not publish)
-SPEC.md
-/docs/PROMO.md
-/docs/FEEDBACK.md
-/docs/ROADMAP.md
-/docs/RELEASE_CHECKLIST.md
 read.me
 ACTD_work.rar
 actd_build/backup_*
@@ -84,18 +79,9 @@ actd_build/backup_*
 /auto_copy_transforms_def.py
 
 
-# Diario personale (solo locale)
-/docs/DIARIO.md
-
 # File di scratch locali non tracciati
 actd_build/t1.txt
 runner_out.txt
-
-# Note e configurazione locali (non pubbliche)
-AGENTS.md
-opencode.json
-.opencode/
-PUBLISHING_PLAN.md
 
 # Asset non referenziati da README ne' dal manifest (restano in locale,
 # il repository pubblico non li deve portare con se')

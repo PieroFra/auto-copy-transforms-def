@@ -25,7 +25,7 @@ il constraint) tramite una mappatura intelligente dei nomi.
 
 Copyright (C) 2026 Pierfrancesco Diodato
 SPDX-License-Identifier: GPL-3.0-or-later
-Sviluppato con l'assistenza di AI (OpenCode) sotto la direzione dell'autore.
+Sviluppato con l'assistenza di AI sotto la direzione, revisione e responsabilita' dell'autore.
 =============================================================================
 """
 
@@ -95,7 +95,7 @@ offset, filtri per bone collection, diagnostica, auto-prefisso, apprendimento
 del pattern, manutenzione, export CSV/JSON.
 
 Testato ufficialmente su Blender 5.2 LTS. Compatibilita' dichiarata: Blender 4.2+. Le versioni precedenti a Blender 5.2 non sono state verificate.
-Sviluppato con l'assistenza di AI (OpenCode)."""
+Sviluppato con l'assistenza di AI."""
 
 LICENSE_NOTICE = """GPL-3.0-or-later - Copyright (C) 2026 Pierfrancesco Diodato.
 Software libero, distribuito SENZA GARANZIA. Vedi il testo completo."""
@@ -111,7 +111,7 @@ offset, bone-collection filters, diagnostics, auto-prefix, pattern learning,
 maintenance, CSV/JSON export.
 
 Officially tested on Blender 5.2 LTS. Declared compatibility: Blender 4.2+. Versions older than 5.2 have not been verified.
-Developed with AI assistance (OpenCode)."""
+Developed with AI assistance."""
 
 LICENSE_NOTICE_EN = """GPL-3.0-or-later - Copyright (C) 2026 Pierfrancesco Diodato.
 Free software, distributed WITHOUT WARRANTY. See the full text."""
