@@ -91,6 +91,12 @@ actd_build/backup_*
 actd_build/t1.txt
 runner_out.txt
 
+# Note e configurazione locali (non pubbliche)
+AGENTS.md
+opencode.json
+.opencode/
+PUBLISHING_PLAN.md
+
 # Asset non referenziati da README ne' dal manifest (restano in locale,
 # il repository pubblico non li deve portare con se')
 /docs/images/

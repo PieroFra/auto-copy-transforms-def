@@ -35,13 +35,13 @@ build and fails if the committed package differs from the regenerated one.
 
 ## Tests
 
-- Full regression (12 suites, 644 checks):
-  `powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1`
-- Deterministic gate (build step + py_compile + suites + telemetry audit):
-  `powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\gate.ps1`
+- Full regression (12 suites, 644 checks): run Blender headless against the
+  test suites in `actd_build\` with the generated package installed.
 
 The suites import the generated package, never the sources directly: a
 stale package means the tests run on old code.
+
+Developed with AI assistance under the author's direction, review, and responsibility.
 
 ## Version
 

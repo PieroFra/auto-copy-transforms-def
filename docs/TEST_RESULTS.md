@@ -17,12 +17,8 @@ conteggi attesi verificati):
 powershell -NoProfile -ExecutionPolicy Bypass -File actd_build\run_all_tests.ps1
 ```
 
-Verifica completa con verdetto deterministico (build step + py_compile + test
-+ auto-audit sulla telemetria):
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .opencode\scripts\gate.ps1
-```
+Verifica completa: build del pacchetto, controllo della sintassi e delle
+suite Blender headless, con controllo dei conteggi attesi.
 
 | Suite | Checks | Result |
 |---|---:|---|

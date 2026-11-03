@@ -7,6 +7,7 @@
 [![Blender](https://img.shields.io/badge/Blender-4.2%2B-blue)](https://www.blender.org/)
 [![Versione](https://img.shields.io/badge/versione-1.3.0-green.svg)](https://github.com/PieroFra/auto-copy-transforms-def/releases/tag/v1.3.0)
 [![Blender Extensions](https://img.shields.io/badge/Blender_Extensions-auto--copy--transforms--def-orange?logo=blender)](https://extensions.blender.org/add-ons/auto-copy-transforms-def/)
+[![Downloads](https://img.shields.io/github/downloads/PieroFra/auto-copy-transforms-def/total?label=downloads)](https://github.com/PieroFra/auto-copy-transforms-def/releases)
 
 **Constraint Copy Transforms automatici per rig Blender.**  
 Automatizza la creazione di constraint Copy Transforms tra armature in pochi
@@ -316,10 +317,7 @@ file locali in `dist/`: non pubblica, non crea tag e non usa Git.
 
 ## Nota sull'uso dell'AI
 
-Questo add-on e la sua documentazione sono stati sviluppati con
-**l'assistenza di AI** (agente OpenCode), sotto la direzione e la revisione di
-**Pierfrancesco Diodato**. L'autore resta responsabile del codice, dei test e
-della licenza.
+Sviluppato con l'assistenza di AI, sotto la direzione, la revisione e la responsabilità dell'autore.
 
 ---
 

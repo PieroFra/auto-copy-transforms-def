@@ -56,9 +56,8 @@ L'interfaccia segue la lingua di Blender: italiano o inglese.
 
 NOTA SULL'AI
 ------------
-Sviluppato con l'assistenza di AI (OpenCode), sotto la direzione e la
-revisione di Pierfrancesco Diodato. L'autore resta responsabile del codice
-e dei test.
+Sviluppato con l'assistenza di AI, sotto la direzione, la revisione e la
+responsabilità dell'autore.
 
 
 LICENZA

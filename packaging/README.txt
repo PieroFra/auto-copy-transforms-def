@@ -55,8 +55,7 @@ The interface follows Blender's interface language: Italian or English.
 
 AI DISCLOSURE
 -------------
-Developed with AI assistance (OpenCode), under the direction and review of
-Pierfrancesco Diodato. The author remains responsible for the code and tests.
+Developed with AI assistance under the author's direction, review, and responsibility.
 
 
 LICENSE
