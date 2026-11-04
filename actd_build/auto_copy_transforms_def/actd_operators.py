@@ -567,7 +567,7 @@ class ACTD_OT_apply(Operator):
         if settings.apply_mode == 'SELECTED':
             selected = {pb.name for pb in arm_obj.pose.bones if _is_pose_bone_selected(pb)}
             if not selected:
-                self.report({'WARNING'}, _translate_report_text("Nessuna osso selezionato in Pose Mode."))
+                self.report({'WARNING'}, _translate_report_text("Nessun osso selezionato in Pose Mode."))
                 _set_preview_report(
                     settings,
                     "Applicazione annullata: nessun osso selezionato.",
@@ -698,7 +698,12 @@ class ACTD_OT_apply(Operator):
                 continue
 
             # 2. Modalità KEEP: controlla prima i constraint generati dall'addon
-            generated_all = _find_all_generated(arm_obj, pose_bone)
+            # Filtro sulla sorgente: un secondo constraint sullo stesso osso
+            # verso un'altra sorgente (es. FK_ dopo MCH_) va creato, non skippato.
+            generated_all = [
+                c for c in _find_all_generated(arm_obj, pose_bone)
+                if getattr(c, "subtarget", "") == res.source
+            ]
             same_type = [c for c in generated_all if c.type == con_type]
             other_type = [c for c in generated_all if c.type != con_type]
 
@@ -1043,7 +1048,7 @@ class ACTD_OT_mute_all(Operator):
     """Muta o smuta tutti i constraint generati nella scena."""
 
     bl_idname = "actd.mute_all"
-    bl_label = "Mute/Unmute generati"
+    bl_label = "Disattiva/Riattiva generati"
     bl_description = (
         "Attiva o disattiva il mute su tutti i constraint generati, senza "
         "toccare quelli manuali"
@@ -1081,7 +1086,7 @@ class ACTD_OT_export_csv(Operator):
     """Esporta il registro dei constraint generati in CSV."""
 
     bl_idname = "actd.export_csv"
-    bl_label = "Export CSV"
+    bl_label = "Esporta CSV"
     bl_description = "Salva una riga per ogni constraint generato nel registro"
     bl_options = {'REGISTER'}
 
@@ -1113,7 +1118,7 @@ class ACTD_OT_export_json(Operator):
     """Esporta il registro dei constraint generati in JSON."""
 
     bl_idname = "actd.export_json"
-    bl_label = "Export JSON"
+    bl_label = "Esporta JSON"
     bl_description = "Salva il registro dei constraint generati in JSON"
     bl_options = {'REGISTER'}
 

@@ -38,6 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deleting or renaming constraints manually outside the Maintenance panel can
   leave orphan entries (removable via "Clean registry").
 
+## [1.3.1] - 2026-11-04
+
+### Changed
+
+- Version bump to 1.3.1; `bl_info`, extension manifest and package texts aligned.
+
 ## [1.3.0] - 2026-10-27
 
 ### Changed

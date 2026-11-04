@@ -446,6 +446,10 @@ _EN_TRANSLATIONS = {
     "Copy Rotation e' il caso tipico DEF → MCH": (
         "Copy Rotation is the typical DEF → MCH case"
     ),
+    # Variante italiana corretta (accento) dello stesso avviso.
+    "Copy Rotation è il caso tipico DEF → MCH": (
+        "Copy Rotation is the typical DEF → MCH case"
+    ),
     "Avanzate": "Advanced",
     "Constraint generati": "Generated constraints",
     "Mix e posizione nello stack": "Mix and stack position",
@@ -480,6 +484,11 @@ _EN_TRANSLATIONS = {
     "Smuta generati": "Unmute generated",
     "Mute/Unmute generati": "Mute/Unmute generated",
     "Generati mutati": "Generated muted",
+    # Nuove chiavi italiane delle etichette sorgente (1.3.x).
+    "Disattiva generati": "Mute generated",
+    "Riattiva generati": "Unmute generated",
+    "Disattiva/Riattiva generati": "Mute/Unmute generated",
+    "Generati disattivati": "Generated muted",
     "Manutenzione": "Maintenance",
     "Verifica rig": "Rig check",
     "Mappatura e report": "Mapping and report",
@@ -555,8 +564,15 @@ _EN_TRANSLATIONS = {
     # Etichette e pulsanti del popup informazioni restano composti in Python
     # ("Apri " + nome): la chiave deve essere il testo completo, non il pezzo.
     "Sostituisci": "Replace",
+    "Aggiungi": "Add",
     "Pattern": "Pattern",
     "Mix": "Mix",
+    # Nuove chiavi italiane delle etichette sorgente (1.3.x).
+    "Schema": "Pattern",
+    "Modo mix": "Mix",
+    "Scostamento": "Offset",
+    "Esporta CSV": "Export CSV",
+    "Esporta JSON": "Export JSON",
     "Preset": "Preset",
     "Avviso preset": "Preset notice",
     "Apri README EN": "Open README EN",
@@ -743,6 +759,25 @@ _EN_TRANSLATIONS = {
     "Come After, mantenendo l'influenza sui canali": (
         "Like After, keeping the per-channel influence"
     ),
+    # Chiavi italiane delle voci MIX_MODE_ITEMS (etichette sorgente 1.3.x).
+    "Prima dell'originale": "Before Original",
+    "Dopo l'originale": "After Original",
+    "Prima dell'originale (diviso)": "Before Original (Split)",
+    "Dopo l'originale (diviso)": "After Original (Split)",
+    "Prima dell'originale (completo)": "Before Original (Full)",
+    "Dopo l'originale (completo)": "After Original (Full)",
+    "Come 'Prima dell'originale', con spazi separati": (
+        "Like Before, with separate spaces"
+    ),
+    "Come 'Dopo l'originale', con spazi separati": (
+        "Like After, with separate spaces"
+    ),
+    "Come 'Prima dell'originale', mantenendo l'influenza sui canali": (
+        "Like Before, keeping the per-channel influence"
+    ),
+    "Come 'Dopo l'originale', mantenendo l'influenza sui canali": (
+        "Like After, keeping the per-channel influence"
+    ),
     "Somma la trasformazione copiata (solo Copy Rotation)": (
         "Adds the copied transform (Copy Rotation only)"
     ),
@@ -838,12 +873,56 @@ _EN_TRANSLATIONS = {
     "Rimuovi anche i constraint manuali, se confermato": (
         "Also remove manual constraints, when confirmed"
     ),
+    "Sostituzione": "Replacement",
+    "Chiedi conferma": "Ask confirmation",
+    "Token destinazione MCH_": "Destination token MCH_",
+    "Token destinazione ORG_": "Destination token ORG_",
+    "Token destinazione DEF_": "Destination token DEF_",
+    "Token destinazione _ctrl": "Destination token _ctrl",
+    "Nessun osso selezionato in Pose Mode.": "No bone selected in Pose Mode.",
+}
+
+_IT_TRANSLATIONS = {
+    "Replace": "Sostituisci",
+    "Before Original": "Prima dell'originale",
+    "After Original": "Dopo l'originale",
+    "Before Original (Split)": "Prima dell'originale (diviso)",
+    "After Original (Split)": "Dopo l'originale (diviso)",
+    "Before Original (Full)": "Prima dell'originale (completo)",
+    "After Original (Full)": "Dopo l'originale (completo)",
+    "Add": "Aggiungi",
+    "Offset": "Scostamento (Offset)",
+    "Come Before, con spazi separati": "Come 'Prima dell'originale', con spazi separati",
+    "Come After, con spazi separati": "Come 'Dopo l'originale', con spazi separati",
+    "Come Before, mantenendo l'influenza sui canali": "Come 'Prima dell'originale', mantenendo l'influenza sui canali",
+    "Come After, mantenendo l'influenza sui canali": "Come 'Dopo l'originale', mantenendo l'influenza sui canali",
+    "Mix": "Mix",
+    "Pattern": "Modello",
+    "Export CSV": "Esporta CSV",
+    "Export JSON": "Esporta JSON",
+    "Muta generati": "Disattiva generati",
+    "Smuta generati": "Riattiva generati",
+    "Mute/Unmute generati": "Disattiva/Riattiva generati",
+    "Generati mutati": "Generati disattivati",
+    "Copy Rotation e' il caso tipico DEF → MCH": "Copy Rotation è il caso tipico DEF → MCH",
+    "Nessun osso selezionato in Pose Mode.": "Nessun osso selezionato in Pose Mode.",
 }
 
 TRANSLATIONS = {
     "en_US": {
         (context, source): target
         for source, target in _EN_TRANSLATIONS.items()
+        for context in ("*", "Property", "Operator", "UI")
+    },
+    "it_IT": {
+        (context, source): target
+        for source, target in _IT_TRANSLATIONS.items()
+        for context in ("*", "Property", "Operator", "UI")
+    },
+    # Alias senza variante regionale: alcune build espongono solo "it".
+    "it": {
+        (context, source): target
+        for source, target in _IT_TRANSLATIONS.items()
         for context in ("*", "Property", "Operator", "UI")
     },
 }

@@ -164,7 +164,7 @@ class ACTD_PT_advanced(Panel):
         typ.row().prop(settings, "constraint_type", text="Tipo")
         if settings.constraint_type != 'COPY_TRANSFORMS':
             typ.label(
-                text="Copy Rotation e' il caso tipico DEF → MCH",
+                text="Copy Rotation è il caso tipico DEF → MCH",
                 icon='INFO',
             )
 
@@ -204,7 +204,7 @@ class ACTD_PT_advanced(Panel):
         box.label(text="Mix e posizione nello stack", icon='PREFERENCES')
 
         adv = box.column(align=True)
-        adv.prop(settings, "mix_mode", text="Mix")
+        adv.prop(settings, "mix_mode", text="Modo mix")
         if _constraint_supports_offset(settings.constraint_type):
             adv.prop(settings, "use_offset", text="Usa offset")
         elif settings.use_offset:
@@ -285,7 +285,7 @@ class ACTD_PT_advanced(Panel):
         box.label(text="Pattern di mappatura", icon='SORTALPHA')
 
         col = box.column(align=True)
-        col.prop(settings, "custom_pattern", text="Pattern")
+        col.prop(settings, "custom_pattern", text="Schema")
         col.prop(settings, "use_regex", text="Usa regex")
 
         pattern_warning = _validate_pattern(settings)
@@ -330,14 +330,14 @@ class ACTD_PT_maintenance(Panel):
         row = box.row(align=True)
         row.operator(
             "actd.mute_all",
-            text="Smuta generati" if settings.mute_state else "Muta generati",
+            text="Riattiva generati" if settings.mute_state else "Disattiva generati",
             icon='MUTE_IPO_ON' if settings.mute_state else 'MUTE_IPO_OFF',
         )
 
         row = box.row(align=True)
-        row.operator("actd.export_csv", text="Export CSV", icon='EXPORT')
+        row.operator("actd.export_csv", text="Esporta CSV", icon='EXPORT')
         row.operator(
-            "actd.export_json", text="Export JSON", icon='EXPORT'
+            "actd.export_json", text="Esporta JSON", icon='EXPORT'
         )
 
         # Solo il report di manutenzione: l'anteprima ha il suo pannello.

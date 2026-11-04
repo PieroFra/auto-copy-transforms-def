@@ -105,4 +105,13 @@ def _on_dest_preset_chosen(self, context):
 # =============================================================================
 
 def _mark_preview_stale(self, context):
+    # Se il nome del constraint e' ancora quello automatico, lo riallinea ai
+    # token correnti: cosi' la UI passa da AUTO_COPY_MCH_to_DEF a
+    # AUTO_COPY_FK_to_DEF appena cambia il token sorgente, senza toccare la
+    # tab Avanzate. Un nome scritto dall'utente resta invariato.
+    name = getattr(self, "constraint_name", "") or ""
+    if name.startswith("AUTO_COPY_") and "_to_" in name:
+        suggested = _suggest_constraint_name(self)
+        if suggested != name:
+            self.constraint_name = suggested
     self.preview_is_stale = True

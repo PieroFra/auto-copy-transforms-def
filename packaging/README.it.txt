@@ -1,4 +1,4 @@
-AUTO COPY TRANSFORMS DEF v1.3.0
+AUTO COPY TRANSFORMS DEF v1.3.1
 ===============================
 
 Creatore: Pierfrancesco Diodato
@@ -29,7 +29,7 @@ INSTALLAZIONE COME ESTENSIONE (Blender 4.2+ / 5.x)
 1. Apri Blender.
 2. Edit > Preferences > Get Extensions.
 3. Freccia in alto a destra > "Install from Disk...".
-4. Seleziona il file auto_copy_transforms_def-1.3.0.zip.
+4. Seleziona il file auto_copy_transforms_def-1.3.1.zip.
 5. Attiva "Auto Copy Transforms DEF".
 6. Nella 3D View premi N e cerca la scheda "Auto Copy Transforms".
 

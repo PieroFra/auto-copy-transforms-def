@@ -3,6 +3,13 @@
 Tutte le modifiche rilevanti di A.C.T.D. (Auto Copy Transforms DEF) sono
 documentate in questo file. Le date si riferiscono all'anno 2026.
 
+## [1.3.1] - 2026-11-04
+
+### Cambiato
+
+- Allineamento di versione a 1.3.1: `bl_info`, manifest dell'estensione e
+  testi del pacchetto.
+
 ## [1.3.0] - 2026-10-27
 
 ### Cambiato

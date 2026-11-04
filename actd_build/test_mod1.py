@@ -302,6 +302,24 @@ try:
     addon.unregister()
     addon.register()
     check("ciclo completo stabile", hasattr(bpy.context.scene, "actd_settings"))
+
+    # Doppio constraint sullo stesso osso DEF_: prima MCH_, poi FK_.
+    # Due sorgenti distinte devono restare entrambe, senza skip ne' sovrascrittura.
+    reset_scene()
+    arm4 = make_armature("Rig4", ["DEF-a", "MCH-a", "FK-a"])
+    activate(arm4, pose=True)
+    base_settings(src_token="MCH-", dst_token="DEF-")
+    apply()
+    base_settings(src_token="FK-", dst_token="DEF-")
+    apply()
+    pb4 = arm4.pose.bones["DEF-a"]
+    subtargets = sorted(c.subtarget for c in pb4.constraints)
+    assert len(pb4.constraints) == 2, (
+        "secondo constraint sul medesimo osso non creato: %s" % (subtargets,)
+    )
+    assert subtargets == ["FK-a", "MCH-a"], (
+        "sorgenti attese FK-a e MCH-a, trovate: %s" % (subtargets,)
+    )
 except Exception:
     traceback.print_exc()
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])

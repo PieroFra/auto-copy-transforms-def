@@ -105,7 +105,7 @@ class ACTD_Settings(PropertyGroup):
         default=False,
     )
     mute_state: BoolProperty(
-        name="Generati mutati",
+        name="Generati disattivati",
         description="Stato dell'ultimo mute globale dei constraint generati",
         default=False,
     )

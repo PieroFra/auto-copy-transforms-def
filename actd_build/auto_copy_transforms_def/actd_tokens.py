@@ -53,15 +53,15 @@ SPACE_ITEMS = [
 ]
 
 MIX_MODE_ITEMS = [
-    ('REPLACE', "Replace", "Usa solo il risultato del constraint: nessun mix"),
-    ('BEFORE', "Before Original", "Metti il risultato prima della trasformazione originale"),
-    ('AFTER', "After Original", "Applica il risultato dopo la trasformazione originale"),
-    ('BEFORE_SPLIT', "Before Original (Split)", "Come Before, con spazi separati"),
-    ('AFTER_SPLIT', "After Original (Split)", "Come After, con spazi separati"),
-    ('BEFORE_FULL', "Before Original (Full)", "Come Before, mantenendo l'influenza sui canali"),
-    ('AFTER_FULL', "After Original (Full)", "Come After, mantenendo l'influenza sui canali"),
-    ('ADD', "Add", "Somma la trasformazione copiata (solo Copy Rotation)"),
-    ('OFFSET', "Offset", "Applica la trasformazione come offset (solo Copy Rotation)"),
+    ('REPLACE', "Sostituisci", "Usa solo il risultato del constraint: nessun mix"),
+    ('BEFORE', "Prima dell'originale", "Metti il risultato prima della trasformazione originale"),
+    ('AFTER', "Dopo l'originale", "Applica il risultato dopo la trasformazione originale"),
+    ('BEFORE_SPLIT', "Prima dell'originale (diviso)", "Come 'Prima dell'originale', con spazi separati"),
+    ('AFTER_SPLIT', "Dopo l'originale (diviso)", "Come 'Dopo l'originale', con spazi separati"),
+    ('BEFORE_FULL', "Prima dell'originale (completo)", "Come 'Prima dell'originale', mantenendo l'influenza sui canali"),
+    ('AFTER_FULL', "Dopo l'originale (completo)", "Come 'Dopo l'originale', mantenendo l'influenza sui canali"),
+    ('ADD', "Aggiungi", "Somma la trasformazione copiata (solo Copy Rotation)"),
+    ('OFFSET', "Scostamento", "Applica la trasformazione come offset (solo Copy Rotation)"),
 ]
 
 # Tipi di constraint supportati. 'bl_type' e' l'identificatore Blender,
@@ -352,7 +352,11 @@ def _suggest_constraint_name(settings) -> str:
 
 def _effective_constraint_name(settings) -> str:
     name = (settings.constraint_name or "").strip()
-    if not name or name == DEFAULT_CONSTRAINT_NAME:
+    if (
+        not name
+        or name == DEFAULT_CONSTRAINT_NAME
+        or (name.startswith("AUTO_COPY_") and "_to_" in name)
+    ):
         return _suggest_constraint_name(settings)
     return name
 
