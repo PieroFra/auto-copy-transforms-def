@@ -325,6 +325,55 @@ except Exception:
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
 
 # ---------------------------------------------------------------------------
+print("\n[10] Sorgente cancellata: voce orfana e clean_registry", flush=True)
+try:
+    reset_scene()
+    dst5 = make_armature("Rig_Dst5", ["MCH-a", "MCH-b"])
+    srcA5 = make_armature("Rig_SrcA5", ["DEF-a"])
+    srcB5 = make_armature("Rig_SrcB5", ["DEF-b"])
+    activate(dst5, pose=True)
+    s5 = base_settings()
+    s5.source_object = srcA5
+    apply()
+    s5.source_object = srcB5
+    apply()
+    check("due sorgenti registrate",
+          len(dst5.pose.bones["MCH-a"].constraints) == 1
+          and len(dst5.pose.bones["MCH-b"].constraints) == 1,
+          [(pb.name, len(pb.constraints)) for pb in dst5.pose.bones])
+
+    reg_b = addon._read_registry(dst5).get("MCH-b", {})
+    check("registro punta alla sorgente B",
+          bool(reg_b) and all(e.get("obj") == "Rig_SrcB5" for e in reg_b.values()),
+          reg_b)
+
+    # cancella la sorgente B: il registro non deve tenerla come valida
+    activate(dst5)
+    bpy.data.objects.remove(srcB5, do_unlink=True)
+    con_b = dst5.pose.bones["MCH-b"].constraints[0]
+    voce_b = addon._read_registry(dst5).get("MCH-b")
+    check("voce orfana persa o segnalata",
+          voce_b is None or (
+              con_b.target is None
+              and all(e.get("obj") == "Rig_SrcB5" for e in voce_b.values())),
+          (voce_b, con_b.target))
+
+    rows5 = addon._collect_generated_rows()
+    check("accesso ai dati del registro senza eccezioni",
+          isinstance(rows5, list) and all(isinstance(r, dict) and "stato" in r for r in rows5),
+          rows5)
+
+    activate(dst5, pose=True)
+    res5 = bpy.ops.actd.clean_registry()
+    reg5 = addon._read_registry(dst5)
+    check("clean_registry FINISHED", res5 == {'FINISHED'}, res5)
+    check("voce orfana rimossa dal registro", "MCH-b" not in reg5, reg5)
+    check("voce valida conservata", "MCH-a" in reg5, reg5)
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+
+# ---------------------------------------------------------------------------
 print("\n===== RIEPILOGO TEST MODULO 1 =====", flush=True)
 print("Passati: %d" % len(OK), flush=True)
 print("Falliti: %d" % len(FAIL), flush=True)

@@ -22,7 +22,7 @@ suite Blender headless, con controllo dei conteggi attesi.
 
 | Suite | Checks | Result |
 |---|---:|---|
-| `test_mod1.py` | 40/40 | SUPERATO |
+| `test_mod1.py` | 47/47 | SUPERATO |
 | `test_mod2.py` | 18/18 | SUPERATO |
 | `test_mod3.py` | 24/24 | SUPERATO |
 | `test_mod4.py` | 43/43 | SUPERATO |
@@ -31,13 +31,13 @@ suite Blender headless, con controllo dei conteggi attesi.
 | `test_mod_types.py` | 49/49 | SUPERATO |
 | `test_mod_autoprefix.py` | 35/35 | SUPERATO |
 | `test_mod_learn.py` | 40/40 | SUPERATO |
-| `test_mod6.py` | 169/169 | SUPERATO |
+| `test_mod6.py` | 170/170 | SUPERATO |
 | `test_i18n.py` | 65/65 | SUPERATO |
 | `test_mod7.py` | 50/50 | SUPERATO |
 
-**Total: 644/644 passed, 0 failures.**
+**Total: 652/652 passed, 0 failures.**
 
-Nell'esecuzione corrente `test_mod1.py`–`test_mod4.py` totalizzano **125/125**.
+Nell'esecuzione corrente `test_mod1.py`–`test_mod4.py` totalizzano **132/132**.
 
 Esito delle suite: `SUPERATO`; la suite storica `test_actd.py` riporta
 `TUTTI I TEST SUPERATI`.

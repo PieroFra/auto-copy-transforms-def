@@ -25,6 +25,8 @@ test_output*.txt
 /actd_export_*.csv
 /actd_export_*.json
 *.log
+tmp_*.py
+%TEMP%/
 
 # Internal project notes (do not publish)
 read.me
@@ -81,6 +83,9 @@ actd_build/backup_*
 
 # File di scratch locali non tracciati
 actd_build/t1.txt
+actd_build/test_zz_probe.py
+actd_build/test_rig_audit.py
+actd_build/test_rig_audit_seed.py
 runner_out.txt
 
 # Asset non referenziati da README ne' dal manifest (restano in locale,

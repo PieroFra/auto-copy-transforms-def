@@ -35,7 +35,7 @@ build and fails if the committed package differs from the regenerated one.
 
 ## Tests
 
-- Full regression (12 suites, 644 checks): run Blender headless against the
+- Full regression (12 suites, 652 checks): run Blender headless against the
   test suites in `actd_build\` with the generated package installed.
 
 The suites import the generated package, never the sources directly: a

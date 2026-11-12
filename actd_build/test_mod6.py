@@ -1422,6 +1422,83 @@ finally:
         os.remove(path_26)
 
 # ---------------------------------------------------------------------------
+def vincoli_27(arm):
+    """Vincoli di tutte le ossa come tuple (osso, nome, tipo, sorgente, target, influenza)."""
+    return sorted(
+        (pb.name, con.name, con.type, con.subtarget,
+         con.target.name if con.target is not None else "", con.influence)
+        for pb in arm.pose.bones for con in pb.constraints
+    )
+
+
+def vincoli_backup_27(righe):
+    """Stesse tuple di vincoli_27, ricavate dalle righe del backup JSON."""
+    return sorted(
+        (r["osso"], r["constraint"], r["tipo"], r["sorgente"],
+         r["target_object"], float(r["influenza"]))
+        for r in righe
+    )
+
+
+def transform_27(arm):
+    """Location, rotazione Euler e scala di ogni osso, appiattite per nome."""
+    return {
+        pb.name: list(pb.location) + list(pb.rotation_euler) + list(pb.scale)
+        for pb in arm.pose.bones
+    }
+
+
+print("\n[27] REPLACE: backup JSON, vincoli e transform invariati", flush=True)
+path_27 = ""
+try:
+    reset_scene()
+    arm = make_rig("Rig27")
+    s = base_settings()
+    bpy.ops.actd.apply_transforms()
+    noti = {
+        "MCH-a": ((0.1, 0.2, 0.3), (0.0, 0.0, 0.5), (1.0, 1.0, 2.0)),
+        "MCH-b": ((-1.0, 0.5, 0.0), (0.2, 0.0, 0.0), (1.0, 3.0, 1.0)),
+    }
+    for nome, (loc, rot, scl) in noti.items():
+        pb = arm.pose.bones[nome]
+        pb.location = loc
+        pb.rotation_euler = rot
+        pb.scale = scl
+    prima_vincoli = vincoli_27(arm)
+    prima_conteggi = {pb.name: len(pb.constraints) for pb in arm.pose.bones}
+    prima_trasf = transform_27(arm)
+    s.existing_mode = 'REPLACE'
+    res = bpy.ops.actd.apply_transforms(replace_scelta='GENERATED_ONLY')
+    path_27 = backup_path(s.preview_report)
+    bak = vincoli_backup_27(load_backup(path_27).get("righe", []))
+    ok_backup = len(bak) == len(prima_vincoli) and all(
+        a[:5] == b[:5] and abs(a[5] - b[5]) <= 1e-5
+        for a, b in zip(prima_vincoli, bak)
+    )
+    dopo_conteggi = {pb.name: len(pb.constraints) for pb in arm.pose.bones}
+    dopo_trasf = transform_27(arm)
+    ok_trasf = all(
+        len(dopo_trasf[nome]) == len(prima_trasf[nome]) and all(
+            abs(x - y) <= 1e-5
+            for x, y in zip(dopo_trasf[nome], prima_trasf[nome])
+        )
+        for nome in prima_trasf
+    )
+    ok_27 = (res == {'FINISHED'} and bool(path_27) and os.path.isfile(path_27)
+             and ok_backup and dopo_conteggi == prima_conteggi and ok_trasf)
+    check("backup JSON, vincoli e transform invariati dopo REPLACE (tol 1e-5)",
+          ok_27,
+          (res, path_27, prima_vincoli, bak, prima_conteggi,
+           dopo_conteggi, ok_trasf))
+except Exception:
+    traceback.print_exc()
+    FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
+finally:
+    if path_27 and os.path.isfile(path_27):
+        os.remove(path_27)
+
+
+# ---------------------------------------------------------------------------
 print("\n===== RIEPILOGO TEST MODULO 6 =====", flush=True)
 print("Passati: %d" % len(OK), flush=True)
 print("Falliti: %d" % len(FAIL), flush=True)

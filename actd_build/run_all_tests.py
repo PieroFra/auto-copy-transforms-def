@@ -33,7 +33,7 @@ LOG_PATH = os.path.join(SCRIPT_DIR, 'test_out.txt')
 # Elenco canonico delle suite con i controlli attesi per ciascuna:
 # deve essere tenuto in sincronia con run_all_tests.ps1.
 ALL_SUITES = [
-    ('test_mod1.py', 40),
+    ('test_mod1.py', 47),
     ('test_mod2.py', 18),
     ('test_mod3.py', 24),
     ('test_mod4.py', 43),
@@ -42,14 +42,14 @@ ALL_SUITES = [
     ('test_mod_types.py', 49),
     ('test_mod_autoprefix.py', 35),
     ('test_mod_learn.py', 40),
-    ('test_mod6.py', 169),
+    ('test_mod6.py', 170),
     ('test_i18n.py', 65),
     ('test_mod7.py', 50),
 ]
 
 # Totale atteso del full-run: il runner rifiuta di partire se la somma dei
 # conteggi attesi non torna (autocontrollo, come nel wrapper PowerShell).
-EXPECTED_TOTAL_ALL = 644
+EXPECTED_TOTAL_ALL = 652
 
 # Parallelo massimo, in parita' con il default -MaxParallel 8 del runner Windows.
 MAX_PARALLEL = 8
@@ -135,7 +135,7 @@ def select_suites(suites_option):
 def main():
     args = parse_args()
 
-    # Autocontrollo: il totale dei controlli attesi deve essere 644.
+    # Autocontrollo: il totale dei controlli attesi deve essere 645.
     expected_total_all = sum(expected for _name, expected in ALL_SUITES)
     if expected_total_all != EXPECTED_TOTAL_ALL:
         print('Totale atteso del full-run non valido: {0} (attesi {1})'.format(

@@ -276,11 +276,11 @@ avvia Blender direttamente, ad esempio:
   --background --factory-startup --python actd_build\test_actd.py
 ```
 
-Esito dell'audit: **644/644 controlli superati, 0 falliti** su Blender 5.2. Il runner
+Esito dell'audit: **652/652 controlli superati, 0 falliti** su Blender 5.2. Il runner
 si aspetta: `test_mod1.py` 40, `test_mod2.py` 18, `test_mod3.py` 24,
 `test_mod4.py` 43, `test_func1.py` 5, `test_actd.py` 106,
 `test_mod_types.py` 49, `test_mod_autoprefix.py` 35,
-`test_mod_learn.py` 40, `test_mod6.py` 169, `test_i18n.py` 65 e
+`test_mod_learn.py` 40, `test_mod6.py` 170, `test_i18n.py` 65 e
 `test_mod7.py` 50 controlli. Le suite riportano `SUPERATO`; la storica
 `test_actd.py` stampa `TUTTI I TEST SUPERATI`. Le prime quattro suite
 totalizzano 125/125.

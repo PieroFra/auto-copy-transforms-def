@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $log = Join-Path $PSScriptRoot 'test_out.txt'
 $allSuites = @(
-    @{ Name = 'test_mod1.py'; Expected = 40 },
+    @{ Name = 'test_mod1.py'; Expected = 47 },
     @{ Name = 'test_mod2.py'; Expected = 18 },
     @{ Name = 'test_mod3.py'; Expected = 24 },
     @{ Name = 'test_mod4.py'; Expected = 43 },
@@ -17,15 +17,15 @@ $allSuites = @(
     @{ Name = 'test_mod_types.py'; Expected = 49 },
     @{ Name = 'test_mod_autoprefix.py'; Expected = 35 },
     @{ Name = 'test_mod_learn.py'; Expected = 40 },
-    @{ Name = 'test_mod6.py'; Expected = 169 },
+    @{ Name = 'test_mod6.py'; Expected = 170 },
     @{ Name = 'test_i18n.py'; Expected = 65 },
     @{ Name = 'test_mod7.py'; Expected = 50 }
 )
-# Totale atteso delle 12 suite: 644 controlli.
+# Totale atteso delle 12 suite: 652 controlli.
 $expectedTotalAll = 0
 foreach ($suite in $allSuites) { $expectedTotalAll += $suite.Expected }
-if ($expectedTotalAll -ne 644) {
-    throw "Totale atteso del full-run non valido: $expectedTotalAll (attesi 644)"
+if ($expectedTotalAll -ne 652) {
+    throw "Totale atteso del full-run non valido: $expectedTotalAll (attesi 652)"
 }
 $validateAll = -not $PSBoundParameters.ContainsKey('Suites') -or [string]::IsNullOrWhiteSpace($Suites)
 $selectedSuites = @()
