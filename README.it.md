@@ -135,7 +135,7 @@ Il pannello principale è organizzato in tre passaggi: token, opzioni del
 constraint e azioni. Il box di avvio rapido mostra sempre il flusso:
 **scegli i token → anteprima → applica**.
 
-https://github.com/user-attachments/assets/c70e3be3-eef7-4e84-a163-6c28bcfa514c
+https://github.com/user-attachments/assets/5c1aaaa4-1f92-4324-9f85-f9e061e073b8
 
 ### 2. Controlla la mappatura
 
