@@ -135,7 +135,7 @@ The main panel is organized in three steps: tokens, constraint options and
 actions. The quick-start box always shows the flow: **choose tokens → preview →
 apply**.
 
-![Demo](docs/demo-ui.gif)
+Demo video: [16:9](https://github.com/PieroFra/auto-copy-transforms-def/releases/download/v1.3.1/actd_131_16x9.mp4) · [9:16](https://github.com/PieroFra/auto-copy-transforms-def/releases/download/v1.3.1/actd_131_9x16.mp4)
 
 ### 2. Check the mapping
 

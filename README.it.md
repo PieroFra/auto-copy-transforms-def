@@ -135,7 +135,7 @@ Il pannello principale è organizzato in tre passaggi: token, opzioni del
 constraint e azioni. Il box di avvio rapido mostra sempre il flusso:
 **scegli i token → anteprima → applica**.
 
-![Demo](docs/demo-ui.it.gif)
+Video demo: [16:9](https://github.com/PieroFra/auto-copy-transforms-def/releases/download/v1.3.1/actd_131_16x9.mp4) · [9:16](https://github.com/PieroFra/auto-copy-transforms-def/releases/download/v1.3.1/actd_131_9x16.mp4)
 
 ### 2. Controlla la mappatura
 
