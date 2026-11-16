@@ -213,8 +213,8 @@ check("T1 apply FINISHED", res == {'FINISHED'}, str(res))
 check("T1 default: 3 constraint creati", c["created"] == 3, c["report"].replace("\n", " / "))
 pb = arm.pose.bones["MCH-Hand.L"]
 check("T1 default: 1 constraint sull'osso", len(pb.constraints) == 1)
-check("T1 default: nome constraint invariato (AUTO_COPY_DEF_to_MCH)",
-      pb.constraints[0].name == "AUTO_COPY_DEF_to_MCH", pb.constraints[0].name)
+check("T1 default: nome constraint invariato (AUTO COPY TRANSFORMS: DEF to MCH)",
+      pb.constraints[0].name == "AUTO COPY TRANSFORMS: DEF to MCH", pb.constraints[0].name)
 check("T1 default: marcatore actd_generated",
       mod._is_generated(arm, pb, pb.constraints[0]) is True)
 check("T1 default: subtarget corretto", pb.constraints[0].subtarget == "DEF-Hand.L")
@@ -428,14 +428,14 @@ arm = make_armature("Arm10", ["DEF-Hand.L", "MCH-Hand.L"])
 reset_settings(S)
 bpy.ops.actd.refresh_constraint_name()
 check("T10 nome suggerito da token di default",
-      S.constraint_name == "AUTO_COPY_DEF_to_MCH", S.constraint_name)
+      S.constraint_name == "AUTO COPY TRANSFORMS: DEF to MCH", S.constraint_name)
 
 reset_settings(S)
 S.source_token = "DEF-"
 S.dest_token = "ORG-"
 bpy.ops.actd.refresh_constraint_name()
 check("T10 nome aggiornato con token ORG-",
-      S.constraint_name == "AUTO_COPY_DEF_to_ORG", S.constraint_name)
+      S.constraint_name == "AUTO COPY TRANSFORMS: DEF to ORG", S.constraint_name)
 
 # applica con nome vuoto => deriva dai token
 clear_scene()
@@ -445,7 +445,7 @@ S.dest_token = "ORG-"
 S.constraint_name = ""
 bpy.ops.actd.apply_transforms()
 check("T10 nome vuoto => derivato dai token",
-      arm.pose.bones["ORG-Hand.L"].constraints[0].name == "AUTO_COPY_DEF_to_ORG",
+      arm.pose.bones["ORG-Hand.L"].constraints[0].name == "AUTO COPY TRANSFORMS: DEF to ORG",
       arm.pose.bones["ORG-Hand.L"].constraints[0].name)
 
 # preset destinazione con underscore (stile nomi osso)
@@ -634,7 +634,7 @@ S.stack_position = 'TOP'
 bpy.ops.actd.apply_transforms()
 nomi = [c.name for c in arm.pose.bones["MCH-Hand.L"].constraints]
 check("T16 stack_position TOP: nuovo constraint in cima",
-      nomi == ["AUTO_COPY_DEF_to_MCH", "PREESISTENTE"], str(nomi))
+      nomi == ["AUTO COPY TRANSFORMS: DEF to MCH", "PREESISTENTE"], str(nomi))
 
 clear_scene()
 arm = make_armature("Arm16b", ["DEF-Hand.L", "MCH-Hand.L"])
@@ -646,7 +646,7 @@ S.stack_position = 'BOTTOM'
 bpy.ops.actd.apply_transforms()
 nomi = [c.name for c in arm.pose.bones["MCH-Hand.L"].constraints]
 check("T16 stack_position BOTTOM: comportamento invariato",
-      nomi == ["PREESISTENTE", "AUTO_COPY_DEF_to_MCH"], str(nomi))
+      nomi == ["PREESISTENTE", "AUTO COPY TRANSFORMS: DEF to MCH"], str(nomi))
 
 # =============================================================================
 #  T17 - Diagnostica pre-flight e pulizia del registro

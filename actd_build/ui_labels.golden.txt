@@ -1,6 +1,5 @@
 1. Scegli i token
 2. Anteprima  3. Applica
-Aggiorna
 Anteprima non aggiornata
 Applica a
 Armatura sorgente
@@ -16,14 +15,14 @@ Conferma rimozione manuali
 Constraint esistenti
 Constraint generati
 Converti in manuali
-Copy Rotation e' il caso tipico DEF → MCH
+Copy Rotation è il caso tipico DEF → MCH
 Dest
 Destinazione (Owner)
 Diagnostica non aggiornata
 Esistenti
+Esporta CSV
+Esporta JSON
 Evita duplicati
-Export CSV
-Export JSON
 Filtra per bone collection
 Filtro bone collection
 Il mix cambia il risultato: verifica in viewport
@@ -31,15 +30,15 @@ Impara da constraint
 Indovina prefissi
 Influenza
 Informazioni / README
-Mix
 Mix e posizione nello stack
+Modalità
+Modo mix
 Nessun constraint IK: posizione ignorata
 Nessun problema rilevato
 Nessuna bone collection nell'armatura
 Nome constraint
 Nome constraint
 Opzioni constraint
-Pattern
 Pattern di mappatura
 Posizione
 Preset
@@ -50,6 +49,7 @@ Report:
 Rimuovi shear
 'Rimuovi shear' non esiste per questo tipo
 Risolvi ambiguità
+Schema
 Se esiste già
 Solo ossa deform
 Sorgente (Target)

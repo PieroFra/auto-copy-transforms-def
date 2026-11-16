@@ -114,7 +114,7 @@ try:
           sorted(c.subtarget for _, c in allc) == ["DEF-hand.L", "DEF-hand.R"],
           [c.subtarget for _, c in allc])
     check("nome auto con token",
-          all("AUTO_COPY" in c.name for _, c in allc), [c.name for _, c in allc])
+          all("AUTO COPY TRANSFORMS: DEF to MCH" in c.name for _, c in allc), [c.name for _, c in allc])
 
     apply()
     n = sum(len(pb.constraints) for pb in arm.pose.bones)

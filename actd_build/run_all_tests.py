@@ -40,6 +40,7 @@ ALL_SUITES = [
     ('test_func1.py', 5),
     ('test_actd.py', 106),
     ('test_mod_types.py', 49),
+    ('test_keep_mixed_types.py', 25),
     ('test_mod_autoprefix.py', 35),
     ('test_mod_learn.py', 40),
     ('test_mod6.py', 170),
@@ -49,7 +50,7 @@ ALL_SUITES = [
 
 # Totale atteso del full-run: il runner rifiuta di partire se la somma dei
 # conteggi attesi non torna (autocontrollo, come nel wrapper PowerShell).
-EXPECTED_TOTAL_ALL = 652
+EXPECTED_TOTAL_ALL = 677
 
 # Parallelo massimo, in parita' con il default -MaxParallel 8 del runner Windows.
 MAX_PARALLEL = 8
@@ -135,7 +136,7 @@ def select_suites(suites_option):
 def main():
     args = parse_args()
 
-    # Autocontrollo: il totale dei controlli attesi deve essere 645.
+    # Autocontrollo: il totale dei controlli attesi deve essere 677.
     expected_total_all = sum(expected for _name, expected in ALL_SUITES)
     if expected_total_all != EXPECTED_TOTAL_ALL:
         print('Totale atteso del full-run non valido: {0} (attesi {1})'.format(

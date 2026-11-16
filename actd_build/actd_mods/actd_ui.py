@@ -184,11 +184,21 @@ class ACTD_PT_advanced(Panel):
         box.label(text="Se esiste già")
         exi = box.column(align=True)
         exi.prop(settings, "existing_mode", text="Esistenti")
+        # Chiarisce quando usare Mantieni (tipi misti coesistono) vs
+        # Sostituisci (solo generati per nome esatto).
+        for line in _ui_report_lines(
+            bpy.app.translations.pgettext(
+                "Mantieni: tipi misti coesistono. "
+                "Sostituisci: solo generati per nome esatto"
+            )
+        ):
+            exi.label(text=line, icon='INFO')
         # L'avviso e' spezzato come gli altri report: una label unica veniva
         # troncata dalla sidebar stretta.
         for line in _ui_report_lines(
             bpy.app.translations.pgettext(
-                "Sostituisci rimuove anche i constraint manuali dello stesso tipo"
+                "Sostituisci rimuove i constraint generati per nome esatto "
+                "(GENERATED_ONLY): i manuali con nome diverso restano"
             )
         ):
             exi.label(text=line, icon='ERROR')
@@ -196,7 +206,7 @@ class ACTD_PT_advanced(Panel):
         # Disabilita update_mode e avoid_duplicates se si è in modalità REPLACE
         keep_col = exi.column(align=True)
         keep_col.enabled = (settings.existing_mode == 'KEEP')
-        keep_col.prop(settings, "update_mode", text="Aggiorna")
+        keep_col.prop(settings, "update_mode", text="Modalità")
         keep_col.prop(settings, "avoid_duplicates", text="Evita duplicati")
 
         # ---------------- Mix e posizione nello stack (Modulo 2) ----------------

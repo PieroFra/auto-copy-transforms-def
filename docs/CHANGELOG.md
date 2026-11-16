@@ -3,6 +3,18 @@
 Tutte le modifiche rilevanti di A.C.T.D. (Auto Copy Transforms DEF) sono
 documentate in questo file. Le date si riferiscono all'anno 2026.
 
+## [1.3.2] - 2026-11-16
+
+### Corretto
+
+- KEEP: il conteggio è per tipo di constraint. Sullo stesso bone coesistono
+  Copy Location, Copy Rotation e Copy Scale, ciascuno controllato sul proprio
+  tipo: niente più "esiste già" quando i tipi sono diversi.
+- REPLACE: tocca solo i constraint generati dall'addon; quelli creati a mano
+  restano al loro posto, anche senza passare dalla conferma.
+- Nomi distinti per tipo per i constraint generati (uno per tipo invece di un
+  nome unico), riconoscibili al volo nello stack del modifier.
+
 ## [1.3.1] - 2026-11-04
 
 ### Cambiato

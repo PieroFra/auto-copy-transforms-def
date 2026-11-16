@@ -89,7 +89,7 @@ STATUS_META = {
     'unmatched_dst': ("Senza match", 'CANCEL'),
 }
 
-DEFAULT_CONSTRAINT_NAME = "AUTO_COPY_MCH_to_DEF"
+DEFAULT_CONSTRAINT_NAME = "AUTO COPY TRANSFORMS: MCH to DEF"
 _INFLUENCE_TOL = 1e-4
 
 
@@ -331,18 +331,29 @@ def _float_close(a, b, tol=_INFLUENCE_TOL) -> bool:
         return False
 
 
+_CONSTRAINT_TYPE_LABELS = {
+    'COPY_TRANSFORMS': 'TRANSFORMS',
+    'COPY_ROTATION': 'ROTATION',
+    'COPY_LOCATION': 'LOCATION',
+    'COPY_SCALE': 'SCALE',
+}
+
+
 def _suggest_constraint_name(settings) -> str:
-    src = (settings.source_token or "").strip(_SEPARATORS)
-    dst = (settings.dest_token or "").strip(_SEPARATORS)
-    return f"AUTO_COPY_{src or 'SRC'}_to_{dst or 'DST'}"
+    con_type = _constraint_type(settings)
+    type_label = _CONSTRAINT_TYPE_LABELS.get(con_type, 'TRANSFORMS')
+    src = (getattr(settings, "source_token", "") or "").strip(_SEPARATORS)
+    dst = (getattr(settings, "dest_token", "") or "").strip(_SEPARATORS)
+    return f"AUTO COPY {type_label}: {src or 'SRC'} to {dst or 'DST'}"
 
 
 def _effective_constraint_name(settings) -> str:
-    name = (settings.constraint_name or "").strip()
+    name = (getattr(settings, "constraint_name", "") or "").strip()
     if (
         not name
         or name == DEFAULT_CONSTRAINT_NAME
         or (name.startswith("AUTO_COPY_") and "_to_" in name)
+        or (name.startswith("AUTO COPY ") and " to " in name)
     ):
         return _suggest_constraint_name(settings)
     return name

@@ -656,7 +656,7 @@ try:
     # `_ui_report_lines` e nessuna supera la larghezza utile della sidebar.
     righe_replace = addon._ui_report_lines(
         bpy.app.translations.pgettext(
-            "Sostituisci rimuove anche i constraint manuali dello stesso tipo"))
+            "Sostituisci rimuove i constraint generati per nome esatto (GENERATED_ONLY): i manuali con nome diverso restano"))
     etichette_adv = [
         r[1] for r in draw_panel(addon.ACTD_PT_advanced, bpy.context)
         if r[0] == "label" and r[2] == 'ERROR'

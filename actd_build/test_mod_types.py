@@ -314,7 +314,7 @@ except Exception:
     FAIL.append("ECCEZIONE: " + traceback.format_exc().strip().splitlines()[-1])
 
 # ---------------------------------------------------------------------------
-print("\n[7] Cambio tipo con KEEP: il vecchio generato viene sostituito", flush=True)
+print("\n[7] Cambio tipo con KEEP: i constraint di tipo diverso coesistono", flush=True)
 try:
     reset_scene()
     arm, pb = rig("Rig7")
@@ -325,23 +325,29 @@ try:
 
     s.constraint_type = 'COPY_ROTATION'
     bpy.ops.actd.apply_transforms()
-    check("dopo il cambio resta un solo constraint",
-          len(pb.constraints) == 1, [c.type for c in pb.constraints])
-    check("il constraint è Copy Rotation",
-          pb.constraints[0].type == 'COPY_ROTATION', pb.constraints[0].type)
-    check("avviso di sostituzione per tipo nel report",
-          "tipo diverso" in s.last_report,
+    types = [c.type for c in pb.constraints]
+    check("dopo il cambio coesistono Copy Transforms e Copy Rotation",
+          len(pb.constraints) == 2
+          and 'COPY_TRANSFORMS' in types
+          and 'COPY_ROTATION' in types, types)
+    check("il constraint Copy Rotation è generato",
+          any(c.type == 'COPY_ROTATION' and addon._is_generated(arm, pb, c)
+              for c in pb.constraints), types)
+    check("nessuna rimozione: 0 constraint sostituiti",
+          "Constraint sostituiti (rimossi): 0" in s.last_report,
           s.last_report.replace("\n", " / "))
     reg = addon._read_registry(arm)
     voci = reg.get("MCH-a", {})
-    check("registro aggiornato: una sola voce",
-          len(voci) == 1 and pb.constraints[0].name in voci, voci)
+    check("registro conserva entrambe le voci",
+          len(voci) == 2
+          and all(c.name in voci for c in pb.constraints), voci)
 
     s.constraint_type = 'COPY_TRANSFORMS'
     bpy.ops.actd.apply_transforms()
-    check("round-trip: torna Copy Transforms",
-          len(pb.constraints) == 1
-          and pb.constraints[0].type == 'COPY_TRANSFORMS',
+    check("round-trip: nessun duplicato, Copy Transforms resta presente",
+          len(pb.constraints) == 2
+          and any(c.type == 'COPY_TRANSFORMS' and addon._is_generated(arm, pb, c)
+                  for c in pb.constraints),
           [c.type for c in pb.constraints])
 except Exception:
     traceback.print_exc()

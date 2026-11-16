@@ -15,17 +15,18 @@ $allSuites = @(
     @{ Name = 'test_func1.py'; Expected = 5 },
     @{ Name = 'test_actd.py'; Expected = 106 },
     @{ Name = 'test_mod_types.py'; Expected = 49 },
+    @{ Name = 'test_keep_mixed_types.py'; Expected = 25 },
     @{ Name = 'test_mod_autoprefix.py'; Expected = 35 },
     @{ Name = 'test_mod_learn.py'; Expected = 40 },
     @{ Name = 'test_mod6.py'; Expected = 170 },
     @{ Name = 'test_i18n.py'; Expected = 65 },
     @{ Name = 'test_mod7.py'; Expected = 50 }
 )
-# Totale atteso delle 12 suite: 652 controlli.
+# Totale atteso delle 13 suite: 677 controlli.
 $expectedTotalAll = 0
 foreach ($suite in $allSuites) { $expectedTotalAll += $suite.Expected }
-if ($expectedTotalAll -ne 652) {
-    throw "Totale atteso del full-run non valido: $expectedTotalAll (attesi 652)"
+if ($expectedTotalAll -ne 677) {
+    throw "Totale atteso del full-run non valido: $expectedTotalAll (attesi 677)"
 }
 $validateAll = -not $PSBoundParameters.ContainsKey('Suites') -or [string]::IsNullOrWhiteSpace($Suites)
 $selectedSuites = @()

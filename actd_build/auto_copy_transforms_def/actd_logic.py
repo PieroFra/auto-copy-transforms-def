@@ -110,7 +110,8 @@ def _mark_preview_stale(self, context):
     # AUTO_COPY_FK_to_DEF appena cambia il token sorgente, senza toccare la
     # tab Avanzate. Un nome scritto dall'utente resta invariato.
     name = getattr(self, "constraint_name", "") or ""
-    if name.startswith("AUTO_COPY_") and "_to_" in name:
+    if ((name.startswith("AUTO_COPY_") and "_to_" in name)
+            or (name.startswith("AUTO COPY ") and " to " in name)):
         suggested = _suggest_constraint_name(self)
         if suggested != name:
             self.constraint_name = suggested

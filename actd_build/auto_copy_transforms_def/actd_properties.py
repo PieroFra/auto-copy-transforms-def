@@ -242,7 +242,11 @@ class ACTD_Settings(PropertyGroup):
     )
     existing_mode: EnumProperty(
         name="Constraint esistenti",
-        description="Mantieni o sostituisci i constraint Copy Transforms già presenti sull'osso destinazione",
+        description=(
+            "Mantieni: i constraint di tipi diversi coesistono. "
+            "Sostituisci: rimuove solo i constraint generati per nome esatto; "
+            "i manuali con nome diverso restano (GENERATED_ONLY)"
+        ),
         items=EXISTING_MODE_ITEMS,
         default='KEEP',
     )
@@ -265,7 +269,10 @@ class ACTD_Settings(PropertyGroup):
     )
     avoid_duplicates: BoolProperty(
         name="Evita duplicati",
-        description="Non creare un constraint se sull'osso ne esiste già uno manuale equivalente",
+        description=(
+            "Non creare un constraint se sull'osso esiste già uno dello stesso "
+            "tipo, target e subtarget (evita duplicati equivalenti)"
+        ),
         default=True,
     )
     resolve_ambiguous: BoolProperty(

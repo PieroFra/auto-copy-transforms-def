@@ -669,9 +669,17 @@ class ACTD_OT_apply(Operator):
                 for con in list(pose_bone.constraints):
                     if con.type != con_type:
                         continue
-                    if replace_choice == 'GENERATED_ONLY' and (
-                        pose_bone.name, con.name
-                    ) not in generati_replace:
+                    # Un constraint e' "generato" solo se il suo nome compare nel
+                    # registro dell'armatura OPPURE tra quelli rilevati da
+                    # _find_all_generated (che include il fallback di rinomina).
+                    # I constraint manuali, anche omonimi, restano intatti.
+                    is_generated = (
+                        con.name in _registry_constraint_names(arm_obj, pose_bone)
+                        or con.name in {
+                            c.name for c in _find_all_generated(arm_obj, pose_bone)
+                        }
+                    )
+                    if replace_choice == 'GENERATED_ONLY' and not is_generated:
                         # Scelta esplicita di conservare i manuali: non si crea
                         # un doppione sopra il constraint che resta.
                         keep_manual = True
@@ -705,19 +713,6 @@ class ACTD_OT_apply(Operator):
                 if getattr(c, "subtarget", "") == res.source
             ]
             same_type = [c for c in generated_all if c.type == con_type]
-            other_type = [c for c in generated_all if c.type != con_type]
-
-            # Cambio di tipo: i constraint generati con un tipo diverso vengono
-            # sostituiti, altrimenti resterebbero due copie sovrapposte.
-            if not same_type and other_type:
-                for stale in other_type:
-                    _forget_generated(arm_obj, pose_bone, stale.name)
-                    pose_bone.constraints.remove(stale)
-                    replaced += 1
-                warnings.append(
-                    f"Osso '{res.dest}': sostituiti {len(other_type)} constraint "
-                    f"generati di tipo diverso."
-                )
 
             if same_type:
                 generated = same_type[0]

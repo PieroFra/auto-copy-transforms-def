@@ -38,6 +38,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deleting or renaming constraints manually outside the Maintenance panel can
   leave orphan entries (removable via "Clean registry").
 
+## [1.3.2] - 2026-11-16
+
+### Fixed
+
+- KEEP mode now counts by constraint type. On the same bone, a Copy Location,
+  a Copy Rotation and a Copy Scale coexist side by side, each checked against
+  its own type: no more "already exists" when the types actually differ.
+- REPLACE mode only touches constraints the add-on generated. Constraints you
+  made by hand stay put, even without going through the confirmation dialog.
+- Generated constraints get a per-type name (one per type instead of one
+  shared name), so you can tell them apart at a glance in the modifier stack.
+
 ## [1.3.1] - 2026-11-04
 
 ### Changed

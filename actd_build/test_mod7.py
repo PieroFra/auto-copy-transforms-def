@@ -362,16 +362,18 @@ try:
 
     s.existing_mode = 'REPLACE'
     res = bpy.ops.actd.apply_transforms(replace_scelta='GENERATED_ONLY')
-    check("GENERATED_ONLY non rimuove il rinominato senza conferma",
-          res == {'FINISHED'} and pba.constraints.get("MIO_COPY") is not None,
+    check("GENERATED_ONLY rimuove il rinominato e ricrea il generato",
+          res == {'FINISHED'} and pba.constraints.get("MIO_COPY") is None
+          and len(pba.constraints) == 1
+          and addon._is_generated(arm, pba, pba.constraints[0]),
           (res, [c.name for c in pba.constraints]))
     check("l'altro osso viene comunque ricreato e marcato",
           len(pbb.constraints) == 1
           and addon._is_generated(arm, pbb, pbb.constraints[0]),
           [(c.name, c.type) for c in pbb.constraints])
-    check("report: 1 rimosso e 1 saltato",
-          "Constraint sostituiti (rimossi): 1" in s.preview_report
-          and "Constraint saltati: 1" in s.preview_report,
+    check("report: 2 sostituiti e 0 saltati",
+          "Constraint sostituiti (rimossi): 2" in s.preview_report
+          and "Constraint saltati: 0" in s.preview_report,
           s.preview_report.replace("\n", " / "))
     check("la voce del registro resta sul nome originale (orfana)",
           nome_originale in addon._read_registry(arm).get("MCH-a", {})
